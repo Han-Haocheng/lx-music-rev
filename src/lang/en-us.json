@@ -406,6 +406,8 @@
   "setting__dislike_list_tips": "1. One line per entry. If there is an \"@\" symbol in the name of the song or artist, it needs to be replaced with \"#\"\n2. Specify a song by a certain artist: song_name@artist_name\n3. Specify a song: song_name\n4. Specify an artist: @artist_name",
   "setting__dislike_list_title": "Disliked Song Rule List",
   "setting__download": "Download",
+  "setting__download_auto": "Auto Download",
+  "setting__download_auto_when_play": "Auto-download songs while playing",
   "setting__download_data_embed": "Embed the Following into Audio File",
   "setting__download_embed_lxlyric": "Embed LX Music lyrics at the same time (if any, verbatim lyrics can be supported when playing with LX Music)",
   "setting__download_embed_lyric": "Embed lyrics",

@@ -406,6 +406,8 @@
   "setting__dislike_list_tips": "1. 每條一行，若歌曲或者演出者名字中存在「@」符號，需要將其取代成「#」\n2. 指定某演出者的某首歌：標題@演出者\n3. 指定某首歌：標題\n4. 指定某演出者：@演出者",
   "setting__dislike_list_title": "「不喜歡的歌曲」規則清單",
   "setting__download": "下載設定",
+  "setting__download_auto": "自動下載",
+  "setting__download_auto_when_play": "播放歌曲時自動下載",
   "setting__download_data_embed": "嵌入到音訊檔案中的內容",
   "setting__download_embed_lxlyric": "同時嵌入 LX Music 歌詞（如果有，使用 LX Music 播放時可支持逐字歌詞）",
   "setting__download_embed_lyric": "嵌入歌詞",

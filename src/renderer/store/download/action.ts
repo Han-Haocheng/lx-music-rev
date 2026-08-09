@@ -366,6 +366,15 @@ export const createDownloadTasks = async(list: LX.Music.MusicInfoOnline[], quali
 }
 
 /**
+ * 边听边下载：播放歌曲时自动创建下载任务
+ */
+export const createAutoDownloadTasks = (musicInfo: LX.Music.MusicInfo | LX.Download.ListItem | null, listId: string | null = null, isForce = false) => {
+  if (!musicInfo || 'progress' in musicInfo || musicInfo.source === 'local') return
+  if (!isForce && (!appSetting['download.enable'] || !appSetting['download.autoDownloadWhenPlay'])) return
+  void createDownloadTasks([toRaw(musicInfo) as LX.Music.MusicInfoOnline], appSetting['player.playQuality'], listId ?? undefined)
+}
+
+/**
  * 开始下载任务
  * @param list
  */

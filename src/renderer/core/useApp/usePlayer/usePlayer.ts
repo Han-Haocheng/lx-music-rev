@@ -26,6 +26,7 @@ import {
 } from '@renderer/store/player/action'
 
 import { appSetting } from '@renderer/store/setting'
+import { createAutoDownloadTasks } from '@renderer/store/download/action'
 
 import useLyric from './useLyric'
 import useVolume from './useVolume'
@@ -65,6 +66,10 @@ export default () => {
   }
   const removePowerSaveBlocker = () => {
     setPowerSaveBlocker(false)
+  }
+  const handlePlayerPlaying = () => {
+    addPowerSaveBlocker()
+    createAutoDownloadTasks(playMusicInfo.musicInfo, playMusicInfo.listId)
   }
 
   const setPlayStatus = () => {
@@ -148,7 +153,7 @@ export default () => {
   window.app_event.on('stop', setStopStatus)
   window.app_event.on('musicToggled', handleUpdatePlayInfo)
   window.app_event.on('playerCanplay', handleCanplay)
-  window.app_event.on('playerPlaying', addPowerSaveBlocker)
+  window.app_event.on('playerPlaying', handlePlayerPlaying)
   window.app_event.on('playerEmptied', removePowerSaveBlocker)
 
   window.app_event.on('playerEnded', handleEnded)
@@ -172,7 +177,7 @@ export default () => {
     window.app_event.off('error', setPauseStatus)
     window.app_event.off('stop', setStopStatus)
     window.app_event.off('musicToggled', handleUpdatePlayInfo)
-    window.app_event.off('playerPlaying', addPowerSaveBlocker)
+    window.app_event.off('playerPlaying', handlePlayerPlaying)
     window.app_event.off('playerEmptied', removePowerSaveBlocker)
     window.app_event.off('playerCanplay', handleCanplay)
 

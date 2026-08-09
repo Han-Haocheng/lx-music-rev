@@ -501,6 +501,11 @@ declare global {
       'download.enable': boolean
 
       /**
+       * 播放歌曲时自动下载
+       */
+      'download.autoDownloadWhenPlay': boolean
+
+      /**
        * 按列表名分组保存
        */
       'download.isSavePathGroupByListName': boolean

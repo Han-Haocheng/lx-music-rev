@@ -1,6 +1,10 @@
 <template lang="pug">
 dt#download {{ $t('setting__download') }}
 dd
+  h3#download_auto {{ $t('setting__download_auto') }}
+  .gap-top
+    base-checkbox(id="setting_download_auto_when_play" :model-value="appSetting['download.autoDownloadWhenPlay']" :label="$t('setting__download_auto_when_play')" @update:model-value="handleUpdateAutoDownloadWhenPlay")
+dd
   .gap-top
     base-checkbox(id="setting_download_enable" :model-value="appSetting['download.enable']" :label="$t('setting__download_enable')" @update:model-value="updateSetting({'download.enable': $event})")
   .gap-top
@@ -76,6 +80,8 @@ import { computed } from '@common/utils/vueTools'
 import { showSelectDialog, openDirInExplorer } from '@renderer/utils/ipc'
 import { useI18n } from '@renderer/plugins/i18n'
 import { appSetting, updateSetting } from '@renderer/store/setting'
+import { playMusicInfo } from '@renderer/store/player/state'
+import { createAutoDownloadTasks } from '@renderer/store/download/action'
 import { dialog } from '@renderer/plugins/Dialog'
 
 export default {
@@ -102,6 +108,14 @@ export default {
       updateSetting({ 'download.maxDownloadNum': id })
     }
 
+    const handleUpdateAutoDownloadWhenPlay = (enable) => {
+      updateSetting({
+        'download.autoDownloadWhenPlay': enable,
+        'download.enable': enable || appSetting['download.enable'],
+      })
+      if (enable) createAutoDownloadTasks(playMusicInfo.musicInfo, playMusicInfo.listId, true)
+    }
+
     const musicNames = computed(() => {
       return [
         { value: '歌名 - 歌手', name: t('setting__download_name1') },
@@ -126,6 +140,7 @@ export default {
       lrcFormatList,
       maxNums,
       handleUpdateMaxNum,
+      handleUpdateAutoDownloadWhenPlay,
     }
   },
 }
