@@ -110,12 +110,14 @@ export const applyElectronEnvParams = () => {
   if (global.envParams.cmdParams.dhmkh) app.commandLine.appendSwitch('disable-features', 'HardwareMediaKeyHandling')
 
   // fix linux transparent fail. https://github.com/electron/electron/issues/25153#issuecomment-843688494
-  if (process.platform == 'linux') app.commandLine.appendSwitch('use-gl', 'desktop')
+  if (process.platform == 'linux') app.commandLine.appendSwitch('use-gl', 'egl')
 
   // https://github.com/electron/electron/issues/22691
   app.commandLine.appendSwitch('wm-window-animations-disabled')
 
-  app.commandLine.appendSwitch('--disable-gpu-sandbox')
+  // GPU sandbox is disabled on Linux to avoid compatibility issues with certain GPU drivers
+  // This is safe for a local music player app
+  if (process.platform == 'linux') app.commandLine.appendSwitch('disable-gpu-sandbox')
 
   // proxy
   if (global.envParams.cmdParams['proxy-server']) {

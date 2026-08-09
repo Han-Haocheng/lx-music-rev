@@ -1,11 +1,26 @@
-import { autoUpdater } from 'electron-updater'
 import { log, isWin } from '@common/utils'
 import { mainOn } from '@common/mainIpc'
 import { isExistWindow, sendEvent } from './index'
 import { WIN_MAIN_RENDERER_EVENT_NAME } from '@common/ipcNames'
 
-autoUpdater.logger = log
-autoUpdater.autoDownload = false
+let autoUpdater: any
+
+try {
+  autoUpdater = require('electron-updater').autoUpdater
+  autoUpdater.logger = log
+  autoUpdater.autoDownload = false
+} catch {
+  // Running from source (not packaged as AppImage), auto-updater is unavailable
+  autoUpdater = {
+    on(_event: string, _handler: (...args: any[]) => void) {},
+    isUpdaterActive() { return false },
+    downloadUpdate() {},
+    quitAndInstall() {},
+    checkForUpdates() {},
+    logger: log,
+    autoDownload: false,
+  }
+}
 // autoUpdater.forceDevUpdateConfig = true
 // autoUpdater.autoDownload = false
 
@@ -80,26 +95,26 @@ export default () => {
   autoUpdater.on('checking-for-update', () => {
     sendStatusToWindow('Checking for update...')
   })
-  autoUpdater.on('update-available', info => {
+  autoUpdater.on('update-available', (info: any) => {
     sendStatusToWindow('Update available.')
     handleSendEvent({ type: WIN_MAIN_RENDERER_EVENT_NAME.update_available, info })
   })
-  autoUpdater.on('update-not-available', info => {
+  autoUpdater.on('update-not-available', (info: any) => {
     sendStatusToWindow('Update not available.')
     handleSendEvent({ type: WIN_MAIN_RENDERER_EVENT_NAME.update_not_available, info })
   })
-  autoUpdater.on('error', err => {
+  autoUpdater.on('error', (err: any) => {
     sendStatusToWindow('Error in auto-updater.')
     handleSendEvent({ type: WIN_MAIN_RENDERER_EVENT_NAME.update_error, info: err.message })
   })
-  autoUpdater.on('download-progress', progressObj => {
+  autoUpdater.on('download-progress', (progressObj: any) => {
     let log_message = `Download speed: ${progressObj.bytesPerSecond}`
     log_message = `${log_message} - Downloaded ${progressObj.percent}%`
     log_message = `${log_message} (progressObj.transferred/${progressObj.total})`
     sendStatusToWindow(log_message)
     handleSendEvent({ type: WIN_MAIN_RENDERER_EVENT_NAME.update_progress, info: progressObj })
   })
-  autoUpdater.on('update-downloaded', info => {
+  autoUpdater.on('update-downloaded', (info: any) => {
     sendStatusToWindow('Update downloaded.')
     handleSendEvent({ type: WIN_MAIN_RENDERER_EVENT_NAME.update_downloaded, info })
   })
