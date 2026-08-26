@@ -6,6 +6,7 @@ import { WIN_MAIN_RENDERER_EVENT_NAME } from '@common/ipcNames'
 let autoUpdater: any
 
 try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   autoUpdater = require('electron-updater').autoUpdater
   autoUpdater.logger = log
   autoUpdater.autoDownload = false
