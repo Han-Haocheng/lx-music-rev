@@ -6,6 +6,11 @@
         <use xlink:href="#icon-add-2" />
       </svg>
     </button>
+    <button v-show="appSetting['download.enable']" :class="$style.titleBtn" :aria-label="$t('list__download')" @click="download">
+      <svg v-once version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="100%" viewBox="0 0 475.078 475.077" space="preserve">
+        <use xlink:href="#icon-download" />
+      </svg>
+    </button>
     <button :class="$style.titleBtn" :aria-label="toggleDesktopLyricBtnTitle" @click="toggleDesktopLyric" @contextmenu="toggleLockDesktopLyric">
       <svg v-show="appSetting['desktopLyric.enable']" version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="100%" viewBox="0 0 512 512" space="preserve">
         <use xlink:href="#icon-desktop-lyric-on" />
@@ -17,6 +22,7 @@
     <common-volume-btn />
     <common-toggle-play-mode-btn />
     <common-list-add-modal v-model:show="isShowAddMusicTo" :music-info="playMusicInfo.musicInfo" />
+    <common-download-modal v-model:show="isShowDownload" :music-info="playMusicInfo.musicInfo" />
   </div>
 </template>
 
@@ -29,6 +35,7 @@ import { appSetting } from '@renderer/store/setting'
 export default {
   setup() {
     const isShowAddMusicTo = ref(false)
+    const isShowDownload = ref(false)
     const {
       toggleDesktopLyricBtnTitle,
       toggleDesktopLyric,
@@ -38,13 +45,19 @@ export default {
       if (!musicInfo.id) return
       isShowAddMusicTo.value = true
     }
+    const download = () => {
+      if (!musicInfo.id || musicInfo.source === 'local') return
+      isShowDownload.value = true
+    }
     return {
       appSetting,
       isShowAddMusicTo,
+      isShowDownload,
       toggleDesktopLyricBtnTitle,
       toggleDesktopLyric,
       toggleLockDesktopLyric,
       addMusicTo,
+      download,
       playMusicInfo,
     }
   },

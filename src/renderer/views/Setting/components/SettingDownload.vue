@@ -1,16 +1,16 @@
 <template lang="pug">
 dt#download {{ $t('setting__download') }}
 dd
-  h3#download_auto {{ $t('setting__download_auto') }}
-  .gap-top
-    base-checkbox(id="setting_download_auto_when_play" :model-value="appSetting['download.autoDownloadWhenPlay']" :label="$t('setting__download_auto_when_play')" @update:model-value="handleUpdateAutoDownloadWhenPlay")
-dd
   .gap-top
     base-checkbox(id="setting_download_enable" :model-value="appSetting['download.enable']" :label="$t('setting__download_enable')" @update:model-value="updateSetting({'download.enable': $event})")
   .gap-top
     base-checkbox(id="setting_download_skip_exist_file" :model-value="appSetting['download.skipExistFile']" :label="$t('setting__download_skip_exist_file')" @update:model-value="updateSetting({'download.skipExistFile': $event})")
   .gap-top
     base-checkbox(id="setting_download_save_group_list_name" :model-value="appSetting['download.isSavePathGroupByListName']" :label="$t('setting_download_save_group_list_name')" @update:model-value="updateSetting({'download.isSavePathGroupByListName': $event})")
+dd
+  h3#download_auto {{ $t('setting__download_auto') }}
+  .gap-top
+    base-checkbox(id="setting_download_auto_when_play" :model-value="appSetting['download.autoDownloadWhenPlay']" :label="$t('setting__download_auto_when_play')" @update:model-value="handleUpdateAutoDownloadWhenPlay")
 dd(:aria-label="$t('setting__download_path_title')")
   h3#download_path {{ $t('setting__download_path') }}
   div
