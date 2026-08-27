@@ -72,8 +72,14 @@ export const getMusicType = (musicInfo: LX.Music.MusicInfoOnline, type: LX.Quali
 export const createDownloadInfo = (musicInfo: LX.Music.MusicInfoOnline, type: LX.Quality, fileName: string, qualityList: LX.QualityList, listId?: string) => {
   type = getMusicType(musicInfo, type, qualityList)
   let ext = getExt(type)
-  const key = `${musicInfo.id}_${type}_${ext}`
-  // if (checkExistList(list, musicInfo, type, ext)) return null
+  const key = musicInfo.id + '_' + type + '_' + ext
+  // 格式化模板：{歌名} {歌手} {专辑} {音质} {扩展名}，"/" 用于创建多级子目录
+  const formatName = formatMusicName(fileName, musicInfo.name, clipNameLength(musicInfo.singer), musicInfo.meta.albumName, type, ext)
+  const nameSplited = formatName.split('/').map(seg => seg.trim()).filter(seg => seg.length)
+  const baseName = nameSplited.pop() ?? musicInfo.name
+  const dirPath = nameSplited.map(seg => filterFileName(clipFileNameLength(seg))).join('/')
+  const saveName = filterFileName(clipFileNameLength(baseName))
+  const saveFileName = (dirPath ? dirPath + '/' : '') + saveName + '.' + ext
   const downloadInfo: LX.Download.ListItem = {
     id: key,
     isComplate: false,
@@ -91,7 +97,7 @@ export const createDownloadInfo = (musicInfo: LX.Music.MusicInfoOnline, type: LX
       ext,
       filePath: '',
       listId,
-      fileName: filterFileName(`${clipFileNameLength(formatMusicName(fileName, musicInfo.name, clipNameLength(musicInfo.singer)))}.${ext}`),
+      fileName: saveFileName,
     },
   }
   // downloadInfo.metadata.filePath = joinPath(savePath, downloadInfo.metadata.fileName)

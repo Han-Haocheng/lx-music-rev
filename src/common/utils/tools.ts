@@ -148,7 +148,14 @@ export const clipFileNameLength = (name: string) => {
   return name.length > MAX_FILE_NAME_LENGTH ? name.substring(0, MAX_FILE_NAME_LENGTH) : name
 }
 
-export const formatMusicName = (format: string, name: string, singer: string) => {
-  // return format.replace(/歌名|歌手/g, match => match === '歌名' ? name : singer)
-  return format.replace('歌手', singer).replace('歌名', name)
+export const formatMusicName = (format: string, name: string, singer: string, album = '', quality = '', ext = '') => {
+  return format
+    .replace(/{歌名}/g, name)
+    .replace(/{歌手}/g, singer)
+    .replace(/{专辑}/g, album)
+    .replace(/{音质}/g, quality)
+    .replace(/{扩展名}/g, ext)
+    // 兼容旧写法：直接使用 "歌名"/"歌手" 字面词
+    .replace('歌手', singer)
+    .replace('歌名', name)
 }

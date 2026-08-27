@@ -57,7 +57,8 @@ function startRenderer() {
       },
       client: {
         logging: 'warn',
-        overlay: true,
+        // 关闭错误浮层：ResizeObserver 等良性浏览器警告会被 overlay 全屏显示
+        overlay: false,
       },
       setupMiddlewares(middlewares, devServer) {
         devServer.app.use(hotMiddlewareRenderer)
@@ -105,7 +106,8 @@ function startRendererLyric() {
       // },
       client: {
         logging: 'warn',
-        overlay: true,
+        // 关闭错误浮层：ResizeObserver 等良性浏览器警告会被 overlay 全屏显示
+        overlay: false,
       },
       setupMiddlewares(middlewares, devServer) {
         devServer.app.use(hotMiddlewareRenderer)

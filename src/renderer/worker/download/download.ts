@@ -55,6 +55,11 @@ export const createDownloadTasks = (
   // }
 }
 
+const getBaseFileName = (fileName: string) => {
+  const splited = fileName.split(/[\\/]/)
+  return splited.pop() ?? fileName
+}
+
 const createTask = async(downloadInfo: LX.Download.ListItem, savePath: string, skipExistFile: boolean, proxy?: { host: string, port: number }) => {
   // console.log('createTask', downloadInfo, savePath)
   // 开始任务
@@ -101,7 +106,8 @@ const createTask = async(downloadInfo: LX.Download.ListItem, savePath: string, s
   const downloadOptions: DownloadOptions = {
     url: downloadInfo.metadata.url ?? '',
     path: savePath,
-    fileName: downloadInfo.metadata.fileName,
+    // 命名模板支持多级子目录：savePath 已含子目录，fileName 只需文件基本名
+    fileName: getBaseFileName(downloadInfo.metadata.fileName),
     method: 'get',
     proxy,
     onCompleted() {
@@ -267,7 +273,7 @@ export const startTask = async(downloadInfo: LX.Download.ListItem, savePath: str
     //   downloadInfo,
     //   filePath: path.join(rootState.setting.download.savePath, downloadInfo.metadata.fileName),
     // })
-    dl.updateSaveInfo(savePath, downloadInfo.metadata.fileName)
+    dl.updateSaveInfo(savePath, getBaseFileName(downloadInfo.metadata.fileName))
     if (tryNum.has(downloadInfo.id)) tryNum.set(downloadInfo.id, 0)
     try {
       await dl.start()

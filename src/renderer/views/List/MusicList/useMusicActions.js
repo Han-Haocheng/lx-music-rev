@@ -4,7 +4,6 @@ import { openUrl, clipboardWriteText } from '@common/utils/electron'
 import { dialog } from '@renderer/plugins/Dialog'
 import { useI18n } from '@renderer/plugins/i18n'
 import { removeListMusics } from '@renderer/store/list/action'
-import { appSetting } from '@renderer/store/setting'
 import { formatMusicName, toOldMusicInfo } from '@renderer/utils/index'
 import { addDislikeInfo, hasDislike } from '@renderer/core/dislikeList'
 import { playNext } from '@renderer/core/player'
@@ -34,7 +33,8 @@ export default ({ props, list, selectedList, removeAllSelect }) => {
 
   const handleCopyName = index => {
     const minfo = list.value[index]
-    clipboardWriteText(formatMusicName(appSetting['download.fileName'], minfo.name, minfo.singer))
+    // 复制歌曲信息固定使用“歌名 - 歌手”格式，不受下载命名模板影响
+    clipboardWriteText(formatMusicName('歌名 - 歌手', minfo.name, minfo.singer))
   }
 
   const handleDislikeMusic = async(index) => {

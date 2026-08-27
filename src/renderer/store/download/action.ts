@@ -268,12 +268,17 @@ const handleStartTask = async(downloadInfo: LX.Download.ListItem) => {
   }
 
   const savePath = buildSavePath(downloadInfo)
-  const filePath = joinPath(savePath, downloadInfo.metadata.fileName)
+  // 支持命名模板中的多级子目录：将文件名中的目录部分拆分出来
+  const fileNameSplited = downloadInfo.metadata.fileName.split(/[\\/]/)
+  const baseFileName = fileNameSplited.pop() ?? downloadInfo.metadata.fileName
+  const subDirPath = fileNameSplited.join('/')
+  const saveDirPath = subDirPath ? joinPath(savePath, subDirPath) : savePath
+  const filePath = joinPath(saveDirPath, baseFileName)
   if (downloadInfo.metadata.filePath != filePath) updateFilePath(downloadInfo, filePath)
 
   setStatusText(downloadInfo, window.i18n.t('download_status_start'))
 
-  await window.lx.worker.download.startTask(toRaw(downloadInfo), savePath, appSetting['download.skipExistFile'], proxyCallback((event: LX.Download.DownloadTaskActions) => {
+  await window.lx.worker.download.startTask(toRaw(downloadInfo), saveDirPath, appSetting['download.skipExistFile'], proxyCallback((event: LX.Download.DownloadTaskActions) => {
     // console.log(event)
     switch (event.action) {
       case 'start':
