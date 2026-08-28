@@ -1,6 +1,7 @@
 import { SYNC_CLOSE_CODE } from '@common/constants_sync'
 import { registerListActionEvent } from '../../../../listEvent'
 import { getUserSpace } from '../../../user'
+import { sendSyncError } from '../../../utils'
 
 // let socket: LX.Sync.Server.Socket | null
 let unregisterLocalListAction: (() => void) | null
@@ -17,7 +18,7 @@ const sendListAction = async(wss: LX.Sync.Server.SocketServer, action: LX.Sync.L
     void client.remoteQueueList.onListSyncAction(action).then(async() => {
       return userSpace.listManage.updateDeviceSnapshotKey(client.keyInfo.clientId, key)
     }).catch(err => {
-      // TODO send status
+      sendSyncError(err.message)
       client.close(SYNC_CLOSE_CODE.failed)
       // client.moduleReadys.list = false
       console.log(err.message)

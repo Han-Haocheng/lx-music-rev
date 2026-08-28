@@ -5,6 +5,7 @@
 // import { SYNC_CLOSE_CODE } from '@common/constants_sync'
 import { SYNC_CLOSE_CODE } from '@common/constants_sync'
 import { getUserSpace } from '@main/modules/sync/server/user'
+import { sendSyncError } from '../../../utils'
 import { handleRemoteListAction } from '@main/modules/sync/listEvent'
 // import { encryptMsg } from '@/utils/tools'
 
@@ -160,7 +161,7 @@ const handler: LX.Sync.ServerSyncHandlerListActions<LX.Sync.Server.Socket> = {
       void client.remoteQueueList.onListSyncAction(action).then(async() => {
         return userSpace.listManage.updateDeviceSnapshotKey(client.keyInfo.clientId, key)
       }).catch(err => {
-        // TODO send status
+        sendSyncError(err.message)
         client.close(SYNC_CLOSE_CODE.failed)
         // client.moduleReadys.list = false
         console.log(err.message)

@@ -32,6 +32,9 @@ export default {
         case SYNC_CODE.authFailed:
           status = t('setting__sync_code_fail')
           break
+        case SYNC_CODE.syncActionFailed:
+          status = t('setting__sync_code_sync_failed')
+          break
         default:
           status = sync.client.status.message
             ? sync.client.status.message

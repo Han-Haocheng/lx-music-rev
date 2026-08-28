@@ -582,6 +582,7 @@
   "setting__sync_server_address": "Sync service address: {address}",
   "setting__sync_server_auth_code": "Connection code: {code}",
   "setting__sync_server_device": "Connected devices: {devices}",
+  "setting__sync_code_sync_failed": "Sync failed, the connection has been closed",
   "setting__sync_server_device_list_btn_remove": "Remove",
   "setting__sync_server_device_list_noitem": "Nothing here ┗( ▔, ▔ )┛",
   "setting__sync_server_device_list_time": "Last connection time: {time}",

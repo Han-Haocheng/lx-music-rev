@@ -5,6 +5,7 @@
 // import { SYNC_CLOSE_CODE } from '@common/constants_sync'
 import { SYNC_CLOSE_CODE } from '@common/constants_sync'
 import { getUserSpace } from '@main/modules/sync/server/user'
+import { sendSyncError } from '../../../utils'
 import { handleRemoteDislikeAction } from '@main/modules/sync/dislikeEvent'
 // import { encryptMsg } from '@/utils/tools'
 
@@ -23,7 +24,7 @@ const handler: LX.Sync.ServerSyncHandlerDislikeActions<LX.Sync.Server.Socket> = 
       void client.remoteQueueDislike.onDislikeSyncAction(action).then(async() => {
         return userSpace.dislikeManage.updateDeviceSnapshotKey(client.keyInfo.clientId, key)
       }).catch(err => {
-      // TODO send status
+        sendSyncError(err.message)
         client.close(SYNC_CLOSE_CODE.failed)
         // client.moduleReadys.dislike = false
         console.log(err.message)

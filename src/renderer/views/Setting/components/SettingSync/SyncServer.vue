@@ -5,6 +5,7 @@ dd
     .p.small {{ $t('setting__sync_server_auth_code', { code: sync.server.status.code || '' }) }}
     .p.small {{ $t('setting__sync_server_address', { address: sync.server.status.address.join(', ') || '' }) }}
     .p.small {{ $t('setting__sync_server_device', { devices: syncDevices }) }}
+    .p.small(v-if="sync.server.status.message") {{ sync.server.status.message }}
     .p.gap-top
       .p.small {{ $t('setting__sync_server_port') }}
       div

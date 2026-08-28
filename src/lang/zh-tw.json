@@ -582,6 +582,7 @@
   "setting__sync_server_address": "同步服務位址：{address}",
   "setting__sync_server_auth_code": "連線碼：{code}",
   "setting__sync_server_device": "已連線的裝置：{devices}",
+  "setting__sync_code_sync_failed": "同步操作失敗，連線已斷開",
   "setting__sync_server_device_list_btn_remove": "移除",
   "setting__sync_server_device_list_noitem": "這裡什麼也沒有 ┗( ▔, ▔ )┛",
   "setting__sync_server_device_list_time": "最後連線時間：{time}",

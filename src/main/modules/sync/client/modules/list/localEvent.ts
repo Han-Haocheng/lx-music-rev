@@ -1,5 +1,6 @@
-import { SYNC_CLOSE_CODE } from '@common/constants_sync'
+import { SYNC_CLOSE_CODE, SYNC_CODE } from '@common/constants_sync'
 import { registerListActionEvent } from '@main/modules/sync/listEvent'
+import { sendSyncMessage } from '../../client'
 
 let unregisterLocalListAction: (() => void) | null
 
@@ -13,7 +14,7 @@ export const registerEvent = (socket: LX.Sync.Client.Socket) => {
   unregisterLocalListAction = registerListActionEvent((action) => {
     if (!socket.moduleReadys?.list) return
     void socket.remoteQueueList.onListSyncAction(action).catch(err => {
-      // TODO send status
+      sendSyncMessage(SYNC_CODE.syncActionFailed)
       socket.moduleReadys.list = false
       socket.close(SYNC_CLOSE_CODE.failed)
       console.log(err.message)

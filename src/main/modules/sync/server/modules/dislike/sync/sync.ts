@@ -3,6 +3,7 @@ import { removeSelectModeListener, sendCloseSelectMode, sendSelectMode } from '@
 import { getUserSpace } from '../../../user'
 import { getLocalDislikeData, setLocalDislikeData } from '@main/modules/sync/dislikeEvent'
 import { SYNC_CLOSE_CODE } from '@common/constants_sync'
+import { sendSyncError } from '../../../utils'
 import { filterRules } from '../utils'
 // import { LIST_IDS } from '@common/constants'
 
@@ -66,7 +67,7 @@ const overwriteRemoteListData = async(socket: LX.Sync.Server.Socket, listData: L
     tasks.push(client.remoteQueueDislike.onDislikeSyncAction(action).then(async() => {
       return userSpace.dislikeManage.updateDeviceSnapshotKey(client.keyInfo.clientId, key)
     }).catch(err => {
-      // TODO send status
+      sendSyncError(err.message)
       client.close(SYNC_CLOSE_CODE.failed)
       // client.moduleReadys.list = false
       console.log(err.message)

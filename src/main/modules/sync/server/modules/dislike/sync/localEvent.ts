@@ -1,5 +1,6 @@
 import { SYNC_CLOSE_CODE } from '@common/constants_sync'
 import { registerDislikeActionEvent } from '../../../../dislikeEvent'
+import { sendSyncError } from '../../../utils'
 import { getUserSpace } from '../../../user'
 
 // let socket: LX.Sync.Server.Socket | null
@@ -17,7 +18,7 @@ const sendListAction = async(wss: LX.Sync.Server.SocketServer, action: LX.Sync.D
     void client.remoteQueueDislike.onDislikeSyncAction(action).then(async() => {
       return userSpace.dislikeManage.updateDeviceSnapshotKey(client.keyInfo.clientId, key)
     }).catch(err => {
-      // TODO send status
+      sendSyncError(err.message)
       client.close(SYNC_CLOSE_CODE.failed)
       // client.moduleReadys.dislike = false
       console.log(err.message)

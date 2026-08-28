@@ -3,6 +3,7 @@ import { removeSelectModeListener, sendCloseSelectMode, sendSelectMode } from '@
 import { getUserSpace, getUserConfig } from '../../../user'
 import { buildUserListInfoFull, getLocalListData, setLocalListData } from '@main/modules/sync/listEvent'
 import { SYNC_CLOSE_CODE } from '@common/constants_sync'
+import { sendSyncError } from '../../../utils'
 // import { LIST_IDS } from '@common/constants'
 
 // type ListInfoType = LX.List.UserListInfoFull | LX.List.MyDefaultListInfoFull | LX.List.MyLoveListInfoFull
@@ -72,7 +73,7 @@ const overwriteRemoteListData = async(socket: LX.Sync.Server.Socket, listData: L
     tasks.push(client.remoteQueueList.onListSyncAction(action).then(async() => {
       return userSpace.listManage.updateDeviceSnapshotKey(client.keyInfo.clientId, key)
     }).catch(err => {
-      // TODO send status
+      sendSyncError(err.message)
       client.close(SYNC_CLOSE_CODE.failed)
       // client.moduleReadys.list = false
       console.log(err.message)
