@@ -8,7 +8,7 @@ import defaultSetting from '@common/defaultSetting'
 import { isExistWindow as isExistMainWindow, showWindow as showMainWindow } from './modules/winMain'
 import { destroyTray } from './modules/tray'
 import { createAppEvent, createDislikeEvent, createListEvent } from '@main/event'
-import { isMac, log } from '@common/utils'
+import { isLinux, isMac, log } from '@common/utils'
 import createWorkers from './worker'
 import { migrateDBData } from './utils/migrate'
 import { openDirInExplorer } from '@common/utils/electron'
@@ -327,7 +327,11 @@ export const initAppSetting = async() => {
     global.lx.appSetting = (await initSetting()).setting
     if (!dbFileExists) await migrateDBData().catch(err => { log.error(err) })
     initTheme()
-    if (global.envParams.cmdParams.dt == null) global.envParams.cmdParams.dt = !global.lx.appSetting['common.transparentWindow']
+    if (global.envParams.cmdParams.dt == null) {
+      // Wayland 合成器下透明窗口不可见（KWin/Chromium 限制），强制使用不透明模式
+      const isWayland = process.env.XDG_SESSION_TYPE === 'wayland' || !!process.env.WAYLAND_DISPLAY
+      global.envParams.cmdParams.dt = !global.lx.appSetting['common.transparentWindow'] || (isLinux && isWayland)
+    }
     // eslint-disable-next-line require-atomic-updates -- 初始化由 index.ts 的 initing 锁保护，不会并发执行
     isInitialized = true
   }
