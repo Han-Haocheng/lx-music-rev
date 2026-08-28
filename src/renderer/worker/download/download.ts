@@ -326,7 +326,9 @@ export const removeTask = async(id: string) => {
     if (!downloadInfo.isComplate && downloadInfo.total && downloadInfo.downloaded > 1024) {
       try {
         await removeFile(downloadInfo.metadata.filePath)
-      } catch (_) {}
+      } catch (err) {
+        console.warn('删除文件失败:', err)
+      }
     }
   }
 }

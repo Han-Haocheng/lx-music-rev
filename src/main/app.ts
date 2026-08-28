@@ -183,15 +183,12 @@ export const listenerAppEvent = (startApp: () => void) => {
       }
       if (!navigationUrlWhiteList.some(url => url.test(navigationUrl))) {
         event.preventDefault()
-        return
       }
-      console.log('navigation to url:', navigationUrl)
     })
     contents.setWindowOpenHandler(({ url }) => {
       if (!/^devtools/.test(url) && /^https?:\/\//.test(url)) {
         void shell.openExternal(url)
       }
-      console.log(url)
       return { action: 'deny' }
     })
     contents.on('will-attach-webview', (event, webPreferences, params) => {
@@ -348,4 +345,11 @@ export const quitApp = () => {
     // 3. 最后结束进程
     app.quit()
   }, 100)
+}
+
+export const forceQuitApp = () => {
+  // 强制退出：不触发窗口关闭流程，直接结束进程；退出前注销托盘避免任务栏残留图标
+  // 注意：与 quitApp 不同，此路径不等待托盘菜单收起（当前无调用方从托盘菜单触发强制退出）
+  destroyTray()
+  app.exit(0)
 }

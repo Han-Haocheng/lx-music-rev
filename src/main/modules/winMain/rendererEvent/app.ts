@@ -1,5 +1,4 @@
 // const path = require('path')
-import { app } from 'electron'
 import { mainHandle, mainOn } from '@common/mainIpc'
 import { WIN_MAIN_RENDERER_EVENT_NAME } from '@common/ipcNames'
 // import { name as defaultName } from '../../../../../package.json'
@@ -22,7 +21,7 @@ import {
   showDialog,
   showSaveDialog,
 } from '@main/modules/winMain'
-import { quitApp } from '@main/app'
+import { forceQuitApp, quitApp } from '@main/app'
 import { getAllThemes, removeTheme, saveTheme, setPowerSaveBlocker } from '@main/utils'
 import { openDirInExplorer } from '@common/utils/electron'
 
@@ -58,7 +57,7 @@ export default () => {
   })
   mainOn<boolean>(WIN_MAIN_RENDERER_EVENT_NAME.close, ({ params: isForce }) => {
     if (isForce) {
-      app.exit(0)
+      forceQuitApp()
       return
     }
     closeWindow()

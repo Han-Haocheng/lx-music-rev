@@ -29,7 +29,6 @@ export const setProxy = (url?: string) => {
   setGlobalDispatcher(buildDispatcher())
 }
 export const setProxyByHost = (host?: string, port?: string) => {
-  console.log(host)
   setProxy(host ? `http://${host}:${port}` : undefined)
 }
 const CONTENT_TYPE = {

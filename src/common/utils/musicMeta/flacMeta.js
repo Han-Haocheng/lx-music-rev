@@ -1,7 +1,7 @@
 const fs = require('fs')
 const fsPromises = fs.promises
 const path = require('path')
-const getImgSize = require('image-size')
+const getImgSize = require('probe-image-size/sync')
 const download = require('./downloader')
 
 const FlacProcessor = require('./flac-metadata/index')
@@ -19,7 +19,15 @@ const writeMeta = async(filePath, meta, picPath) => {
   }
   if (picPath) {
     const apicData = await fsPromises.readFile(picPath)
-    let imgSize = getImgSize(apicData)
+    // probe-image-size 仅解析常见位图格式头部，无 ICNS/JXL/HEIF 解析器
+    // （替换 image-size 以修复其解析器无限循环漏洞），未知或畸形数据返回 null 或抛错，
+    // 这里统一回退尺寸为 0（FLAC picture 块允许 0 = unknown）
+    let imgSize
+    try {
+      imgSize = getImgSize(apicData)
+    } catch (err) {
+      console.warn('获取封面图片尺寸失败:', err)
+    }
     let mime_type
     let bitsPerPixel
     if (apicData[0] == 0xff && apicData[1] == 0xd8 && apicData[2] == 0xff) {
@@ -33,8 +41,8 @@ const writeMeta = async(filePath, meta, picPath) => {
       pictureType: 3,
       mimeType: mime_type,
       description: '',
-      width: imgSize.width,
-      height: imgSize.height,
+      width: imgSize ? imgSize.width : 0,
+      height: imgSize ? imgSize.height : 0,
       bitsPerPixel,
       colors: 0,
       pictureData: apicData,
