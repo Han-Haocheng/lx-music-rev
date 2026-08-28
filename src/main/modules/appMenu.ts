@@ -1,5 +1,6 @@
 import { app, Menu } from 'electron'
 import { isMac } from '@common/utils'
+import { quitApp } from '@main/app'
 
 
 export default () => {
@@ -16,8 +17,7 @@ export default () => {
             label: '退出',
             accelerator: 'Command+Q',
             click() {
-              global.lx.isSkipTrayQuit = true
-              app.quit()
+              quitApp()
             },
           },
         ],

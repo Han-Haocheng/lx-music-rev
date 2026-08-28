@@ -6,6 +6,7 @@ import { getProxy, getTheme, initHotKey, initSetting, parseEnvParams } from './u
 import { navigationUrlWhiteList } from '@common/config'
 import defaultSetting from '@common/defaultSetting'
 import { isExistWindow as isExistMainWindow, showWindow as showMainWindow } from './modules/winMain'
+import { destroyTray } from './modules/tray'
 import { createAppEvent, createDislikeEvent, createListEvent } from '@main/event'
 import { isMac, log } from '@common/utils'
 import createWorkers from './worker'
@@ -336,6 +337,15 @@ export const initAppSetting = async() => {
 }
 
 export const quitApp = () => {
+  if (global.lx.isSkipTrayQuit) return
   global.lx.isSkipTrayQuit = true
-  app.quit()
+  // 1. 先显示主窗口：使托盘菜单失去焦点并收起，
+  //    避免在菜单仍展开时注销托盘（StatusNotifierItem）导致桌面环境报错
+  showMainWindow()
+  // 2. 再注销托盘：等待托盘菜单真正关闭后再销毁
+  setTimeout(() => {
+    destroyTray()
+    // 3. 最后结束进程
+    app.quit()
+  }, 100)
 }
