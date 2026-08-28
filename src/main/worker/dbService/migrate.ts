@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3'
+import type { DB } from './nodeSqliteAdapter'
 import tables, { DB_VERSION } from './tables'
 
 // const migrateV1 = (db: Database.Database) => {
@@ -26,7 +26,7 @@ import tables, { DB_VERSION } from './tables'
 //   db.prepare('UPDATE "main"."db_info" SET "field_value"=@value WHERE "field_name"=@name').run({ name: 'version', value: '2' })
 // }
 
-const migrateV1 = (db: Database.Database) => {
+const migrateV1 = (db: DB) => {
   // 修复 v2.4.0 的默认数据库版本号不对的问题
   const existsTable = db.prepare('SELECT name FROM "main".sqlite_master WHERE type=\'table\' AND name=\'dislike_list\';').get()
   if (!existsTable) {
@@ -35,7 +35,7 @@ const migrateV1 = (db: Database.Database) => {
   }
 }
 
-export default (db: Database.Database) => {
+export default (db: DB) => {
   // PRAGMA user_version = x
   // console.log(db.prepare('PRAGMA user_version').get().user_version)
   // https://github.com/WiseLibs/better-sqlite3/issues/668#issuecomment-1145285728
