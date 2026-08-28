@@ -18,19 +18,18 @@ const initTables = (db: Database.Database) => {
 // 打开、初始化数据库
 export const init = (lxDataPath: string): boolean | null => {
   const databasePath = path.join(lxDataPath, 'lx.data.db')
-  const nativeBinding = path.join(__dirname, '../node_modules/better-sqlite3/build/Release/better_sqlite3.node')
+  // better-sqlite3 v13 起改为 N-API 预编译二进制（prebuilds/ 目录），
+  // 不再生成 build/Release/better_sqlite3.node，因此不再传 nativeBinding 由库自行定位
   let dbFileExists = true
 
   try {
     db = new Database(databasePath, {
       fileMustExist: true,
-      nativeBinding,
       // verbose: process.env.NODE_ENV !== 'production' ? console.log : undefined,
     })
   } catch (error) {
     console.log(error)
     db = new Database(databasePath, {
-      nativeBinding,
       // verbose: process.env.NODE_ENV !== 'production' ? console.log : undefined,
     })
     initTables(db)
