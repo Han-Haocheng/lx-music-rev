@@ -13,6 +13,13 @@ import { isLinux, log } from '@common/utils'
 import { initAppSetting } from '@main/app'
 import registerModules from '@main/modules'
 
+// Linux（如 Intel Xe/MESA 实验驱动）下 GPU 进程 GL 初始化失败会退出，
+// 导致窗口永不触发 ready-to-show（show:false 时窗口不可见）。
+// 禁用硬件加速走软件渲染，保证窗口正常显示。
+if (process.platform === 'linux') {
+  app.disableHardwareAcceleration()
+}
+
 // 初始化应用
 // open-url / activate / whenReady 均可能触发 init，使用 initing 锁保证
 // 初始化只并发执行一次，避免数据库、设置被重复初始化以及主窗口被重复创建

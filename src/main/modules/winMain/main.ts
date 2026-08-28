@@ -50,6 +50,16 @@ const winEvent = () => {
     global.lx.event_app.main_window_ready_to_show()
   })
 
+  // https://github.com/electron/electron/issues/48859
+  // Wayland 下 ready-to-show 可能不触发导致窗口（show:false）永不显示，用 did-finish-load 兜底
+  browserWindow.webContents.once('did-finish-load', () => {
+    if (browserWindow?.isVisible()) return
+    if (!global.envParams.cmdParams.hidden || process.env.NODE_ENV === 'development') {
+      showWindow()
+      setThumbarButtons()
+    }
+  })
+
   browserWindow.on('show', () => {
     global.lx.event_app.main_window_show()
 
