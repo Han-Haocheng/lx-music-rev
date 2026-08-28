@@ -179,8 +179,8 @@ export default {
         this.selectIndex = -1
       }
     },
-    handleContextMenu() {
-      let str = clipboardReadText()
+    async handleContextMenu() {
+      let str = await clipboardReadText()
       str = str.trim()
       str = str.replace(/\t|\r\n|\n|\r/g, ' ')
       str = str.replace(/\s+/g, ' ')

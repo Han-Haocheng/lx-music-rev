@@ -25,14 +25,17 @@ export const openUrl = async(url: string) => {
  * @param str
  */
 export const clipboardWriteText = (str: string) => {
-  clipboard.writeText(str)
+  // Electron 44 起 clipboard API 为异步实现，调用方无需等待
+  void clipboard.writeText(str).catch(err => {
+    console.warn('写入剪贴板失败:', err)
+  })
 }
 
 /**
  * 从剪贴板读取文本
  * @returns
  */
-export const clipboardReadText = (): string => {
+export const clipboardReadText = async(): Promise<string> => {
   return clipboard.readText()
 }
 

@@ -196,8 +196,8 @@ export default {
       } else return
       this.$refs.dom_scrollContainer.scrollTo(0, top)
     },
-    handleContextMenu() {
-      let str = clipboardReadText()
+    async handleContextMenu() {
+      let str = await clipboardReadText()
       str = str.trim()
       str = str.replace(/\t|\r\n|\n|\r/g, ' ')
       str = str.replace(/\s+/g, ' ')

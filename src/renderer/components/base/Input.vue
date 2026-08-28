@@ -65,12 +65,12 @@ export default {
     focus() {
       this.$refs.dom_input.focus()
     },
-    handleContextMenu(event) {
+    async handleContextMenu(event) {
       if (this.stopContentEventPropagation) event.stopPropagation()
       if (!this.autoPaste) return
       let dom_input = this.$refs.dom_input
       if (dom_input.selectionStart === null) return
-      let str = clipboardReadText()
+      let str = await clipboardReadText()
       str = str.trim()
       str = str.replace(/\t|\r\n|\n|\r/g, ' ')
       str = str.replace(/\s+/g, ' ')
