@@ -1,5 +1,5 @@
 import { Tray, Menu, nativeImage } from 'electron'
-import { isMac, isWin } from '@common/utils'
+import { isLinux, isMac, isWin } from '@common/utils'
 import path from 'node:path'
 import {
   hideWindow as hideMainWindow,
@@ -370,6 +370,11 @@ export default () => {
     createMenu()
   })
   global.lx.event_app.on('main_window_close', () => {
+    // Linux 下通过托盘菜单点击“退出”时，托盘上下文菜单仍处于打开状态，
+    // 此时若主动注销托盘（StatusNotifierItem）可能导致 KDE Plasma 报错，
+    // 因此退出过程中不手动销毁托盘，交由进程退出时统一清理。
+    // Windows 上若不销毁托盘会在任务栏留下残留图标，故仅 Linux 跳过。
+    if (global.lx.isSkipTrayQuit && isLinux) return
     destroyTray()
   })
 

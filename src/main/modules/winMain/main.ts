@@ -42,7 +42,8 @@ const winEvent = () => {
   })
 
   browserWindow.once('ready-to-show', () => {
-    if (!global.envParams.cmdParams.hidden) {
+    // 开发模式下始终显示主窗口，避免误传 '--hidden' 时窗口不可见
+    if (!global.envParams.cmdParams.hidden || process.env.NODE_ENV === 'development') {
       showWindow()
       setThumbarButtons()
     }

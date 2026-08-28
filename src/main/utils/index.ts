@@ -108,6 +108,9 @@ export const mergeSetting = (originSetting: LX.AppSetting, targetSetting?: Parti
 }
 
 const applyInitSetting = (setting: LX.AppSetting) => {
+  // 开发模式下忽略 '--hidden' 的处理：调试时即使误传 '--hidden'，
+  // 也不要强制开启托盘（该改动会被写回配置，产生持久副作用）
+  if (process.env.NODE_ENV === 'development') return
   if (global.envParams.cmdParams.hidden && !setting['tray.enable']) {
     setting['tray.enable'] = true
   }
