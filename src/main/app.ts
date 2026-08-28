@@ -80,7 +80,7 @@ export const initGlobalData = () => {
       : path.join(__dirname, 'static')
 }
 
-export const initSingleInstanceHandle = () => {
+export const initSingleInstanceHandle = (startApp: () => void) => {
   // 单例应用程序
   if (!app.requestSingleInstanceLock()) {
     app.quit()
@@ -88,8 +88,8 @@ export const initSingleInstanceHandle = () => {
   }
 
   app.on('second-instance', (event, argv, cwd) => {
+    const envParams = parseEnvParams(argv)
     if (isExistMainWindow()) {
-      const envParams = parseEnvParams(argv)
       if (envParams.deeplink) {
         global.envParams.deeplink = envParams.deeplink
         global.lx.event_app.deeplink(global.envParams.deeplink)
@@ -98,9 +98,14 @@ export const initSingleInstanceHandle = () => {
       if (envParams.cmdParams.hidden !== true) {
         showMainWindow()
       }
-    } else {
-      app.quit()
+      return
     }
+    // 主窗口不存在：应用可能仍在初始化中（启动过程中再次运行）或窗口已被关闭（macOS）。
+    // 此时不应退出进程，否则启动中的应用会被二次启动直接终止；
+    // 改为确保应用完成初始化并创建窗口，正在退出时则忽略本次请求。
+    if (global.lx.isSkipTrayQuit) return
+    if (envParams.deeplink) global.envParams.deeplink = envParams.deeplink
+    startApp()
   })
 }
 
@@ -324,11 +329,10 @@ export const initAppSetting = async() => {
     global.lx.appSetting = (await initSetting()).setting
     if (!dbFileExists) await migrateDBData().catch(err => { log.error(err) })
     initTheme()
-    if (envParams.cmdParams.dt == null) envParams.cmdParams.dt = !global.lx.appSetting['common.transparentWindow']
+    if (global.envParams.cmdParams.dt == null) global.envParams.cmdParams.dt = !global.lx.appSetting['common.transparentWindow']
+    // eslint-disable-next-line require-atomic-updates -- 初始化由 index.ts 的 initing 锁保护，不会并发执行
+    isInitialized = true
   }
-  // global.lx.theme = getTheme()
-
-  isInitialized ||= true
 }
 
 export const quitApp = () => {
