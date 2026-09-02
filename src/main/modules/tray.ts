@@ -1,5 +1,7 @@
 import { Tray, Menu, nativeImage } from 'electron'
-import { isMac, isWin } from '@common/utils'
+import { isLinux, isMac, isWin } from '@common/utils'
+import { createSniTray, destroySniTray, setSniIcon, setSniMenu, setSniMenuRefreshHandler, setSniTitle, setSniToolTip } from './traySniLinux'
+import type { TraySniMenuItem } from './traySniLinux'
 import path from 'node:path'
 import {
   hideWindow as hideMainWindow,
@@ -144,20 +146,42 @@ export const createTray = () => {
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   if ((tray && !tray.isDestroyed()) || !global.lx.appSetting['tray.enable']) return
 
+  // Linux：KDE Plasma 6 的 StatusNotifierWatcher 忽略 Electron 的
+  // “服务名+对象路径”注册形式且固定查询 /StatusNotifierItem 根路径，
+  // 官方修复（electron#53214）只进 44.x，本 fork 固定 43.4.1（44 在 Wayland 下窗口无法显示），
+  // 故 Linux 下不用 Electron Tray，改用自实现的 StatusNotifierItem（见 traySniLinux.ts）。
+  // 左键点击（Activate）→ 显示主窗口；右键弹出 dbusmenu 菜单。
+  if (isLinux) {
+    isSniActive = true
+    // KDE 弹出菜单前（AboutToShow）刷新菜单并广播 LayoutUpdated，驱动 KDE 重新拉取布局
+    setSniMenuRefreshHandler(() => {
+      createMenu()
+    })
+    void createSniTray(() => {
+      showMainWindow()
+    })
+    return
+  }
   // 托盘
   tray = new Tray(nativeImage.createFromPath(getIconPath(global.lx.appSetting['tray.themeId'])))
 
-  // tray.setToolTip('LX Music')
-  // createMenu()
   tray.setIgnoreDoubleClickEvents(true)
-  if (isWin) {
-    tray.on('click', () => {
-      showMainWindow()
-    })
-  }
+  tray.on('click', () => {
+    showMainWindow()
+  })
 }
 
+let isSniActive = false
+
 export const destroyTray = () => {
+  if (isLinux) {
+    if (!isSniActive) return
+    destroySniTray()
+    isSniActive = false
+    isEnableTray = false
+    isShowStatusBarLyric = false
+    return
+  }
   if (!tray) return
   tray.destroy()
   isEnableTray = false
@@ -169,147 +193,130 @@ const handleUpdateConfig = (setting: Partial<LX.AppSetting>) => {
   global.lx.event_app.update_config(setting)
 }
 
-const createPlayerMenu = () => {
-  let menu: Electron.MenuItemConstructorOptions[] = []
-  menu.push(playerState.play ? {
-    label: i18n.getMessage('pause'),
-    click() {
-      sendTaskbarButtonClick('pause')
-    },
-  } : {
-    label: i18n.getMessage('play'),
-    click() {
-      sendTaskbarButtonClick('play')
+let menuItemIdSeed = 0
+const nextMenuItemId = () => ++menuItemIdSeed
+
+const createPlayerMenu = (): TraySniMenuItem[] => {
+  const menu: TraySniMenuItem[] = []
+  menu.push({
+    id: nextMenuItemId(),
+    label: i18n.getMessage(playerState.play ? 'pause' : 'play'),
+    onClick: () => {
+      sendTaskbarButtonClick(playerState.play ? 'pause' : 'play')
     },
   })
   menu.push({
+    id: nextMenuItemId(),
     label: i18n.getMessage('prev'),
-    click() {
+    onClick: () => {
       sendTaskbarButtonClick('prev')
     },
   })
   menu.push({
+    id: nextMenuItemId(),
     label: i18n.getMessage('next'),
-    click() {
+    onClick: () => {
       sendTaskbarButtonClick('next')
     },
   })
-  menu.push(playerState.collect ? {
-    label: i18n.getMessage('uncollect'),
-    click() {
-      sendTaskbarButtonClick('unCollect')
-    },
-  } : {
-    label: i18n.getMessage('collect'),
-    click() {
-      sendTaskbarButtonClick('collect')
+  menu.push({
+    id: nextMenuItemId(),
+    label: i18n.getMessage(playerState.collect ? 'uncollect' : 'collect'),
+    onClick: () => {
+      sendTaskbarButtonClick(playerState.collect ? 'unCollect' : 'collect')
     },
   })
   return menu
 }
 
 export const createMenu = () => {
-  if (!tray) return
-  let menu: Electron.MenuItemConstructorOptions[] = createPlayerMenu()
+  menuItemIdSeed = 0
+  const menu: TraySniMenuItem[] = createPlayerMenu()
   if (playerState.empty) for (const m of menu) m.enabled = false
-  menu.push({ type: 'separator' })
-  menu.push(global.lx.appSetting['desktopLyric.enable']
-    ? {
-        label: i18n.getMessage('hide_win_lyric'),
-        click() {
-          handleUpdateConfig({ 'desktopLyric.enable': false })
-        },
-      }
-    : {
-        label: i18n.getMessage('show_win_lyric'),
-        click() {
-          handleUpdateConfig({ 'desktopLyric.enable': true })
-        },
-      })
-  menu.push(global.lx.appSetting['desktopLyric.isLock']
-    ? {
-        label: i18n.getMessage('unlock_win_lyric'),
-        click() {
-          handleUpdateConfig({ 'desktopLyric.isLock': false })
-        },
-      }
-    : {
-        label: i18n.getMessage('lock_win_lyric'),
-        click() {
-          handleUpdateConfig({ 'desktopLyric.isLock': true })
-        },
-      })
-  menu.push(global.lx.appSetting['desktopLyric.isAlwaysOnTop']
-    ? {
-        label: i18n.getMessage('untop_win_lyric'),
-        click() {
-          handleUpdateConfig({ 'desktopLyric.isAlwaysOnTop': false })
-        },
-      }
-    : {
-        label: i18n.getMessage('top_win_lyric'),
-        click() {
-          handleUpdateConfig({ 'desktopLyric.isAlwaysOnTop': true })
-        },
-      })
+  menu.push({ id: nextMenuItemId(), type: 'separator' })
+  menu.push({
+    id: nextMenuItemId(),
+    label: i18n.getMessage(global.lx.appSetting['desktopLyric.enable'] ? 'hide_win_lyric' : 'show_win_lyric'),
+    onClick: () => {
+      handleUpdateConfig({ 'desktopLyric.enable': !global.lx.appSetting['desktopLyric.enable'] })
+    },
+  })
+  menu.push({
+    id: nextMenuItemId(),
+    label: i18n.getMessage(global.lx.appSetting['desktopLyric.isLock'] ? 'unlock_win_lyric' : 'lock_win_lyric'),
+    onClick: () => {
+      handleUpdateConfig({ 'desktopLyric.isLock': !global.lx.appSetting['desktopLyric.isLock'] })
+    },
+  })
+  menu.push({
+    id: nextMenuItemId(),
+    label: i18n.getMessage(global.lx.appSetting['desktopLyric.isAlwaysOnTop'] ? 'untop_win_lyric' : 'top_win_lyric'),
+    onClick: () => {
+      handleUpdateConfig({ 'desktopLyric.isAlwaysOnTop': !global.lx.appSetting['desktopLyric.isAlwaysOnTop'] })
+    },
+  })
   if (isMac) {
-    menu.push({ type: 'separator' })
-    menu.push(isShowStatusBarLyric
-      ? {
-          label: i18n.getMessage('hide_statusbar_lyric'),
-          click() {
-            handleUpdateConfig({ 'player.isShowStatusBarLyric': false })
-          },
-        }
-      : {
-          label: i18n.getMessage('show_statusbar_lyric'),
-          click() {
-            handleUpdateConfig({ 'player.isShowStatusBarLyric': true })
-          },
-        })
+    menu.push({ id: nextMenuItemId(), type: 'separator' })
+    menu.push({
+      id: nextMenuItemId(),
+      label: i18n.getMessage(isShowStatusBarLyric ? 'hide_statusbar_lyric' : 'show_statusbar_lyric'),
+      onClick: () => {
+        handleUpdateConfig({ 'player.isShowStatusBarLyric': !isShowStatusBarLyric })
+      },
+    })
   }
-  menu.push({ type: 'separator' })
+  menu.push({ id: nextMenuItemId(), type: 'separator' })
   if (isExistMainWindow()) {
     const isShow = isShowMainWindow()
-    menu.push(isShow
-      ? {
-          label: i18n.getMessage('hide_win_main'),
-          click() {
-            hideMainWindow()
-          },
-        }
-      : {
-          label: i18n.getMessage('show_win_main'),
-          click() {
-            showMainWindow()
-          },
-        })
+    menu.push({
+      id: nextMenuItemId(),
+      label: i18n.getMessage(isShow ? 'hide_win_main' : 'show_win_main'),
+      onClick: () => {
+        isShow ? hideMainWindow() : showMainWindow()
+      },
+    })
   }
   menu.push({
+    id: nextMenuItemId(),
     label: i18n.getMessage('exit'),
-    click() {
+    onClick: () => {
       quitApp()
     },
   })
-  const contextMenu = Menu.buildFromTemplate(menu)
+  if (isLinux) {
+    setSniMenu(menu)
+    return
+  }
+  if (!tray) return
+  const contextMenu = Menu.buildFromTemplate(menu.map(item => ({
+    label: item.label,
+    type: item.type ?? 'normal',
+    enabled: item.enabled !== false,
+    click: item.onClick,
+  })))
   tray.setContextMenu(contextMenu)
 }
 
 export const setTrayImage = (themeId: number) => {
+  if (isLinux) {
+    setSniIcon(getIconPath(themeId))
+    return
+  }
   if (!tray) return
   tray.setImage(nativeImage.createFromPath(getIconPath(themeId)))
 }
 
 const setLyric = (lyricLineText?: string) => {
-  if (isShowStatusBarLyric && tray && lyricLineText != null) {
-    tray.setTitle(lyricLineText)
+  if (!isShowStatusBarLyric || lyricLineText == null) return
+  if (isLinux) {
+    setSniTitle(lyricLineText)
+    return
   }
+  if (tray) tray.setTitle(lyricLineText)
 }
 
 const defaultTip = 'LX Music'
-const setTip = () => {
-  if (!tray) return
-
+const buildTip = () => {
   let name = global.lx.player_status.name
   let tip: string
   if (name) {
@@ -319,6 +326,15 @@ const setTip = () => {
 
     tip = `${defaultTip}\n${i18n.getMessage('music_name')}${name}${singer ? `\n${i18n.getMessage('music_singer')}${singer}` : ''}`
   } else tip = defaultTip
+  return tip
+}
+const setTip = () => {
+  const tip = buildTip()
+  if (isLinux) {
+    setSniToolTip(tip)
+    return
+  }
+  if (!tray) return
   tray.setToolTip(tip)
 }
 
@@ -336,7 +352,8 @@ const init = () => {
     if (isShowStatusBarLyric) {
       setLyric(global.lx.player_status.lyricLineText)
     } else {
-      tray?.setTitle('')
+      if (isLinux) setSniTitle('')
+      else tray?.setTitle('')
     }
   }
   setTip()

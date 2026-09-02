@@ -6,6 +6,13 @@ Project versioning adheres to [Semantic Versioning](http://semver.org/).
 Commit convention is based on [Conventional Commits](http://conventionalcommits.org).
 Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [Unreleased]
+
+### 修复
+
+- 修复 Linux 托盘在 KDE Plasma 6 桌面不可用的问题（图标不显示/空白块）：KDE 的 StatusNotifierWatcher 忽略 Electron 注册时携带的“服务名+对象路径”（SNI 对象在 /StatusNotifierItem/1，KDE 固定查询 /StatusNotifierItem 根路径），官方修复（electron#53214）仅进入 44.x，而本 fork 因 Wayland 窗口问题固定 Electron 43.4.1——故 Linux 下弃用 Electron Tray，改用自实现的 StatusNotifierItem + dbusmenu（新增 dbus-next 依赖），在根路径导出图标/提示/菜单并处理点击
+- 恢复系统托盘左键点击显示主窗口（全平台）
+
 ## [1.0.0] - 2026-09-02
 
 LX Music rev 首个独立版本发布。本版本基于 lyswhut/lx-music-desktop v2.12.2（Apache-2.0 许可证）fork，除产品化改造外，还包含数据库层重构、Electron 升级与多项稳定性修复。

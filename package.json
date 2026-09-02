@@ -171,6 +171,7 @@
     "bufferutil": "^4.1.0",
     "comlink": "~4.3.1",
     "crypto-js": "^4.2.0",
+    "dbus-next": "^0.10.2",
     "electron-log": "^5.4.3",
     "font-list": "^2.0.2",
     "iconv-lite": "^0.7.2",
