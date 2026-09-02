@@ -1,6 +1,7 @@
 {
-  "name": "lx-music-desktop",
-  "version": "2.12.2",
+  "name": "lx-music-rev",
+  "productName": "lx-music-rev",
+  "version": "1.0.0",
   "description": "一个免费的音乐查找助手",
   "main": "./dist/main.js",
   "scripts": {
@@ -77,21 +78,21 @@
   },
   "macLanguagesInfoPlistStrings": {
     "en": {
-      "CFBundleDisplayName": "LX Music",
-      "CFBundleName": "LX Music"
+      "CFBundleDisplayName": "LX Music rev",
+      "CFBundleName": "LX Music rev"
     },
     "zh_CN": {
-      "CFBundleDisplayName": "LX Music",
-      "CFBundleName": "LX Music"
+      "CFBundleDisplayName": "LX Music rev",
+      "CFBundleName": "LX Music rev"
     },
     "zh_TW": {
-      "CFBundleDisplayName": "LX Music",
-      "CFBundleName": "LX Music"
+      "CFBundleDisplayName": "LX Music rev",
+      "CFBundleName": "LX Music rev"
     }
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lyswhut/lx-music-desktop.git"
+    "url": "git+https://github.com/Han-Haocheng/lx-music-rev.git"
   },
   "keywords": [
     "music-player",
@@ -99,14 +100,14 @@
     "vuejs3"
   ],
   "author": {
-    "name": "lyswhut",
-    "email": "lyswhut@qq.com"
+    "name": "Han-Haocheng",
+    "email": "1849397656@qq.com"
   },
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/lyswhut/lx-music-desktop/issues"
+    "url": "https://github.com/Han-Haocheng/lx-music-rev/issues"
   },
-  "homepage": "https://github.com/lyswhut/lx-music-desktop#readme",
+  "homepage": "https://github.com/Han-Haocheng/lx-music-rev#readme",
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.13",
     "@types/needle": "^3.3.0",
