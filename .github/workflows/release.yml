@@ -5,6 +5,10 @@ on:
     branches:
       - master
 
+# 新仓库的 GITHUB_TOKEN 默认只读，创建 Release / 上传资产需要 contents 写权限
+permissions:
+  contents: write
+
 env:
   IS_CI: 'true'
 

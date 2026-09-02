@@ -1,4 +1,4 @@
-git remote add upstream https://github.com/lyswhut/lx-music-desktop.git# LX Music rev change log
+# LX Music rev change log
 
 All notable changes to this project will be documented in this file.
 
