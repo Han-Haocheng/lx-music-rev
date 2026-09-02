@@ -1,42 +1,23 @@
-<p align="center"><a href="https://github.com/lyswhut/lx-music-desktop"><img width="200" src="https://github.com/lyswhut/lx-music-desktop/blob/master/doc/images/icon.png" alt="lx-music logo"></a></p>
+<p align="center"><a href="https://github.com/Han-Haocheng/lx-music-rev"><img width="200" src="https://github.com/Han-Haocheng/lx-music-rev/blob/master/doc/images/icon.png" alt="lx-music-rev logo"></a></p>
 
-<h1 align="center">LX Music 桌面版</h1>
+<h1 align="center">LX Music rev</h1>
 
 <p align="center">
-  <a href="https://github.com/lyswhut/lx-music-desktop/releases"><img src="https://img.shields.io/github/release/lyswhut/lx-music-desktop" alt="Release version"></a>
-  <a href="https://github.com/lyswhut/lx-music-desktop/actions/workflows/release.yml"><img src="https://github.com/lyswhut/lx-music-desktop/workflows/Build/badge.svg" alt="Build status"></a>
-  <a href="https://github.com/lyswhut/lx-music-desktop/actions/workflows/beta-pack.yml"><img src="https://github.com/lyswhut/lx-music-desktop/workflows/Build%20Beta/badge.svg" alt="Build status"></a>
-  <a href="https://electronjs.org/releases/stable"><img src="https://img.shields.io/github/package-json/dependency-version/lyswhut/lx-music-desktop/dev/electron/master" alt="Electron version"></a>
-  <!-- <a href="https://github.com/lyswhut/lx-music-desktop/releases"><img src="https://img.shields.io/github/downloads/lyswhut/lx-music-desktop/latest/total" alt="Downloads"></a> -->
-  <a href="https://github.com/lyswhut/lx-music-desktop/tree/dev"><img src="https://img.shields.io/github/package-json/v/lyswhut/lx-music-desktop/dev" alt="Dev branch version"></a>
-  <!-- <a href="https://github.com/lyswhut/lx-music-desktop/blob/master/LICENSE"><img src="https://img.shields.io/github/license/lyswhut/lx-music-desktop" alt="License"></a> -->
+  <a href="https://github.com/Han-Haocheng/lx-music-rev/releases"><img src="https://img.shields.io/github/release/Han-Haocheng/lx-music-rev" alt="Release version"></a>
+  <a href="https://github.com/Han-Haocheng/lx-music-rev/actions/workflows/release.yml"><img src="https://github.com/Han-Haocheng/lx-music-rev/workflows/Build/badge.svg" alt="Build status"></a>
+  <a href="https://github.com/Han-Haocheng/lx-music-rev/actions/workflows/beta-pack.yml"><img src="https://github.com/Han-Haocheng/lx-music-rev/workflows/Build%20Beta/badge.svg" alt="Build status"></a>
+  <a href="https://electronjs.org/releases/stable"><img src="https://img.shields.io/github/package-json/dependency-version/Han-Haocheng/lx-music-rev/master/electron/master" alt="Electron version"></a>
+  <!-- <a href="https://github.com/Han-Haocheng/lx-music-rev/releases"><img src="https://img.shields.io/github/downloads/Han-Haocheng/lx-music-rev/latest/total" alt="Downloads"></a> -->
+  <!-- <a href="https://github.com/Han-Haocheng/lx-music-rev/blob/master/LICENSE"><img src="https://img.shields.io/github/license/Han-Haocheng/lx-music-rev" alt="License"></a> -->
 </p>
 
-<!-- [![GitHub release][1]][2]
-[![Build status][3]][4]
-[![GitHub Releases Download][5]][6]
-[![dev branch][7]][8]
-[![GitHub license][9]][10] -->
-
-<!-- [1]: https://img.shields.io/github/release/lyswhut/lx-music-desktop
-[2]: https://github.com/lyswhut/lx-music-desktop/releases
-[3]: https://ci.appveyor.com/api/projects/status/flrsqd5ymp8fnte5?svg=true
-[4]: https://ci.appveyor.com/project/lyswhut/lx-music-desktop
-[5]: https://img.shields.io/github/downloads/lyswhut/lx-music-desktop/latest/total
-[5]: https://img.shields.io/github/downloads/lyswhut/lx-music-desktop/total
-[6]: https://github.com/lyswhut/lx-music-desktop/releases
-[7]: https://img.shields.io/github/package-json/v/lyswhut/lx-music-desktop/dev
-[8]: https://github.com/lyswhut/lx-music-desktop/tree/dev
-[9]: https://img.shields.io/github/license/lyswhut/lx-music-desktop
-[10]: https://github.com/lyswhut/lx-music-desktop/blob/master/LICENSE -->
-
-<p align="center">一个基于 Electron & Vue 开发的音乐软件</p>
+<p align="center">LX Music 桌面版（[lx-music-desktop](https://github.com/lyswhut/lx-music-desktop)）的开源 fork，一个基于 Electron & Vue 开发的音乐软件</p>
 
 ## 说明
 
 所用技术栈：
 
-- Electron 30+
+- Electron 43
 - Vue 3
 
 已支持的平台：
@@ -45,23 +26,21 @@
 - macOS
 - Windows 7 及以上
 
-*移动版项目地址：https://github.com/lyswhut/lx-music-mobile*
+*上游移动版项目地址：https://github.com/lyswhut/lx-music-mobile*
 
-*LX Music 项目发展调整与新项目计划：https://github.com/lyswhut/lx-music-desktop/issues/1912*
+软件变化请查看[更新日志](https://github.com/Han-Haocheng/lx-music-rev/blob/master/CHANGELOG.md)。
 
-软件变化请查看[更新日志](https://github.com/lyswhut/lx-music-desktop/blob/master/CHANGELOG.md)。
-
-软件下载请查看 [GitHub Releases](https://github.com/lyswhut/lx-music-desktop/releases)。
+软件下载请查看 [GitHub Releases](https://github.com/Han-Haocheng/lx-music-rev/releases)。
 
 使用常见问题请参阅[桌面版常见问题](https://lyswhut.github.io/lx-music-doc/desktop/faq)。
 
-目前本项目的原始发布地址只有 [**GitHub**](https://github.com/lyswhut/lx-music-desktop/releases)，其他渠道均为第三方转载发布，与本项目无关！
+目前本项目的原始发布地址只有 [**GitHub**](https://github.com/Han-Haocheng/lx-music-rev/releases)，其他渠道均为第三方转载发布，与本项目无关！
 
 为了提高使用门槛，本软件内的默认设置、UI 操作不以新手友好为目标，所以使用前建议先根据你的喜好浏览调整一遍软件设置，阅读一遍[音乐播放列表机制](https://lyswhut.github.io/lx-music-doc/desktop/faq/playlist)及[可用的鼠标、键盘快捷操作](https://lyswhut.github.io/lx-music-doc/desktop/faq/hotkey)。
 
 ### Scheme URL 支持
 
-从 v1.17.0 起支持 Scheme URL，可以使用此功能在浏览器等场景下调用 LX Music，我们开发了一个[油猴脚本](https://github.com/lyswhut/lx-music-script#readme)配套使用。
+从 v1.17.0 起支持 Scheme URL，可以使用此功能在浏览器等场景下调用 LX Music，上游项目配套的[油猴脚本](https://github.com/lyswhut/lx-music-script#readme)同样适用于本 fork。
 
 脚本安装地址：[LX Music 辅助脚本](https://greasyfork.org/zh-CN/scripts/438148)。
 
@@ -69,7 +48,7 @@
 
 ### 数据同步服务
 
-从 v2.2.0 起，我们发布了一个独立的[数据同步服务](https://github.com/lyswhut/lx-music-sync-server#readme)。如果你有服务器，可以将其部署到服务器上作为私人多端同步服务使用，详情看该项目说明。
+本 fork 支持数据同步，兼容[上游项目发布的数据同步服务](https://github.com/lyswhut/lx-music-sync-server#readme)。如果你有服务器，可以将其部署到服务器上作为私人多端同步服务使用，详情看该项目说明。
 
 ### 开放 API 支持
 
@@ -79,15 +58,15 @@
 
 默认情况下，软件的数据存储在：
 
-- Linux：`$XDG_CONFIG_HOME/lx-music-desktop` 或 `~/.config/lx-music-desktop`
-- macOS：`~/Library/Application Support/lx-music-desktop`
-- Windows：`%APPDATA%/lx-music-desktop`
+- Linux：`$XDG_CONFIG_HOME/lx-music-rev` 或 `~/.config/lx-music-rev`
+- macOS：`~/Library/Application Support/lx-music-rev`
+- Windows：`%APPDATA%/lx-music-rev`
 
 在 Windows 平台上，若程序文件夹中存在 `portable` 文件夹，则自动使用此文件夹作为数据存储文件夹（适用于 v1.17.0 及以上版本）。
 
 ## 用户界面
 
-<p><img width="100%" src="./doc/images/app.png" alt="lx-music desktop UI"></p>
+<p><img width="100%" src="./doc/images/app.png" alt="lx-music-rev UI"></p>
 
 ## 贡献代码
 
@@ -100,8 +79,8 @@
 贡献代码步骤：
 
 1. 参照[源码使用方法](https://lyswhut.github.io/lx-music-doc/desktop/use-source-code)设置开发环境；
-2. 克隆本仓库代码并切换至 `dev` 分支进行开发；
-3. 提交 PR 至 `dev` 分支。
+2. 克隆本仓库代码并切换至 `master` 分支进行开发；
+3. 提交 PR 至 `master` 分支。
 
 ## 源码使用方法
 
@@ -109,7 +88,7 @@
 
 ## 项目协议
 
-本项目基于 [Apache License 2.0](https://github.com/lyswhut/lx-music-desktop/blob/master/LICENSE) 许可证发行，以下协议是对于 Apache License 2.0 的补充，如有冲突，以以下协议为准。
+本项目（LX Music rev）为 [lx-music-desktop](https://github.com/lyswhut/lx-music-desktop) 的开源 fork，基于 [Apache License 2.0](https://github.com/Han-Haocheng/lx-music-rev/blob/master/LICENSE) 许可证发行。以下补充协议由上游项目随附并原样沿用（其中“本项目”同样指 LX Music rev），如有冲突，以以下协议为准。
 
 ---
 
@@ -159,4 +138,4 @@
 
 ---
 
-若对此有疑问请 mail to: lyswhut+qq.com (请将 `+` 替换为 `@`)
+若对此有疑问请联系本项目维护者：Han-Haocheng (1849397656@qq.com)
