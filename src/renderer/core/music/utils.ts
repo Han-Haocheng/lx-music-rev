@@ -514,3 +514,81 @@ export const handleGetOnlineLyricInfo = async({ musicInfo, onToggleSource, isRef
     })
   })
 }
+
+/**
+ * ==================== 播放详情页：播放源/音质切换 ====================
+ */
+
+/** 播放源列表（音乐源 SDK 列表） */
+export const MUSIC_SOURCE_LIST = musicSdk.sources.map(({ id }) => id)
+
+const MUSIC_SOURCE_PROBE_TIMEOUT = 10_000
+
+const sourceAvailableCache = new Map<string, boolean>()
+
+export const getSourceAvailableCacheKey = (musicInfo: LX.Music.MusicInfo) => `${musicInfo.source}_${musicInfo.id}`
+
+/**
+ * 获取当前歌曲在各源的匹配信息（按源 id 索引）
+ */
+export const getOtherSourceMap = async(musicInfo: LX.Music.MusicInfoOnline | LX.Download.ListItem): Promise<Record<string, LX.Music.MusicInfoOnline>> => {
+  const otherSourceList = await getOtherSource(musicInfo)
+  const map: Record<string, LX.Music.MusicInfoOnline> = {}
+  for (const item of otherSourceList) map[item.source] = item
+  return map
+}
+
+/**
+ * 探测指定在线歌曲的播放 URL 是否可用（超时/失败视为不可用）
+ * 探测结果按歌曲缓存，歌曲切换后 key 自然失效
+ */
+export const checkSourceUrlAvailable = async(musicInfo: LX.Music.MusicInfoOnline, quality?: LX.Quality): Promise<boolean> => {
+  if (!await window.lx.apiInitPromise[0]) return false
+  const key = getSourceAvailableCacheKey(musicInfo)
+  if (sourceAvailableCache.has(key)) return sourceAvailableCache.get(key)!
+  const targetQuality = quality ?? getPlayQuality(appSetting['player.playQuality'], musicInfo)
+  if (!musicInfo.meta._qualitys[targetQuality]) {
+    sourceAvailableCache.set(key, false)
+    return false
+  }
+  const available = await new Promise<boolean>((resolve) => {
+    let settled = false
+    let timer: ReturnType<typeof setTimeout> | null = null
+    const finish = (val: boolean) => {
+      if (settled) return
+      settled = true
+      if (timer) clearTimeout(timer)
+      resolve(val)
+    }
+    timer = setTimeout(() => { finish(false) }, MUSIC_SOURCE_PROBE_TIMEOUT)
+    let reqPromise
+    try {
+      reqPromise = musicSdk[musicInfo.source].getMusicUrl(toOldMusicInfo(musicInfo), targetQuality).promise
+    } catch (err: any) {
+      reqPromise = Promise.reject(err)
+    }
+    reqPromise.then(({ url }: { url: string }) => { finish(!!url) }).catch(() => { finish(false) })
+  })
+  if (sourceAvailableCache.size > 50) sourceAvailableCache.clear()
+  sourceAvailableCache.set(key, available)
+  return available
+}
+
+/**
+ * 重新获取指定源/音质下的播放 URL（用于播放详情页换源/切音质续播）
+ */
+export const getMusicUrlForPlay = async(musicInfo: LX.Music.MusicInfoOnline, quality?: LX.Quality): Promise<{
+  url: string
+  quality: LX.Quality
+}> => {
+  if (!await window.lx.apiInitPromise[0]) throw new Error('source init failed')
+  const result = await handleGetOnlineMusicUrl({
+    musicInfo,
+    quality,
+    isRefresh: true,
+    allowToggleSource: false,
+    onToggleSource: () => {},
+  })
+  return { url: result.url, quality: result.quality }
+}
+
