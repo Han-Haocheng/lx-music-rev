@@ -28,7 +28,7 @@
           <base-virtualized-list v-if="actionButtonsVisible" ref="listRef" :list="list" key-name="id" :item-height="listItemHeight" container-class="scroll" content-class="list" @contextmenu.capture="handleListRightClick">
             <template #default="{ item, index }">
               <div
-                class="list-item" :class="[{ selected: rightClickSelectedIndex == index }, { active: selectedList.includes(item) }]"
+                class="list-item" :class="[{ selected: rightClickSelectedIndex == index }, { active: selectedSet.has(item) }]"
                 @click="handleListItemClick($event, index)" @contextmenu="handleListItemRightClick($event, index)"
               >
                 <div class="list-item-cell no-select num" style="flex: 0 0 5%;" @click.stop>{{ index + 1 }}</div>
@@ -56,7 +56,7 @@
           <base-virtualized-list v-else ref="listRef" :list="list" key-name="id" :item-height="listItemHeight" container-class="scroll" content-class="list" @contextmenu.capture="handleListRightClick">
             <template #default="{ item, index }">
               <div
-                class="list-item" :class="[{ selected: rightClickSelectedIndex == index }, { active: selectedList.includes(item) }]"
+                class="list-item" :class="[{ selected: rightClickSelectedIndex == index }, { active: selectedSet.has(item) }]"
                 @click="handleListItemClick($event, index)" @contextmenu="handleListItemRightClick($event, index)"
               >
                 <div class="list-item-cell no-select num" style="flex: 0 0 5%;" @click.stop>{{ index + 1 }}</div>
@@ -154,6 +154,7 @@ export default {
 
     const {
       selectedList,
+      selectedSet,
       listItemHeight,
       handleSelectData,
       removeAllSelect,
@@ -264,6 +265,7 @@ export default {
       listItemHeight,
       handleListItemClick,
       selectedList,
+      selectedSet,
       handleListItemRightClick,
       removeAllSelect,
       handleListBtnClick,

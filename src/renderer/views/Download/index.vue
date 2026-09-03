@@ -25,7 +25,7 @@
         >
           <div
             class="list-item"
-            :class="[{[$style.active]: playTaskId == item.id }, { selected: rightClickSelectedIndex == index }, { active: selectedList.includes(item) }]"
+            :class="[{[$style.active]: playTaskId == item.id }, { selected: rightClickSelectedIndex == index }, { active: selectedSet.has(item) }]"
             @click="handleListItemClick($event, index)" @contextmenu="handleListItemRightClick($event, index)"
           >
             <div class="list-item-cell no-select" :class="$style.num" style="flex: 0 0 5%;">
@@ -98,6 +98,7 @@ export default {
 
     const {
       selectedList,
+      selectedSet,
       listItemHeight,
       removeAllSelect,
       handleSelectData,
@@ -218,6 +219,7 @@ export default {
       tabs,
       activeTab,
       selectedList,
+      selectedSet,
       listItemHeight,
       playTaskId,
 

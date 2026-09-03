@@ -47,6 +47,7 @@ const useKeyEvent = ({ handleSelectAllData, listRef }) => {
 
 export default ({ listRef, list }) => {
   const selectedList = ref([])
+  const selectedSet = computed(() => new Set(selectedList.value))
 
   let lastSelectIndex = -1
   const listItemHeight = computed(() => {
@@ -100,6 +101,7 @@ export default ({ listRef, list }) => {
 
   return {
     selectedList,
+    selectedSet,
     listItemHeight,
     removeAllSelect,
     handleSelectData,
