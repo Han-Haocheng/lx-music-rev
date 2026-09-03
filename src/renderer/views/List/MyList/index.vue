@@ -19,7 +19,7 @@
       <li
         class="default-list" :class="[$style.listsItem, {[$style.active]: defaultList.id == listId}, {[$style.clicked]: rightClickItemIndex == -2}, {[$style.fetching]: fetchingListStatus[defaultList.id]}]"
         :aria-label="$t(defaultList.name)" :aria-selected="defaultList.id == listId"
-        @contextmenu="handleListsItemRigthClick($event, -2)" @click="handleListToggle(defaultList.id)"
+        @contextmenu="handleListsItemRigthClick($event, -2)" @click="handleListClick(defaultList.id)" @dblclick="handleListDblClick($event, defaultList.id)"
       >
         <!-- <div v-if="defaultList.id == listId" :class="$style.activeIcon">
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="40%" viewBox="0 0 451.846 451.847" space="preserve">
@@ -37,9 +37,9 @@
         v-for="(item, index) in userLists"
         :key="item.id" class="user-list"
         :class="[$style.listsItem, {[$style.active]: item.id == listId}, {[$style.clicked]: rightClickItemIndex == index}, {[$style.fetching]: fetchingListStatus[item.id]}]"
-        :data-index="index" :aria-label="item.name" :aria-selected="defaultList.id == listId" @contextmenu="handleListsItemRigthClick($event, index)"
+        :data-index="index" :aria-label="item.name" :aria-selected="defaultList.id == listId" @contextmenu="handleListsItemRigthClick($event, index)" @dblclick="handleListDblClick($event, item.id)"
       >
-        <span :class="$style.listsLabel" @click="handleListToggle(item.id, index + 2)">
+        <span :class="$style.listsLabel" @click="handleListClick(item.id)">
           <transition name="list-active">
             <svg-icon v-if="item.id == listId" name="angle-right-solid" :class="$style.activeIcon" />
           </transition>
@@ -75,7 +75,8 @@ import ListSortModal from './components/ListSortModal.vue'
 import ListUpdateModal from './components/ListUpdateModal.vue'
 
 import { defaultList, userLists, fetchingListStatus } from '@renderer/store/list/state'
-import { removeUserList } from '@renderer/store/list/action'
+import { getListMusics, removeUserList } from '@renderer/store/list/action'
+import { playList } from '@renderer/core/player'
 
 import { ref, watch } from '@common/utils/vueTools'
 import { useRouter } from '@common/utils/vueRouter'
@@ -176,12 +177,36 @@ export default {
       showMenu(event, index)
     }
 
+    let listClickTimer = null
+
     const handleListToggle = (id) => {
       if (id == props.listId) return
       router.replace({
         path: '/list',
         query: { id },
       }).catch(_ => _)
+    }
+
+    const handleListClick = (id) => {
+      if (listClickTimer) {
+        clearTimeout(listClickTimer)
+      }
+      listClickTimer = setTimeout(() => {
+        listClickTimer = null
+        handleListToggle(id)
+      }, 250)
+    }
+
+    const handleListDblClick = async(event, id) => {
+      if (event.target?.tagName == 'INPUT' || isModDown.value) return
+      if (listClickTimer) {
+        clearTimeout(listClickTimer)
+        listClickTimer = null
+      }
+      handleListToggle(id)
+      const list = await getListMusics(id)
+      if (!list.length) return
+      playList(id, 0)
     }
 
     const handleMenuClick = (action) => {
@@ -229,6 +254,8 @@ export default {
       menus,
       menuLocation,
       handleListToggle,
+      handleListClick,
+      handleListDblClick,
       isModDown,
       hideMenu: handleMenuClick,
     }
