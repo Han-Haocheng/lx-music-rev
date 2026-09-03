@@ -136,9 +136,20 @@ export default (setting: any): Partial<LX.AppSetting> => {
 
   // 迁移 v2.2.0 之前的设置数据
   if (compareVer(setting.version, '2.1.0') < 0) {
-    setting['sync.erver.port'] = setting['sync.port']
+    setting['sync.server.port'] = setting['sync.port']
     setting.version = '2.1.0'
   }
+
+  // 修正 v2.1.0 迁移写入的键名拼写错误（sync.erver.port → sync.server.port）
+  // 已升级到 v2.1.0 的用户设置中残留有错误键，若新键未被用户显式设置则回填旧值，并清理错误键
+  if (
+    setting['sync.erver.port'] != null &&
+    setting['sync.erver.port'] !== '23332' &&
+    (setting['sync.server.port'] == null || setting['sync.server.port'] === '23332')
+  ) {
+    setting['sync.server.port'] = setting['sync.erver.port']
+  }
+  delete setting['sync.erver.port']
 
 
   return setting

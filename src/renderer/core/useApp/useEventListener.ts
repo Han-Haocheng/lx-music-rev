@@ -141,7 +141,7 @@ export default () => {
     window.key_event.off('key_mod+f12_down', handle_open_devtools)
     window.key_event.off('key_f11_down', handle_fullscreen)
     window.key_event.off('key_mod+a_down', handle_selection)
-    document.body.removeEventListener('click', handleBodyClick)
+    document.body.removeEventListener('click', handleBodyClick, true)
     rSetConfig()
     rFocus()
     rThemeChange()
