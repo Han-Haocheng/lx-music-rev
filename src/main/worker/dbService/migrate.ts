@@ -26,11 +26,17 @@ import tables, { DB_VERSION } from './tables'
 //   db.prepare('UPDATE "main"."db_info" SET "field_value"=@value WHERE "field_name"=@name').run({ name: 'version', value: '2' })
 // }
 
-// 收藏分组表（v1.2.0+）：老库确保存在（新库由 initTables 创建）
+// 收藏分组表（v1.2.0+）：老库确保存在（存在则跳过，保持 sqlite_master SQL 与 tables 一致以通过 verifyDB）
 const ensureFavoriteGroupTables = (db: DB) => {
-  db.exec(tables.get('favorite_groups')!)
-  db.exec(tables.get('favorite_group_musics')!)
-  db.exec(tables.get('index_favorite_group_musics')!)
+  const queryByName = (name: string) => {
+    return db.prepare<[string]>('SELECT name FROM "main".sqlite_master WHERE type=\'table\' AND name=?;').get(name) != null
+  }
+  if (!queryByName('favorite_groups')) db.exec(tables.get('favorite_groups')!)
+  if (!queryByName('favorite_group_musics')) db.exec(tables.get('favorite_group_musics')!)
+  const queryIndexByName = (name: string) => {
+    return db.prepare<[string]>('SELECT name FROM "main".sqlite_master WHERE type=\'index\' AND name=?;').get(name) != null
+  }
+  if (!queryIndexByName('index_favorite_group_musics')) db.exec(tables.get('index_favorite_group_musics')!)
 }
 
 const migrateV1 = (db: DB) => {
