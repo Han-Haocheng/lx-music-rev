@@ -21,14 +21,6 @@
     </button>
     <common-volume-btn />
     <common-toggle-play-mode-btn />
-    <button :class="$style.titleBtn" :aria-label="isLoved ? $t('player__unlove') : $t('player__love')" @click="toggleLove">
-      <svg v-if="isLoved" v-once version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="100%" viewBox="0 0 444.87 391.18" space="preserve">
-        <use xlink:href="#icon-love" />
-      </svg>
-      <svg v-else version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="100%" viewBox="0 0 444.87 391.18" space="preserve">
-        <use xlink:href="#icon-love-o" />
-      </svg>
-    </button>
     <button :class="$style.titleBtn" :aria-label="$t('playlist')" @click="isShowPlayQueue = true">
       <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="100%" viewBox="0 0 24 24" space="preserve">
         <use xlink:href="#icon-playlist" />
@@ -43,7 +35,6 @@
 <script>
 import { ref } from '@common/utils/vueTools'
 import useToggleDesktopLyric from '@renderer/utils/compositions/useToggleDesktopLyric'
-import useLoveButton from '@renderer/utils/compositions/useLoveButton'
 import { musicInfo, playMusicInfo } from '@renderer/store/player/state'
 import { appSetting } from '@renderer/store/setting'
 import PlayQueue from './PlayQueue.vue'
@@ -56,10 +47,6 @@ export default {
     const isShowAddMusicTo = ref(false)
     const isShowDownload = ref(false)
     const isShowPlayQueue = ref(false)
-    const {
-      isLoved,
-      toggleLove,
-    } = useLoveButton()
     const {
       toggleDesktopLyricBtnTitle,
       toggleDesktopLyric,
@@ -78,8 +65,6 @@ export default {
       isShowAddMusicTo,
       isShowDownload,
       isShowPlayQueue,
-      isLoved,
-      toggleLove,
       toggleDesktopLyricBtnTitle,
       toggleDesktopLyric,
       toggleLockDesktopLyric,

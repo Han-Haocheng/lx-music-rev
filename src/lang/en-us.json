@@ -231,8 +231,6 @@
   "player__next": "Next",
   "player__pause": "Pause",
   "player__pic_tip": "Playback detail page\n(Right-click to locate the currently playing song in \"Your Library\")",
-  "player__love": "Favorite",
-  "player__unlove": "Unfavorite",
   "player__play": "Play",
   "player__play_toggle_mode_list": "In Order",
   "player__play_toggle_mode_list_loop": "Repeat Playlist",
