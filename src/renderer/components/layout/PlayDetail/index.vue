@@ -15,6 +15,7 @@ transition(enter-active-class="animated slideInRight" leave-active-class="animat
             p {{ $t('player__music_name') }}{{ musicInfo.name }}
             p {{ $t('player__music_singer') }}{{ musicInfo.singer }}
             p(v-if="musicInfo.album") {{ $t('player__music_album') }}{{ musicInfo.album }}
+          music-source-quality(:class="$style.sourceQuality")
 
       transition(enter-active-class="animated fadeIn" leave-active-class="animated fadeOut")
         LyricPlayer(v-if="visibled")
@@ -42,6 +43,7 @@ import {
 } from '@renderer/store/player/action'
 import LyricPlayer from './LyricPlayer.vue'
 import PlayBar from './PlayBar.vue'
+import MusicSourceQuality from './components/MusicSourceQuality.vue'
 import MusicComment from './components/MusicComment/index.vue'
 import ControlBtnsLeftHeader from './ControlBtnsLeftHeader.vue'
 import ControlBtnsRightHeader from './ControlBtnsRightHeader.vue'
@@ -57,6 +59,7 @@ export default {
     LyricPlayer,
     PlayBar,
     MusicComment,
+    MusicSourceQuality,
   },
   setup() {
     const visibled = ref(false)
@@ -264,6 +267,9 @@ export default {
     font-size: 14px;
     overflow-wrap: break-word;
   }
+}
+.sourceQuality {
+  margin-top: 4px;
 }
 
 
