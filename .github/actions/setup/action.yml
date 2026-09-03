@@ -23,6 +23,35 @@ runs:
         restore-keys: |
           ${{ runner.os }}-npm-cache-
 
+    # Electron 二进制与 electron-builder 工具缓存（三平台缓存路径不同，
+    # 见 electron-builder 官方缓存约定）：
+    #   Windows: %LOCALAPPDATA%/electron/Cache 与 %LOCALAPPDATA%/electron-builder/Cache
+    #   macOS:   ~/Library/Caches/electron 与 ~/Library/Caches/electron-builder
+    #   Linux:   ~/.cache/electron 与 ~/.cache/electron-builder
+    - name: Set Electron cache directories
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" = "Windows" ]; then
+          echo "ELECTRON_CACHE_DIR=$LOCALAPPDATA/electron/Cache" >> "$GITHUB_ENV"
+          echo "ELECTRON_BUILDER_CACHE_DIR=$LOCALAPPDATA/electron-builder/Cache" >> "$GITHUB_ENV"
+        elif [ "$RUNNER_OS" = "macOS" ]; then
+          echo "ELECTRON_CACHE_DIR=$HOME/Library/Caches/electron" >> "$GITHUB_ENV"
+          echo "ELECTRON_BUILDER_CACHE_DIR=$HOME/Library/Caches/electron-builder" >> "$GITHUB_ENV"
+        else
+          echo "ELECTRON_CACHE_DIR=$HOME/.cache/electron" >> "$GITHUB_ENV"
+          echo "ELECTRON_BUILDER_CACHE_DIR=$HOME/.cache/electron-builder" >> "$GITHUB_ENV"
+        fi
+
+    - name: Cache Electron binaries
+      uses: actions/cache@v5
+      with:
+        path: |
+          ${{ env.ELECTRON_CACHE_DIR }}
+          ${{ env.ELECTRON_BUILDER_CACHE_DIR }}
+        key: ${{ runner.os }}-electron-cache-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-electron-cache-
+
     - name: Install dependencies
       run: npm ci
       shell: bash
