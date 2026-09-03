@@ -5,6 +5,7 @@ const electron = require('electron')
 const path = require('path')
 // const { say } = require('cfonts')
 const { spawn } = require('child_process')
+const net = require('net')
 const webpack = require('webpack')
 const WebpackDevServer = require('webpack-dev-server')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
@@ -22,6 +23,48 @@ const { debounce } = require('./utils')
 let electronProcess = null
 let hotMiddlewareRenderer
 let hotMiddlewareRendererLyric
+
+// 开发服务器端口：默认 9080（渲染窗口）/ 9081（桌面歌词），
+// 端口被占用时自动向上递增寻找可用端口，上限 9180
+const DEV_PORT_START = 9080
+const DEV_PORT_END = 9180
+// 探测后实际使用的端口（init 阶段确定，dev server 与 Electron 加载地址统一使用该值）
+let rendererDevPort = DEV_PORT_START
+let lyricDevPort = DEV_PORT_START + 1
+
+// 用 net 探测指定端口是否可用（能成功监听即为可用）
+function isPortAvailable(port) {
+  return new Promise(resolve => {
+    const server = net.createServer()
+    server.once('error', () => resolve(false))
+    server.once('listening', () => server.close(() => resolve(true)))
+    server.listen(port, '127.0.0.1')
+  })
+}
+
+// 在 [startPort, endPort] 范围内向上递增寻找第一个可用端口，excludedPorts 中的端口会跳过
+async function findAvailablePort(startPort, endPort, excludedPorts = []) {
+  for (let port = startPort; port <= endPort; port++) {
+    if (excludedPorts.includes(port)) continue
+    if (await isPortAvailable(port)) return port
+  }
+  return null
+}
+
+// 启动前探测 renderer / lyric 两个 dev server 的可用端口；
+// 端口全部被占用时给出清晰中文错误提示并退出
+async function resolveDevPorts() {
+  rendererDevPort = await findAvailablePort(DEV_PORT_START, DEV_PORT_END)
+  if (rendererDevPort == null) {
+    console.error(chalk.red(`[错误] 渲染窗口 dev server 端口 ${DEV_PORT_START} ~ ${DEV_PORT_END} 全部被占用，无法启动，请先释放部分端口后重试。`))
+    process.exit(1)
+  }
+  lyricDevPort = await findAvailablePort(DEV_PORT_START + 1, DEV_PORT_END, [rendererDevPort])
+  if (lyricDevPort == null) {
+    console.error(chalk.red(`[错误] 桌面歌词 dev server 端口 ${DEV_PORT_START} ~ ${DEV_PORT_END} 全部被占用，无法启动，请先释放部分端口后重试。`))
+    process.exit(1)
+  }
+}
 
 
 function startRenderer() {
@@ -48,7 +91,7 @@ function startRenderer() {
     // })
 
     const server = new WebpackDevServer({
-      port: 9080,
+      port: rendererDevPort,
       hot: true,
       historyApiFallback: true,
       static: {
@@ -98,7 +141,7 @@ function startRendererLyric() {
     // })
 
     const server = new WebpackDevServer({
-      port: 9081,
+      port: lyricDevPort,
       hot: true,
       historyApiFallback: true,
       // static: {
@@ -145,6 +188,28 @@ function startMain() {
     // mainConfig.mode = 'development'
     const runElectronDelay = debounce(startElectron, 200)
     const compiler = webpack(mainConfig)
+
+    // 将主进程产物中硬编码的 dev server 地址端口替换为实际探测所得的端口，
+    // 保证 Electron 窗口加载的 URL 与真正启动的 dev server 端口一致（端口被占用自动递增时生效）
+    compiler.hooks.thisCompilation.tap('runner-dev-port-sync', compilation => {
+      compilation.hooks.processAssets.tap({
+        name: 'runner-dev-port-sync',
+        stage: webpack.Compilation.PROCESS_ASSETS_STAGE_OPTIMIZE_TRANSFER,
+      }, assets => {
+        const asset = assets['main.js']
+        if (!asset) return
+        let source = asset.source().toString()
+        if (lyricDevPort !== 9081) {
+          source = source.replace(/http:\/\/localhost:9081\/lyric\.html/g, `http://localhost:${lyricDevPort}/lyric.html`)
+        }
+        if (rendererDevPort !== 9080) {
+          source = source.replace(/http:\/\/localhost:9080/g, `http://localhost:${rendererDevPort}`)
+        }
+        if (source !== asset.source().toString()) {
+          assets['main.js'] = new webpack.sources.RawSource(source)
+        }
+      })
+    })
 
     compiler.hooks.watchRun.tapAsync('watch-run', (compilation, done) => {
       hotMiddlewareRenderer.publish({ action: 'compiling' })
@@ -219,36 +284,47 @@ function electronLog(data, color) {
 }
 
 function init() {
-  const Spinnies = require('spinnies')
-  const spinners = new Spinnies({ color: 'blue' })
-  spinners.add('main', { text: 'main compiling' })
-  spinners.add('renderer', { text: 'renderer compiling' })
-  spinners.add('renderer-lyric', { text: 'renderer-lyric compiling' })
-  spinners.add('renderer-scripts', { text: 'renderer-scripts compiling' })
-  function handleSuccess(name) {
-    spinners.succeed(name, { text: name + ' compile success!' })
-  }
-  function handleFail(name) {
-    spinners.fail(name, { text: name + ' compile fail!' })
-  }
-  replaceLib({ electronPlatformName: process.platform, arch: Arch[process.arch] })
+  resolveDevPorts().then(() => {
+    const Spinnies = require('spinnies')
+    const spinners = new Spinnies({ color: 'blue' })
+    spinners.add('main', { text: 'main compiling' })
+    spinners.add('renderer', { text: `renderer compiling (http://localhost:${rendererDevPort})` })
+    spinners.add('renderer-lyric', { text: `renderer-lyric compiling (http://localhost:${lyricDevPort})` })
+    spinners.add('renderer-scripts', { text: 'renderer-scripts compiling' })
+    function handleSuccess(name) {
+      spinners.succeed(name, { text: name + ' compile success!' })
+    }
+    function handleFail(name) {
+      spinners.fail(name, { text: name + ' compile fail!' })
+    }
+    replaceLib({ electronPlatformName: process.platform, arch: Arch[process.arch] })
 
-  Promise.all([
-    startRenderer().then(() => handleSuccess('renderer')).catch((err) => {
-      console.error(err.message)
-      return handleFail('renderer')
-    }),
-    startRendererLyric().then(() => handleSuccess('renderer-lyric')).catch((err) => {
-      console.error(err.message)
-      return handleFail('renderer-lyric')
-    }),
-    startRendererScripts().then(() => handleSuccess('renderer-scripts')).catch((err) => {
-      console.error(err.message)
-      return handleFail('renderer-scripts')
-    }),
-    startMain().then(() => handleSuccess('main')).catch(() => handleFail('main')),
-  ]).then(startElectron).catch(err => {
-    console.error(err)
+    if (rendererDevPort !== 9080 || lyricDevPort !== 9081) {
+      console.log(chalk.yellow('[dev] 检测到默认端口被占用，已自动递增切换端口：'))
+    }
+    console.log(chalk.green(`[dev] 渲染窗口 dev server: http://localhost:${rendererDevPort}`))
+    console.log(chalk.green(`[dev] 桌面歌词 dev server: http://localhost:${lyricDevPort}`))
+
+    Promise.all([
+      startRenderer().then(() => handleSuccess('renderer')).catch((err) => {
+        console.error(err.message)
+        return handleFail('renderer')
+      }),
+      startRendererLyric().then(() => handleSuccess('renderer-lyric')).catch((err) => {
+        console.error(err.message)
+        return handleFail('renderer-lyric')
+      }),
+      startRendererScripts().then(() => handleSuccess('renderer-scripts')).catch((err) => {
+        console.error(err.message)
+        return handleFail('renderer-scripts')
+      }),
+      startMain().then(() => handleSuccess('main')).catch(() => handleFail('main')),
+    ]).then(startElectron).catch(err => {
+      console.error(err)
+    })
+  }).catch(err => {
+    console.error(chalk.red(`[错误] dev 服务启动失败：${err.message}`))
+    process.exit(1)
   })
 }
 
