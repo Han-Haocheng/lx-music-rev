@@ -5,17 +5,12 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 const baseConfig = require('./webpack.config.base')
 
-// const { dependencies } = require('../../package.json')
-
-// const buildConfig = require('../webpack-build-config')
-
-
 module.exports = merge(baseConfig, {
   mode: 'production',
   devtool: false,
   entry: {
     main: path.join(__dirname, '../../src/main/index.ts'),
-    // 'dbService.worker': path.join(__dirname, '../../src/main/worker/dbService/index.ts'),
+    // dbService worker 通过 main 入口内的 new Worker(new URL(...)) 以 chunk 方式打包（见 src/main/worker/utils/index.ts），无需独立入口
   },
   node: {
     __dirname: false,
@@ -43,6 +38,8 @@ module.exports = merge(baseConfig, {
     maxAssetSize: 1024 * 1024 * 20,
   },
   optimization: {
+    // 主进程产物刻意不做压缩（minimize:false）：node_modules 依赖均外部化并按原始模块路径 require，
+    // 压缩对调试与产物正确性风险高且收益低；渲染进程的压缩由 webpack-build-config.js 统一控制。
     minimize: false,
   },
 })
