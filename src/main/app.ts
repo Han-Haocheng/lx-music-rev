@@ -356,7 +356,9 @@ const initTheme = () => {
   })
 }
 
-const backupDB = (backupPath: string) => {
+// 把损坏的数据库文件（含 -wal/-shm 伴生文件）重命名备份为带时间戳的 .bak（main-security #3）
+// 逐个 try/catch：伴生文件可能不存在，不影响主文件备份
+const backupDBFiles = (backupPath: string) => {
   const dbPath = path.join(global.lxDataPath, 'lx.data.db')
   try {
     renameSync(dbPath, backupPath)
@@ -367,7 +369,33 @@ const backupDB = (backupPath: string) => {
   try {
     renameSync(`${dbPath}-shm`, `${backupPath}-shm`)
   } catch {}
+}
+
+const backupDB = (backupPath: string) => {
+  backupDBFiles(backupPath)
   openDirInExplorer(backupPath)
+}
+
+// 打开数据库并自动恢复（main-security #3）：
+// db 打开/迁移抛错（多为数据库文件损坏无法解析）时，先备份损坏文件为时间戳 .bak，
+// 再重新 init（worker 内 new DatabaseSync + migrate 重建全新库）并 log.warn 告知已恢复；
+// 重建仍失败才向上抛出，由 index.ts 初始化失败的通用弹窗提示
+const initDBWithAutoRecovery = async(): Promise<boolean | null> => {
+  try {
+    return await global.lx.worker.dbService.init(global.lxDataPath)
+  } catch (err) {
+    log.warn('数据库打开或迁移失败，尝试备份损坏文件后重建:', err)
+    const backupPath = path.join(global.lxDataPath, `lx.data.db.${Date.now()}.bak`)
+    backupDBFiles(backupPath)
+    try {
+      const dbFileExists = await global.lx.worker.dbService.init(global.lxDataPath)
+      log.warn(`数据库已重建并初始化成功（原数据将丢失），损坏的数据库已备份到：${backupPath}`)
+      return dbFileExists
+    } catch (err2) {
+      log.error('备份损坏文件后重建数据库仍失败:', err2)
+      throw err2
+    }
+  }
 }
 
 let isInitialized = false
@@ -380,7 +408,8 @@ export const initAppSetting = async() => {
   }
 
   if (!isInitialized) {
-    let dbFileExists = await global.lx.worker.dbService.init(global.lxDataPath)
+    // init 内部对打开/迁移失败做了「备份损坏文件 → 重建」自动恢复，此处只处理表结构校验失败分支
+    let dbFileExists = await initDBWithAutoRecovery()
     if (dbFileExists === null) {
       const backupPath = path.join(global.lxDataPath, `lx.data.db.${Date.now()}.bak`)
       dialog.showMessageBoxSync({
