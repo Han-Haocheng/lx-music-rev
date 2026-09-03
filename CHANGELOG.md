@@ -8,7 +8,10 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.2.0-beta.4] - 2026-09-03
+
 ## [1.2.0-beta.3] - 2026-09-03
+
 
 ## [1.2.0-beta.2] - 2026-09-03
 
