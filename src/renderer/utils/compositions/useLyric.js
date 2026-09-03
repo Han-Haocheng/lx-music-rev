@@ -146,7 +146,6 @@ export default ({ isPlay, lyric, playProgress, isShowLyricProgressSetting, offse
   }
 
   const handleWheel = (event) => {
-    console.log(event.deltaY)
     isStopScroll.value ||= true
     if (cancelScrollFn) {
       cancelScrollFn()

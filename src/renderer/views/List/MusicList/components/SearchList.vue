@@ -137,7 +137,6 @@ export default {
       }
     },
     handle_key_mod_down() {
-      console.log('handle_key_mod_down')
       this.isModDown ||= true
     },
     handle_key_mod_up() {
