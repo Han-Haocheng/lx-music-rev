@@ -41,6 +41,12 @@ declare namespace LX {
       locationUpdateTime: number | null
     }
 
+    interface FavoriteGroupInfo {
+      id: string
+      name: string
+      position: number
+    }
+
     type Lyricnfo = {
       id: string
       type: 'lyric'

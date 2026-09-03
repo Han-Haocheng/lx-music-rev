@@ -35,6 +35,14 @@ const modules = {
     list_music_clear: 'list_music_clear',
     list_music_check_exist: 'list_music_check_exist',
     list_music_get_list_ids: 'list_music_get_list_ids',
+
+    favorite_group_get: 'favorite_group_get',
+    favorite_group_add: 'favorite_group_add',
+    favorite_group_update: 'favorite_group_update',
+    favorite_group_remove: 'favorite_group_remove',
+    favorite_group_music_get: 'favorite_group_music_get',
+    favorite_group_music_set: 'favorite_group_music_set',
+    favorite_group_music_list_get: 'favorite_group_music_list_get',
   },
   dislike: {
     get_dislike_music_infos: 'get_dislike_music_infos',

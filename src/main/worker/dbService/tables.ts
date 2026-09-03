@@ -113,6 +113,9 @@ type Tables = 'db_info'
 | 'music_url'
 | 'download_list'
 | 'dislike_list'
+| 'favorite_groups'
+| 'favorite_group_musics'
+| 'index_favorite_group_musics'
 
 const tables = new Map<Tables, string>()
 
@@ -223,6 +226,27 @@ tables.set('dislike_list', `
     "type" TEXT NOT NULL,
     "content" TEXT NOT NULL,
     "meta" TEXT
+  );
+`)
+tables.set('favorite_groups', `
+  CREATE TABLE "favorite_groups" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "position" INTEGER NOT NULL,
+    PRIMARY KEY("id")
+  );
+`)
+tables.set('favorite_group_musics', `
+  CREATE TABLE "favorite_group_musics" (
+    "groupId" TEXT NOT NULL,
+    "musicInfoId" TEXT NOT NULL,
+    UNIQUE("groupId","musicInfoId")
+  );
+`)
+tables.set('index_favorite_group_musics', `
+  CREATE INDEX "index_favorite_group_musics" ON "favorite_group_musics" (
+    "groupId",
+    "musicInfoId"
   );
 `)
 

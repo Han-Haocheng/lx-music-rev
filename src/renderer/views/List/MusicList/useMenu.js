@@ -6,6 +6,7 @@ import { hasDislike } from '@renderer/core/dislikeList'
 export default ({
   assertApiSupport,
   emit,
+  showGroupAction = false,
 
   handleShowDownloadModal,
   handlePlayMusic,
@@ -19,6 +20,7 @@ export default ({
   handleCopyName,
   handleDislikeMusic,
   handleRemoveMusic,
+  handleGroupAction,
 }) => {
   const itemMenuControl = reactive({
     play: true,
@@ -39,7 +41,12 @@ export default ({
   const isShowItemMenu = ref(false)
 
   const menus = computed(() => {
+    const groupItem = showGroupAction ? [{
+      name: t('favorite_group_assign'),
+      action: 'group',
+    }] : []
     return [
+      ...groupItem,
       {
         name: t('list__play'),
         action: 'play',
@@ -166,6 +173,9 @@ export default ({
         break
       case 'sourceDetail':
         handleOpenMusicDetail(index)
+        break
+      case 'group':
+        handleGroupAction(index)
     }
   }
 

@@ -11,11 +11,6 @@ div(:class="$style.footerLeftControlBtns")
   button(:class="[$style.footerLeftControlBtn, { [$style.active]: isShowLrcSelectContent }]" :aria-label="$t('lyric__select')" @click="toggleVisibleLrc")
     svg(version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" width="95%" viewBox="0 0 24 24" space="preserve")
       use(xlink:href="#icon-text")
-  button(:class="[$style.footerLeftControlBtn, {[$style.active]: isLoved}]" :aria-label="isLoved ? $t('player__unlove') : $t('player__love')" @click="toggleLove")
-    svg(v-if="isLoved" version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" width="95%" viewBox="0 0 444.87 391.18" space="preserve")
-      use(xlink:href="#icon-love")
-    svg(v-else version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" width="95%" viewBox="0 0 444.87 391.18" space="preserve")
-      use(xlink:href="#icon-love-o")
   common-sound-effect-btn
   common-playback-rate-btn
   common-volume-btn
@@ -43,7 +38,6 @@ import {
 
 import useNextTogglePlay from '@renderer/utils/compositions/useNextTogglePlay'
 import useToggleDesktopLyric from '@renderer/utils/compositions/useToggleDesktopLyric'
-import useLoveButton from '@renderer/utils/compositions/useLoveButton'
 import { dialog } from '@renderer/plugins/Dialog'
 import { setMediaDeviceId } from '@renderer/plugins/player'
 import { appSetting, saveMediaDeviceId, setEnableAudioVisualization } from '@renderer/store/setting'
@@ -74,11 +68,6 @@ export default {
 
     const isShowAddMusicTo = ref(false)
 
-    const {
-      isLoved,
-      toggleLove,
-    } = useLoveButton()
-
     const toggleAudioVisualization = async() => {
       const newSetting = !appSetting['player.audioVisualization']
       if (newSetting && appSetting['player.mediaDeviceId'] != 'default') {
@@ -107,8 +96,6 @@ export default {
       toggleLockDesktopLyric,
       toggleAudioVisualization,
       isShowAddMusicTo,
-      isLoved,
-      toggleLove,
       playMusicInfo,
     }
   },
@@ -133,6 +120,10 @@ export default {
   .footerLeftControlBtn {
     // width: 18px;
     // height: 18px;
+    svg {
+      width: 16px;
+      height: 16px;
+    }
     opacity: .5;
     cursor: pointer;
     transition: opacity @transition-normal;

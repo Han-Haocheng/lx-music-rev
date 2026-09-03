@@ -74,6 +74,8 @@ const icon = computed(() => {
   padding: 0;
 
   svg {
+    width: 18px;
+    height: 18px;
     transition: opacity @transition-fast;
     opacity: .6;
     filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
