@@ -73,3 +73,22 @@ export const FeaturesList = [
   'list',
   'dislike',
 ] as const
+
+export const WEBDAV = {
+  /**
+   * 同步数据文件格式版本
+   */
+  version: 1,
+  /**
+   * 远程数据文件名
+   */
+  dataFileName: 'sync-data.json',
+  /**
+   * 上传前保留的远端旧数据文件名
+   */
+  backupFileName: 'sync-data.prev.json',
+  /**
+   * 默认远程目录
+   */
+  defaultRemotePath: 'lx-music-sync',
+} as const

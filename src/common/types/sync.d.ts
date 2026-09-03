@@ -10,6 +10,17 @@ declare namespace LX {
       host: string
       authCode?: string
     }
+    interface EnableWebdav {
+      enable: boolean
+    }
+
+    interface WebdavStatus {
+      status: boolean
+      enabled: boolean
+      message: string
+      lastSyncAt?: number
+      remoteUpdatedAt?: number
+    }
 
     interface SyncActionBase <A> {
       action: A
@@ -31,6 +42,7 @@ declare namespace LX {
     | SyncAction<'close_select_mode'>
     | SyncAction<'client_status', ClientStatus>
     | SyncAction<'server_status', ServerStatus>
+    | SyncAction<'webdav_status', WebdavStatus>
 
     type SyncServiceActions = SyncAction<'select_mode', ModeType>
     | SyncAction<'get_server_status'>
@@ -38,6 +50,11 @@ declare namespace LX {
     | SyncAction<'generate_code'>
     | SyncAction<'enable_server', EnableServer>
     | SyncAction<'enable_client', EnableClient>
+    | SyncAction<'enable_webdav', EnableWebdav>
+    | SyncAction<'webdav_test'>
+    | SyncAction<'webdav_push'>
+    | SyncAction<'webdav_pull'>
+    | SyncAction<'get_webdav_status'>
 
     type ServerDevices = ServerKeyInfo[]
 

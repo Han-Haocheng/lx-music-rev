@@ -11,9 +11,11 @@ dd
   div
     base-checkbox.gap-left(id="setting_sync_mode_server" :disabled="sync.enable" :model-value="appSetting['sync.mode']" need value="server" :label="$t('setting__sync_mode_server')" @update:model-value="updateSetting({ 'sync.mode': $event })")
     base-checkbox.gap-left(id="setting_sync_mode_client" :disabled="sync.enable" :model-value="appSetting['sync.mode']" need value="client" :label="$t('setting__sync_mode_client')" @update:model-value="updateSetting({ 'sync.mode': $event })")
+    base-checkbox.gap-left(id="setting_sync_mode_webdav" :disabled="sync.enable" :model-value="appSetting['sync.mode']" need value="webdav" :label="$t('setting__sync_mode_webdav')" @update:model-value="updateSetting({ 'sync.mode': $event })")
 
 
 SyncClient(v-if="sync.mode == 'client'")
+SettingWebdav(v-else-if="sync.mode == 'webdav'")
 SyncServer(v-else)
 
 </template>
@@ -25,12 +27,14 @@ import { openUrl } from '@common/utils/electron'
 import { appSetting, updateSetting } from '@renderer/store/setting'
 import SyncServer from './SyncServer.vue'
 import SyncClient from './SyncClient.vue'
+import SettingWebdav from './SettingWebdav.vue'
 
 export default {
   name: 'SettingSync',
   components: {
     SyncServer,
     SyncClient,
+    SettingWebdav,
   },
   setup() {
     return {

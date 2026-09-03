@@ -31,6 +31,9 @@ export default () => {
           if (!sync.isShowAuthCodeModal) sync.isShowAuthCodeModal = true
         } else if (sync.isShowAuthCodeModal) sync.isShowAuthCodeModal = false
         break
+      case 'webdav_status':
+        sync.webdav.status = event.data
+        break
     }
   }
 
@@ -73,6 +76,25 @@ export default () => {
             }).catch(err => {
               console.log(err)
             })
+          }
+          break
+        case 'webdav':
+          if (appSetting['sync.webdav.url']) {
+            void sendSyncAction({
+              action: 'enable_webdav',
+              data: {
+                enable: appSetting['sync.enable'],
+              },
+            }).catch(err => {
+              console.log(err)
+            })
+            if (appSetting['sync.webdav.autoDownloadOnStart']) {
+              void sendSyncAction({
+                action: 'webdav_pull',
+              }).catch(err => {
+                console.log(err)
+              })
+            }
           }
           break
         default:

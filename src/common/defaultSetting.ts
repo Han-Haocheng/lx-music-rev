@@ -145,6 +145,12 @@ const defaultSetting: LX.AppSetting = {
   'sync.server.port': '23332',
   'sync.server.maxSsnapshotNum': 5,
   'sync.client.host': '',
+  'sync.webdav.url': '',
+  'sync.webdav.username': '',
+  'sync.webdav.password': '',
+  'sync.webdav.remotePath': 'lx-music-sync',
+  'sync.webdav.autoDownloadOnStart': false,
+  'sync.webdav.autoUploadOnQuit': false,
 
   'openAPI.enable': false,
   'openAPI.port': '23330',

@@ -46,6 +46,9 @@ export const sync: {
       address: string[]
     }
   }
+  webdav: {
+    status: LX.Sync.WebdavStatus
+  }
 } = reactive({
   enable: false,
   mode: 'server',
@@ -69,6 +72,13 @@ export const sync: {
       status: false,
       message: '',
       address: [],
+    },
+  },
+  webdav: {
+    status: {
+      status: false,
+      enabled: false,
+      message: '',
     },
   },
 })

@@ -10,6 +10,11 @@ import {
   getClientStatus,
   getServerDevices,
   removeServerDevice,
+  enableWebdav,
+  webdavTest,
+  webdavPush,
+  webdavPull,
+  getWebdavStatus,
 } from '@main/modules/sync'
 import { sendEvent } from '../main'
 
@@ -25,6 +30,26 @@ export default () => {
       case 'enable_client':
         data.data.enable ? await connectServer(data.data.host, data.data.authCode) : await disconnectServer()
         return
+      case 'enable_webdav': {
+        sendWebdavStatus(await enableWebdav(data.data))
+        return
+      }
+      case 'webdav_test': {
+        sendWebdavStatus(await webdavTest())
+        return
+      }
+      case 'webdav_push': {
+        sendWebdavStatus(await webdavPush())
+        return
+      }
+      case 'webdav_pull': {
+        sendWebdavStatus(await webdavPull())
+        return
+      }
+      case 'get_webdav_status': {
+        sendWebdavStatus(getWebdavStatus())
+        return
+      }
       case 'get_server_status': return getServerStatus()
       case 'get_client_status': return getClientStatus()
       case 'generate_code': return generateCode()
@@ -54,6 +79,12 @@ export const sendSyncAction = (data: LX.Sync.SyncMainWindowActions) => {
 export const sendClientStatus = (status: LX.Sync.ClientStatus) => {
   sendSyncAction({
     action: 'client_status',
+    data: status,
+  })
+}
+export const sendWebdavStatus = (status: LX.Sync.WebdavStatus) => {
+  sendSyncAction({
+    action: 'webdav_status',
     data: status,
   })
 }

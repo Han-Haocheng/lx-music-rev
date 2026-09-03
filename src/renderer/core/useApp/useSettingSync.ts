@@ -65,6 +65,18 @@ export default () => {
           })
         }
         break
+      case 'webdav':
+        if (appSetting['sync.webdav.url']) {
+          void sendSyncAction({
+            action: 'enable_webdav',
+            data: {
+              enable: appSetting['sync.enable'],
+            },
+          }).catch(err => {
+            console.log(err)
+          })
+        }
+        break
       default:
         break
     }
@@ -93,6 +105,18 @@ export default () => {
       })
     }
     sync.client.host = host
+  })
+  watch(() => [appSetting['sync.webdav.url'], appSetting['sync.webdav.remotePath']], () => {
+    if (appSetting['sync.mode'] == 'webdav' && appSetting['sync.webdav.url']) {
+      void sendSyncAction({
+        action: 'enable_webdav',
+        data: {
+          enable: appSetting['sync.enable'],
+        },
+      }).catch(err => {
+        console.log(err)
+      })
+    }
   })
 
   watch(() => appSetting['network.proxy.enable'], enable => {
