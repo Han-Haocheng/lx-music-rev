@@ -244,15 +244,13 @@ export default {
   // background-color: rgba(0, 0, 0, .2);
   // background-color: rgba(255, 255, 255, .6);
   // background-color: var(--color-primary-light-600-alpha-900);
-  // backdrop-filter: blur(4px);
-  // backdrop-filter: grayscale(70%);
   display: grid;
   align-items: center;
   justify-items: center;
   // will-change: transform;
 
   &.filter {
-    backdrop-filter: grayscale(70%);
+    background-color: rgba(0, 0, 0, .24);
   }
 
   // &:before {
