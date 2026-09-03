@@ -194,4 +194,60 @@ export const createMusicInfoOrderDeleteStatement = () => {
   return db.prepare<[LX.DBService.MusicInfoRemove]>('DELETE FROM "main"."my_list_music_info_order" WHERE "musicInfoId"=@id AND "listId"=@listId')
 }
 
+/**
+ * 创建按列表id查询音乐排序记录语句（order 升序）
+ * @returns 查询语句
+ */
+export const createMusicInfoOrdersByListIdQueryStatement = () => {
+  const db = getDB()
+  return db.prepare<[string]>(`SELECT "musicInfoId", "order"
+    FROM "main"."my_list_music_info_order"
+    WHERE "listId"=?
+    ORDER BY "order" ASC`)
+}
+
+/**
+ * 创建单行音乐排序更新语句
+ * @returns 更新语句
+ */
+export const createMusicInfoOrderUpdateStatement = () => {
+  const db = getDB()
+  return db.prepare<[LX.DBService.MusicInfoOrder]>(`
+    UPDATE "main"."my_list_music_info_order"
+    SET "order"=@order
+    WHERE "listId"=@listId AND "musicInfoId"=@musicInfoId`)
+}
+
+/**
+ * 创建音乐排序区间平移语句（把 order 落在 [lo, hi] 的行整体加上 delta）
+ * @returns 更新语句
+ */
+export const createMusicInfoOrderShiftStatement = () => {
+  const db = getDB()
+  return db.prepare<[{ listId: string, lo: number, hi: number, delta: number }]>(`
+    UPDATE "main"."my_list_music_info_order"
+    SET "order"="order"+@delta
+    WHERE "listId"=@listId AND "order" BETWEEN @lo AND @hi`)
+}
+
+/**
+ * 创建查询全部用户列表位置语句
+ * @returns 查询语句
+ */
+export const createListPositionQueryStatement = () => {
+  const db = getDB()
+  return db.prepare<[]>('SELECT "id", "position" FROM "main"."my_list"')
+}
+
+/**
+ * 创建更新用户列表位置语句
+ * @returns 更新语句
+ */
+export const createListUpdatePositionStatement = () => {
+  const db = getDB()
+  return db.prepare<[{ id: string, position: number, locationUpdateTime: number | null }]>(`
+    UPDATE "main"."my_list"
+    SET "position"=@position, "locationUpdateTime"=@locationUpdateTime
+    WHERE "id"=@id`)
+}
 

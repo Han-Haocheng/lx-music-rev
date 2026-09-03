@@ -5,6 +5,8 @@ import {
   createListDeleteStatement,
   createListClearStatement,
   createListUpdateStatement,
+  createListPositionQueryStatement,
+  createListUpdatePositionStatement,
   createMusicInfoQueryStatement,
   createMusicInfoInsertStatement,
   createMusicInfoUpdateStatement,
@@ -14,11 +16,16 @@ import {
   createMusicInfoOrderInsertStatement,
   createMusicInfoOrderDeleteStatement,
   createMusicInfoOrderDeleteByListIdStatement,
+  createMusicInfoOrdersByListIdQueryStatement,
+  createMusicInfoOrderUpdateStatement,
+  createMusicInfoOrderShiftStatement,
   createMusicInfoClearStatement,
   createMusicInfoOrderClearStatement,
   createMusicInfoByListAndMusicInfoIdQueryStatement,
   createMusicInfoByMusicInfoIdQueryStatement,
 } from './statements'
+import { planMinimalOrders } from './orderPlanner'
+import type { CurrentOrderRow, MusicInfoOrderTarget } from './orderPlanner'
 
 const idFixRxp = /\.0$/
 /**
@@ -90,6 +97,36 @@ export const updateUserLists = (lists: LX.DBService.UserListInfo[]) => {
   })(lists)
 }
 
+/**
+ * 批量更新用户列表位置（最小化：只写 position/locationUpdateTime 发生变化的行）
+ * 旧实现（updateUserListsPosition）为清空整表后逐行重插，此处仅 diff 受影响行。
+ * @param lists 新的完整用户列表（position 已按新顺序就位）
+ * @param movedLists 本次被移动的列表（其 locationUpdateTime 已在内存中更新，需要一并落库）
+ */
+export const updateUserListsPositionMinimal = (lists: LX.DBService.UserListInfo[], movedLists: LX.DBService.UserListInfo[]) => {
+  const db = getDB()
+  const listPositionQueryStatement = createListPositionQueryStatement()
+  const listUpdatePositionStatement = createListUpdatePositionStatement()
+  db.transaction((lists: LX.DBService.UserListInfo[], movedLists: LX.DBService.UserListInfo[]) => {
+    const dbPositionMap = new Map<string, number>()
+    for (const row of listPositionQueryStatement.all() as Array<{ id: string, position: number }>) {
+      dbPositionMap.set(row.id, row.position)
+    }
+    const movedIdSet = new Set<string>(movedLists.map(list => list.id))
+    for (const list of lists) {
+      const oldPosition = dbPositionMap.get(list.id)
+      if (oldPosition == null) continue
+      if (oldPosition !== list.position || movedIdSet.has(list.id)) {
+        listUpdatePositionStatement.run({
+          id: list.id,
+          position: list.position,
+          locationUpdateTime: list.locationUpdateTime,
+        })
+      }
+    }
+  })(lists, movedLists)
+}
+
 
 /**
  * 批量添加歌曲
@@ -112,7 +149,38 @@ export const insertMusicInfoList = (list: LX.DBService.MusicInfo[]) => {
 }
 
 /**
+ * 尝试最小化更新列表内已有歌曲的 order（通常一次区间平移即完成），
+ * 失败（行数/集合与预期不一致等异常态）返回 false，由调用方回退旧的"清空重插"保证端态等价。
+ * 必须在调用方的 db.transaction 事务内执行。
+ * @param listId 列表Id
+ * @param target 期望的最终 <musicInfoId, order>（order 即最终值）
+ * @returns 是否已应用最小更新
+ */
+const applyListOrdersMinimal = (listId: string, target: MusicInfoOrderTarget[]): boolean => {
+  const ordersQueryStatement = createMusicInfoOrdersByListIdQueryStatement()
+  const orderUpdateStatement = createMusicInfoOrderUpdateStatement()
+  const orderShiftStatement = createMusicInfoOrderShiftStatement()
+  const current = ordersQueryStatement.all(listId) as CurrentOrderRow[]
+  const plan = planMinimalOrders(current, target)
+  if (!plan.ok) return false
+  for (const op of plan.ops) {
+    if (op.type == 'shift') {
+      orderShiftStatement.run({ listId, lo: op.lo, hi: op.hi, delta: op.delta })
+    } else {
+      orderUpdateStatement.run({ listId, musicInfoId: op.musicInfoId, order: op.order })
+    }
+  }
+  return true
+}
+
+const toOrderTargets = (listAll: LX.DBService.MusicInfo[]): MusicInfoOrderTarget[] => {
+  return listAll.map(info => ({ musicInfoId: info.id, order: info.order }))
+}
+
+/**
  * 批量添加歌曲并刷新排序
+ * 旧实现：清空列表全部 order 行后逐行重插整列表（O(n) 写）。
+ * 新实现：已有歌曲整体最小化平移（区间 UPDATE），仅新增歌曲做 INSERT。
  * @param list 新增歌曲
  * @param listId 列表Id
  * @param listAll 原始列表歌曲，列表去重后
@@ -123,24 +191,36 @@ export const insertMusicInfoListAndRefreshOrder = (list: LX.DBService.MusicInfo[
   const musicInfoOrderDeleteByListIdStatement = createMusicInfoOrderDeleteByListIdStatement()
 
   const db = getDB()
-  db.transaction((list: LX.DBService.MusicInfo[], listId: string, listAll: LX.DBService.MusicInfo[]) => {
-    musicInfoOrderDeleteByListIdStatement.run(listId)
-    for (const music of list) {
-      musicInfoInsertStatement.run(music)
-      musicInfoOrderInsertStatement.run({
-        listId: music.listId,
-        musicInfoId: music.id,
-        order: music.order,
-      })
+  db.transaction(() => {
+    if (applyListOrdersMinimal(listId, toOrderTargets(listAll))) {
+      for (const music of list) {
+        musicInfoInsertStatement.run(music)
+        musicInfoOrderInsertStatement.run({
+          listId: music.listId,
+          musicInfoId: music.id,
+          order: music.order,
+        })
+      }
+    } else {
+      // 异常态（现有行与缓存不一致等）回退旧逻辑：清空整列表 order 后重插
+      musicInfoOrderDeleteByListIdStatement.run(listId)
+      for (const music of list) {
+        musicInfoInsertStatement.run(music)
+        musicInfoOrderInsertStatement.run({
+          listId: music.listId,
+          musicInfoId: music.id,
+          order: music.order,
+        })
+      }
+      for (const music of listAll) {
+        musicInfoOrderInsertStatement.run({
+          listId: music.listId,
+          musicInfoId: music.id,
+          order: music.order,
+        })
+      }
     }
-    for (const music of listAll) {
-      musicInfoOrderInsertStatement.run({
-        listId: music.listId,
-        musicInfoId: music.id,
-        order: music.order,
-      })
-    }
-  })(list, listId, listAll)
+  })()
 }
 
 /**
@@ -200,6 +280,8 @@ export const moveMusicInfo = (fromId: string, ids: string[], musicInfos: LX.DBSe
 
 /**
  * 批量移动歌曲并刷新排序
+ * 旧实现：清空目标列表全部 order 行后逐行重插整列表（O(n) 写）。
+ * 新实现：目标列表已有歌曲整体最小化平移（区间 UPDATE），仅被移动歌曲做 INSERT。
  * @param fromId 源列表Id
  * @param ids 要移动的歌曲id，原始选择的歌曲
  * @param musicInfos 要移动的歌曲，目标列表去重后
@@ -213,28 +295,40 @@ export const moveMusicInfoAndRefreshOrder = (fromId: string, ids: string[], toId
   const musicInfoOrderDeleteByListIdStatement = createMusicInfoOrderDeleteByListIdStatement()
 
   const db = getDB()
-  db.transaction((fromId: string, ids: string[], musicInfos: LX.DBService.MusicInfo[], toListAll: LX.DBService.MusicInfo[]) => {
+  db.transaction(() => {
     for (const id of ids) {
       musicInfoDeleteStatement.run({ listId: fromId, id })
       musicInfoOrderDeleteStatement.run({ listId: fromId, id })
     }
-    musicInfoOrderDeleteByListIdStatement.run(toId)
-    for (const music of musicInfos) {
-      musicInfoInsertStatement.run(music)
-      musicInfoOrderInsertStatement.run({
-        listId: music.listId,
-        musicInfoId: music.id,
-        order: music.order,
-      })
+    if (applyListOrdersMinimal(toId, toOrderTargets(toListAll))) {
+      for (const music of musicInfos) {
+        musicInfoInsertStatement.run(music)
+        musicInfoOrderInsertStatement.run({
+          listId: music.listId,
+          musicInfoId: music.id,
+          order: music.order,
+        })
+      }
+    } else {
+      // 异常态（目标列表现有行与缓存不一致等）回退旧逻辑：清空目标列表 order 后重插
+      musicInfoOrderDeleteByListIdStatement.run(toId)
+      for (const music of musicInfos) {
+        musicInfoInsertStatement.run(music)
+        musicInfoOrderInsertStatement.run({
+          listId: music.listId,
+          musicInfoId: music.id,
+          order: music.order,
+        })
+      }
+      for (const music of toListAll) {
+        musicInfoOrderInsertStatement.run({
+          listId: music.listId,
+          musicInfoId: music.id,
+          order: music.order,
+        })
+      }
     }
-    for (const music of toListAll) {
-      musicInfoOrderInsertStatement.run({
-        listId: music.listId,
-        musicInfoId: music.id,
-        order: music.order,
-      })
-    }
-  })(fromId, ids, musicInfos, toListAll)
+  })()
 }
 
 /**
@@ -293,6 +387,8 @@ export const queryMusicInfoByMusicInfoId = (id: string) => {
 
 /**
  * 批量更新歌曲位置
+ * 旧实现：清空列表全部 order 行后逐行重插（O(n) 写）。
+ * 新实现：最小化更新——拖拽/置顶等多数场景仅平移受影响的连续区间；异常态回退旧逻辑。
  * @param listId 列表id
  * @param musicInfoOrders 音乐顺序
  */
@@ -300,10 +396,11 @@ export const updateMusicInfoOrder = (listId: string, musicInfoOrders: LX.DBServi
   const db = getDB()
   const musicInfoOrderInsertStatement = createMusicInfoOrderInsertStatement()
   const musicInfoOrderDeleteByListIdStatement = createMusicInfoOrderDeleteByListIdStatement()
-  db.transaction((listId: string, musicInfoOrders: LX.DBService.MusicInfoOrder[]) => {
+  db.transaction(() => {
+    if (applyListOrdersMinimal(listId, musicInfoOrders)) return
     musicInfoOrderDeleteByListIdStatement.run(listId)
     for (const orderInfo of musicInfoOrders) musicInfoOrderInsertStatement.run(orderInfo)
-  })(listId, musicInfoOrders)
+  })()
 }
 
 /**

@@ -18,6 +18,7 @@ import {
   updateMusicInfoOrder,
   updateMusicInfos,
   updateUserLists as updateUserListsFromDB,
+  updateUserListsPositionMinimal,
   getMusicInfoOrder,
 } from './dbHelper'
 
@@ -146,7 +147,7 @@ export const updateUserListsPosition = (position: number, ids: string[]) => {
   newUserLists.forEach((list, index) => {
     list.position = index
   })
-  insertUserLists(newUserLists, true)
+  updateUserListsPositionMinimal(newUserLists, updateLists)
   userLists = newUserLists
 }
 
