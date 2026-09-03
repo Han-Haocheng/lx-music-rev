@@ -47,6 +47,14 @@ const router = createRouter({
       },
     },
     {
+      path: '/favorite',
+      name: 'Favorite',
+      component: require('./views/Favorite/index.vue').default,
+      meta: {
+        name: 'Favorite',
+      },
+    },
+    {
       path: '/download',
       name: 'Download',
       component: require('./views/Download/index.vue').default,
