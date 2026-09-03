@@ -7,21 +7,56 @@ import { createLocalMusicInfo } from '@renderer/utils/music'
 
 
 /**
+ * 跨 worker 传输的最小化列表项载荷
+ * 仅包含 worker 侧判定所需的字段（id/name/singer/isComplate 与类型标记），
+ * 避免大列表切歌时整列表结构化克隆
+ */
+export type FilterMusicListItem =
+  | {
+    type: 'music'
+    id: string
+    name: string
+    singer: string
+  }
+  | {
+    type: 'download'
+    id: string
+    isComplate: boolean
+  }
+
+/**
+ * 已播放列表精简载荷（worker 侧仅使用 listId/isTempPlay/musicInfoId）
+ */
+export interface FilterMusicPlayedListItem {
+  listId: string | null
+  isTempPlay: boolean
+  musicInfoId: string
+}
+
+/**
+ * 播放器内当前歌曲精简载荷（worker 侧仅使用 id）
+ */
+export interface FilterMusicPlayerMusicInfo {
+  id: string
+}
+
+/**
  * 过滤列表中已播放的歌曲
+ * 传入精简字段列表，返回原列表下标（filteredList/canPlayList），由渲染层按下标映射回完整对象
  */
 export const filterMusicList = async({ playedList, listId, list, playerMusicInfo, dislikeInfo, isNext }: {
   /**
-   * 已播放列表
+   * 已播放列表（精简字段）
    */
-  playedList: LX.Player.PlayMusicInfo[]
+  playedList: FilterMusicPlayedListItem[]
   /**
    * 列表id
    */
   listId: string
   /**
-   * 播放列表
+   * 播放列表（精简字段），返回的 filteredList/canPlayList 为该列表下标
    */
-  list: Array<LX.Music.MusicInfo | LX.Download.ListItem>
+  list: FilterMusicListItem[]
   /**
    * 下载目录
    */
@@ -29,7 +64,7 @@ export const filterMusicList = async({ playedList, listId, list, playerMusicInfo
   /**
    * 播放器内当前歌曲（`playInfo.playerPlayIndex`指向的歌曲）
    */
-  playerMusicInfo?: LX.Music.MusicInfo | LX.Download.ListItem
+  playerMusicInfo?: FilterMusicPlayerMusicInfo
   /**
    * 不喜欢的歌曲名字列表
    */
@@ -39,9 +74,9 @@ export const filterMusicList = async({ playedList, listId, list, playerMusicInfo
 }) => {
   let playerIndex = -1
 
-  let canPlayList: Array<LX.Music.MusicInfo | LX.Download.ListItem> = []
-  const filteredPlayedList = playedList.filter(pmInfo => pmInfo.listId == listId && !pmInfo.isTempPlay).map(({ musicInfo }) => musicInfo)
-  const hasDislike = (info: LX.Music.MusicInfo) => {
+  let canPlayList: number[] = []
+  const filteredPlayedList = playedList.filter(pmInfo => pmInfo.listId == listId && !pmInfo.isTempPlay).map(pmInfo => pmInfo.musicInfoId)
+  const hasDislike = (info: { name?: string, singer?: string }) => {
     const name = info.name?.replaceAll(SPLIT_CHAR.DISLIKE_NAME, SPLIT_CHAR.DISLIKE_NAME_ALIAS).toLocaleLowerCase().trim() ?? ''
     const singer = info.singer?.replaceAll(SPLIT_CHAR.DISLIKE_NAME, SPLIT_CHAR.DISLIKE_NAME_ALIAS).toLocaleLowerCase().trim() ?? ''
 
@@ -50,30 +85,31 @@ export const filterMusicList = async({ playedList, listId, list, playerMusicInfo
   }
 
   let isDislike = false
-  const filteredList: Array<LX.Music.MusicInfo | LX.Download.ListItem> = list.filter(s => {
+  const filteredList: number[] = []
+  list.forEach((s, sIndex) => {
     // if (!assertApiSupport(s.source)) return false
-    if ('progress' in s) {
-      if (!s.isComplate) return false
+    if (s.type == 'download') {
+      if (!s.isComplate) return
     } else if (hasDislike(s)) {
-      if (s.id != playerMusicInfo?.id) return false
+      if (s.id != playerMusicInfo?.id) return
       isDislike = true
     }
 
-    canPlayList.push(s)
+    canPlayList.push(sIndex)
 
-    let index = filteredPlayedList.findIndex(m => m.id == s.id)
+    let index = filteredPlayedList.findIndex(m => m == s.id)
     if (index > -1) {
       filteredPlayedList.splice(index, 1)
-      return false
+      return
     }
-    return true
+    filteredList.push(sIndex)
   })
   if (playerMusicInfo) {
     if (isDislike) {
       if (filteredList.length <= 1) {
         filteredList.splice(0, 1)
         if (canPlayList.length > 1) {
-          let currentMusicIndex = canPlayList.findIndex(m => m.id == playerMusicInfo.id)
+          let currentMusicIndex = canPlayList.findIndex(index => list[index].id == playerMusicInfo.id)
           if (isNext) {
             playerIndex = currentMusicIndex - 1
             if (playerIndex < 0 && canPlayList.length > 1) playerIndex = canPlayList.length - 2
@@ -84,7 +120,7 @@ export const filterMusicList = async({ playedList, listId, list, playerMusicInfo
           canPlayList.splice(currentMusicIndex, 1)
         } else canPlayList.splice(0, 1)
       } else {
-        let currentMusicIndex = filteredList.findIndex(m => m.id == playerMusicInfo.id)
+        let currentMusicIndex = filteredList.findIndex(index => list[index].id == playerMusicInfo.id)
         if (isNext) {
           playerIndex = currentMusicIndex - 1
           if (playerIndex < 0 && filteredList.length > 1) playerIndex = filteredList.length - 2
@@ -95,7 +131,7 @@ export const filterMusicList = async({ playedList, listId, list, playerMusicInfo
         filteredList.splice(currentMusicIndex, 1)
       }
     } else {
-      playerIndex = (filteredList.length ? filteredList : canPlayList).findIndex(m => m.id == playerMusicInfo.id)
+      playerIndex = (filteredList.length ? filteredList : canPlayList).findIndex(index => list[index].id == playerMusicInfo.id)
     }
   }
   return {
