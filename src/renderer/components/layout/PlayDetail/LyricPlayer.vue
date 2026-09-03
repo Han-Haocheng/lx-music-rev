@@ -48,13 +48,14 @@ import {
   isPlay,
   isShowLrcSelectContent,
   isShowPlayComment,
+  isShowPlayerDetail,
   musicInfo as playerMusicInfo,
   playMusicInfo,
 } from '@renderer/store/player/state'
 import {
   setMusicInfo,
 } from '@renderer/store/player/action'
-import { onMounted, onBeforeUnmount, computed, reactive, ref, nextTick, watch } from '@common/utils/vueTools'
+import { onMounted, onBeforeUnmount, computed, reactive, ref, nextTick, watch, toRef } from '@common/utils/vueTools'
 import useLyric from '@renderer/utils/compositions/useLyric'
 import LyricMenu from './components/LyricMenu.vue'
 import { appSetting } from '@renderer/store/setting'
@@ -65,7 +66,11 @@ export default {
   components: {
     LyricMenu,
   },
-  setup() {
+  props: {
+    // 弹层内容是否可见（常驻后由外层控制，隐藏期间暂停歌词滚动动画）
+    visible: Boolean,
+  },
+  setup(props) {
     const isZoomActiveLrc = computed(() => appSetting['playDetail.isZoomActiveLrc'])
     const isShowLyricProgressSetting = computed(() => appSetting['playDetail.isShowLyricProgressSetting'])
 
@@ -83,7 +88,7 @@ export default {
       handleSkipMouseEnter,
       handleSkipMouseLeave,
       handleScrollLrc,
-    } = useLyric({ isPlay, lyric, playProgress, isShowLyricProgressSetting })
+    } = useLyric({ isPlay, lyric, playProgress, isShowLyricProgressSetting, visible: toRef(props, 'visible') })
 
     const dom_lrc_select_content = useSelectAllLrc()
 
@@ -130,6 +135,14 @@ export default {
       })
       setLyricOffset(offset)
     }
+
+    // 弹层常驻后，关闭时复位组件内的临时状态（歌词菜单等）
+    watch(isShowPlayerDetail, isShow => {
+      if (isShow) return
+      lyricMenuVisible.value = false
+      isMsDown.value = false
+      isStopScroll.value = false
+    })
 
     const lrcStyles = computed(() => {
       return {

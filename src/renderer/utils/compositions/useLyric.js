@@ -5,7 +5,7 @@ import { play } from '@renderer/core/player/action'
 import { appSetting } from '@renderer/store/setting'
 // import { player as eventPlayerNames } from '@renderer/event/names'
 
-export default ({ isPlay, lyric, playProgress, isShowLyricProgressSetting, offset }) => {
+export default ({ isPlay, lyric, playProgress, isShowLyricProgressSetting, offset, visible }) => {
   const dom_lyric = ref(null)
   const dom_lyric_text = ref(null)
   const dom_skip_line = ref(null)
@@ -80,6 +80,7 @@ export default ({ isPlay, lyric, playProgress, isShowLyricProgressSetting, offse
   }
 
   const handleScrollLrc = (duration = 300) => {
+    if (visible && !visible.value) return // 弹层隐藏时容器无布局，禁止滚动（offsetTop 全为 0）
     if (!dom_lines?.length || !dom_lyric.value) return
     if (isSkipMouseEnter) return
     if (isStopScroll.value) return
@@ -204,6 +205,16 @@ export default ({ isPlay, lyric, playProgress, isShowLyricProgressSetting, offse
 
   watch(() => lyric.lines, initLrc)
   watch(() => lyric.line, scrollLine)
+
+  // 弹层内容常驻后：重新显示时回到当前歌词行（隐藏期间行号可能已前进）
+  if (visible) {
+    watch(visible, val => {
+      if (!val) return
+      nextTick(() => {
+        handleScrollLrc()
+      })
+    })
+  }
 
   onMounted(() => {
     document.addEventListener('mousemove', handleMouseMsMove)

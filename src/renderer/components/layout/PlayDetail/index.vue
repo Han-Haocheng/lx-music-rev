@@ -1,6 +1,6 @@
 <template lang="pug">
 transition(enter-active-class="animated slideInRight" leave-active-class="animated slideOutDown" @after-enter="handleAfterEnter" @after-leave="handleAfterLeave")
-  div(v-if="isShowPlayerDetail" :class="[$style.container, { fullscreen: isFullscreen }]" @contextmenu="handleContextMenu")
+  div(v-show="isShowPlayerDetail" :class="[$style.container, { fullscreen: isFullscreen }]" @contextmenu="handleContextMenu")
     div(:class="$style.bg")
     //- div(:class="$style.bg" :style="bgStyle")
     //- div(:class="$style.bg2")
@@ -16,12 +16,10 @@ transition(enter-active-class="animated slideInRight" leave-active-class="animat
             p {{ $t('player__music_singer') }}{{ musicInfo.singer }}
             p(v-if="musicInfo.album") {{ $t('player__music_album') }}{{ musicInfo.album }}
           music-source-quality(:class="$style.sourceQuality")
-
-      transition(enter-active-class="animated fadeIn" leave-active-class="animated fadeOut")
-        LyricPlayer(v-if="visibled")
-      music-comment(v-if="visibled" :class="$style.comment" :show="isShowPlayComment" :music-info="playMusicInfo.musicInfo" @close="hideComment")
-    transition(enter-active-class="animated fadeIn" leave-active-class="animated fadeOut")
-      play-bar(v-if="visibled")
+      //- 内容组件首次打开后常驻：反复开合只切换显隐/动画，不再整树卸载重建
+      LyricPlayer(v-if="contentMounted" v-show="visibled" :visible="visibled" :class="{ 'animated fadeIn': visibled }")
+      music-comment(v-if="contentMounted" :class="$style.comment" :show="isShowPlayComment" :music-info="playMusicInfo.musicInfo" @close="hideComment")
+    play-bar(v-if="contentMounted" v-show="visibled" :class="{ 'animated fadeIn': visibled }")
     transition(enter-active-class="animated-slow fadeIn" leave-active-class="animated-slow fadeOut")
       common-audio-visualizer(v-if="appSetting['player.audioVisualization'] && visibled")
 </template>
@@ -63,6 +61,8 @@ export default {
   },
   setup() {
     const visibled = ref(false)
+    // 内容组件首次打开后是否已挂载：置位后保持常驻，开合仅切换显隐，避免反复整树卸载重建
+    const contentMounted = ref(false)
 
     let clickTime = 0
 
@@ -85,6 +85,7 @@ export default {
     const handleAfterEnter = () => {
       if (isFullscreen.value) registerAutoHideMounse()
 
+      contentMounted.value = true
       visibled.value = true
     }
 
@@ -113,6 +114,7 @@ export default {
       handleAfterEnter,
       handleAfterLeave,
       visibled,
+      contentMounted,
       isFullscreen,
       fullscreenExit() {
         void setFullScreen(false).then((fullscreen) => {

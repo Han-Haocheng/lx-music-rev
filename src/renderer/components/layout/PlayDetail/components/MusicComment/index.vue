@@ -3,7 +3,7 @@ div.comment(ref="dom_container" :class="$style.comment")
   div(:class="$style.commentHeader")
     h3 {{ $t('comment__title', { name: currentMusicInfo.name }) }}
     div(:class="$style.commentHeaderBtns")
-      div(:class="$style.commentHeaderBtn" :aria-label="$t('comment__refresh')" @click="handleShowComment")
+      div(:class="$style.commentHeaderBtn" :aria-label="$t('comment__refresh')" @click="handleRefreshComment")
         svg(version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" style="transform: rotate(45deg);" viewBox="0 0 24 24" space="preserve")
           use(xlink:href="#icon-refresh")
       div(:class="$style.commentHeaderBtn" @click="$emit('close')")
@@ -61,6 +61,8 @@ export default {
         name: '',
         singer: '',
       },
+      // 最近一次已成功发起拉取（或可复用数据）的歌曲标识，同曲再次打开时直接复用评论
+      lastMusicKey: '',
       tabActiveId: 'hot',
       newComment: {
         isLoading: false,
@@ -155,10 +157,16 @@ export default {
       }
       return resp
     },
+    getMusicKey(musicInfo) {
+      return musicInfo ? musicInfo.source + '_' + musicInfo.id : ''
+    },
     handleGetNewComment(musicInfo, page, limit) {
+      const musicKey = this.getMusicKey(musicInfo)
       this.newComment.isLoadError = false
       this.newComment.isLoading = true
       this.getComment(toOldMusicInfo(musicInfo), page, limit).then(comment => {
+        // 丢弃换歌后的过期响应（弹层常驻后组件不再随开合卸载）
+        if (this.getMusicKey(this.currentMusicInfo) != musicKey) return
         this.newComment.isLoading = false
         this.newComment.total = comment.total
         this.newComment.maxPage = comment.maxPage
@@ -170,14 +178,18 @@ export default {
       }).catch(err => {
         console.warn(err)
         if (err.message == '取消请求') return
+        if (this.getMusicKey(this.currentMusicInfo) != musicKey) return
         this.newComment.isLoadError = true
         this.newComment.isLoading = false
       })
     },
     handleGetHotComment(musicInfo, page, limit) {
+      const musicKey = this.getMusicKey(musicInfo)
       this.hotComment.isLoadError = false
       this.hotComment.isLoading = true
       this.getHotComment(toOldMusicInfo(musicInfo), page, limit).then(hotComment => {
+        // 丢弃换歌后的过期响应
+        if (this.getMusicKey(this.currentMusicInfo) != musicKey) return
         this.hotComment.isLoading = false
         this.hotComment.total = hotComment.total
         this.hotComment.maxPage = hotComment.maxPage
@@ -189,11 +201,12 @@ export default {
       }).catch(err => {
         console.warn(err)
         if (err.message == '取消请求') return
+        if (this.getMusicKey(this.currentMusicInfo) != musicKey) return
         this.hotComment.isLoadError = true
         this.hotComment.isLoading = false
       })
     },
-    handleShowComment() {
+    handleShowComment(force = false) {
       this.currentMusicInfo = 'progress' in this.musicInfo ? this.musicInfo.metadata.musicInfo : this.musicInfo
 
       if (this.currentMusicInfo.source == 'local' || !music[this.currentMusicInfo.source].comment) {
@@ -201,6 +214,17 @@ export default {
         return
       }
       this.available = true
+      const musicKey = this.getMusicKey(this.currentMusicInfo)
+      // 同曲再次打开直接复用已有评论（含翻页位置），不重复拉取；刷新按钮走 force 分支强制重拉
+      const hasLoaded = !force && this.lastMusicKey == musicKey && !this.hotComment.isLoading && !this.newComment.isLoading &&
+        (this.hotComment.list.length || this.newComment.list.length || this.hotComment.isLoadError || this.newComment.isLoadError)
+      if (hasLoaded) return
+      if (this.lastMusicKey != musicKey) {
+        // 换歌后先清空旧曲评论，避免加载期间闪现上一首的评论
+        this.hotComment.list = []
+        this.newComment.list = []
+      }
+      this.lastMusicKey = musicKey
       // if (this.musicInfo.songmid != this.currentMusicInfo.songmid) {
       this.hotComment.page = 1
       this.hotComment.total = 0
@@ -216,6 +240,10 @@ export default {
 
       this.handleGetHotComment(this.currentMusicInfo, this.hotComment.page, this.hotComment.limit)
       this.handleGetNewComment(this.currentMusicInfo, this.newComment.page, this.newComment.limit)
+    },
+    handleRefreshComment() {
+      this.lastMusicKey = ''
+      this.handleShowComment(true)
     },
     handleToggleHotCommentPage(page) {
       this.hotComment.nextPage = page
