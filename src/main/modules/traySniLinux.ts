@@ -3,6 +3,7 @@ import { Variant } from 'dbus-next'
 import { parseSignature } from 'dbus-next/lib/signature'
 import { env as processEnv } from 'node:process'
 import { nativeImage } from 'electron'
+import { readFileSync } from 'node:fs'
 import { log } from '@common/utils'
 
 const { Interface } = dbus.interface
@@ -51,8 +52,13 @@ const toArgb = (img: Electron.NativeImage): [number, number, Buffer] => {
 export const setSniIcon = (pngPath: string) => {
   iconPixmaps = []
   for (const file of [pngPath, pngPath.replace(/\.png$/, '@2x.png')]) {
-    const img = nativeImage.createFromPath(file)
-    if (!img.isEmpty()) iconPixmaps.push(toArgb(img))
+    // createFromPath 会把 @2x 文件按高倍率表示加载（getSize 返回 DIP 尺寸 16，
+    // 而 toBitmap 返回实际 32×32 像素），导致像素截断错位；
+    // createFromBuffer 无多倍率表示，尺寸即真实像素。
+    try {
+      const img = nativeImage.createFromBuffer(readFileSync(file))
+      if (!img.isEmpty()) iconPixmaps.push(toArgb(img))
+    } catch {}
   }
   if (sniIface) Interface.emitPropertiesChanged(sniIface, { IconPixmap: iconPixmaps }, [])
 }
