@@ -8,6 +8,25 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### 修复（同步上游精选修复，[upstream]）
+
+- 修复歌词解析中毫秒时间的处理逻辑（[upstream] bbbbfeda）
+- 修复歌词标签解析格式没有严格按照标准的问题（[upstream] 75ba99d9）
+- 修复在某些情况下移动歌曲时可能导致保存的顺序不对的问题（[upstream] d5b1b3fd）
+- 再次修复 tx 源搜索偶现风控（[upstream] 21619e72），修正 tx 源字段拼写与歌单乱码问题
+- Win 文件名存在 `#` 特殊字符时无法正常播放（[upstream] 33742bca）
+- 修正 zh-tw 窗口大小选项文案（[upstream] bf9b34b4）
+
+### 优化
+
+- kg 源搜索改用 AndroidFilter 接口并提供 albumAudioId（[upstream] 905b2c3c）
+- 文件大小展示改用 IEC 单位（[upstream] c0dd64c7）
+- 清理 traySniLinux.ts 的 lint 错误（含 serviceName 注册竞态修复），仓库恢复 eslint 全绿
+
+### 其他
+
+- 重建 .dsh/branches AI 多分支协作框架（守则 README + branch.sh + worktree.sh），支持 git worktree 并行工作区
+
 ## [1.1.1] - 2026-09-03
 
 LX Music rev 1.1.1：设置页布局改版（一级分组移至顶部）、收藏自定义分组与行内快捷收藏、播放列表面板修复，并兼容已有数据库的收藏分组表迁移。
