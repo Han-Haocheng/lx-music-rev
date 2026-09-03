@@ -133,8 +133,16 @@ export default {
       type: String,
       required: true,
     },
+    musicList: {
+      type: Array,
+      default: null,
+    },
+    groupActionsVisible: {
+      type: Boolean,
+      default: false,
+    },
   },
-  emits: ['show-menu'],
+  emits: ['show-menu', 'group-modal'],
   setup(props, { emit }) {
     const actionButtonsVisible = appSetting['list.actionButtonsVisible']
 
@@ -225,6 +233,7 @@ export default {
     } = useMenu({
       assertApiSupport,
       emit,
+      showGroupAction: props.groupActionsVisible,
 
       handleShowDownloadModal,
       handlePlayMusic,
@@ -238,6 +247,10 @@ export default {
       handleCopyName,
       handleDislikeMusic,
       handleRemoveMusic,
+      handleGroupAction: (index) => {
+        const musicList = selectedList.value.length ? [...selectedList.value] : [list.value[index]]
+        emit('group-modal', musicList)
+      },
     })
 
     const {

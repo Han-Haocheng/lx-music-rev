@@ -14,15 +14,25 @@ export default ({ props, onLoadedList }) => {
 
 
   const list = ref([])
-  watch(() => props.listId, id => {
-    getListMusics(id).then(l => {
+  if (props.musicList) {
+    // 外部传入歌曲列表（收藏分组视图）
+    watch(() => props.musicList, l => {
       list.value = [...l]
-      if (id != props.listId) return
       onLoadedList()
+    }, {
+      immediate: true,
     })
-  }, {
-    immediate: true,
-  })
+  } else {
+    watch(() => props.listId, id => {
+      getListMusics(id).then(l => {
+        list.value = [...l]
+        if (id != props.listId) return
+        onLoadedList()
+      })
+    }, {
+      immediate: true,
+    })
+  }
 
   const playerInfo = computed(() => ({
     isPlayList: playMusicInfo.listId == props.listId,

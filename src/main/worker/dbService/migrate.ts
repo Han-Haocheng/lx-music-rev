@@ -26,6 +26,13 @@ import tables, { DB_VERSION } from './tables'
 //   db.prepare('UPDATE "main"."db_info" SET "field_value"=@value WHERE "field_name"=@name').run({ name: 'version', value: '2' })
 // }
 
+// 收藏分组表（v1.2.0+）：老库确保存在（新库由 initTables 创建）
+const ensureFavoriteGroupTables = (db: DB) => {
+  db.exec(tables.get('favorite_groups')!)
+  db.exec(tables.get('favorite_group_musics')!)
+  db.exec(tables.get('index_favorite_group_musics')!)
+}
+
 const migrateV1 = (db: DB) => {
   // 修复 v2.4.0 的默认数据库版本号不对的问题
   const existsTable = db.prepare('SELECT name FROM "main".sqlite_master WHERE type=\'table\' AND name=\'dislike_list\';').get()
@@ -36,6 +43,7 @@ const migrateV1 = (db: DB) => {
 }
 
 export default (db: DB) => {
+  ensureFavoriteGroupTables(db)
   // PRAGMA user_version = x
   // console.log(db.prepare('PRAGMA user_version').get().user_version)
   // https://github.com/WiseLibs/better-sqlite3/issues/668#issuecomment-1145285728
