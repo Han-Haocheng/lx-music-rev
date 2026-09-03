@@ -86,6 +86,8 @@
   "favorite_group_remove": "Delete group",
   "favorite_group_remove_tip": "Delete group \"{name}\"? Favorited songs in it won't be deleted",
   "favorite_group_rename": "Rename group",
+  "favorite_group_select_add_to_list": "Add to a user list...",
+  "favorite_group_select_title": "Add to favorites",
   "fullscreen_exit": "Exit fullscreen",
   "history_clear": "Clear history",
   "history_remove": "Right-click to remove this entry",
