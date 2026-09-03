@@ -139,11 +139,24 @@ export default () => {
       //   break
     }
   })
-  watch(() => playProgress.nowPlayTime, (newValue, oldValue) => {
-    // console.log(playProgress.nowPlayTime, newValue, oldValue)
-    // if (newValue.toFixed(2) === oldValue.toFixed(2)) return
-    // console.log(playProgress.nowPlayTime)
-    sendPlayerStatus({ progress: newValue })
+  let lastSentProgress = -1
+  let progressVersion = 0
+  // 播放中 timeupdate 高频帧（约 4-5 次/秒）只做 500ms 尾随节流发送，避免每 tick 触发主进程状态分发
+  // version 用于丢弃 seek 即时刷新后被 pending 定时器补发的过期帧
+  const throttleSendProgress = throttle((time: number, version: number) => {
+    if (version < progressVersion) return
+    lastSentProgress = time
+    sendPlayerStatus({ progress: time })
+  }, 500)
+  watch(() => playProgress.nowPlayTime, (newValue) => {
+    // 拖动进度条/切歌等大幅跳变需要立即刷新状态，不能被节流吞掉
+    if (Math.abs(newValue - lastSentProgress) > 2) {
+      progressVersion++
+      lastSentProgress = newValue
+      sendPlayerStatus({ progress: newValue })
+    } else {
+      throttleSendProgress(newValue, progressVersion)
+    }
   })
   watch(() => playProgress.maxPlayTime, (newValue) => {
     sendPlayerStatus({ duration: newValue })
