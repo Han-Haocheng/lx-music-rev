@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { existsSync, mkdirSync, renameSync } from 'fs'
 import { app, shell, screen, nativeTheme, dialog } from 'electron'
+import type { RenderProcessGoneDetails, WebContents } from 'electron'
 import { URL_SCHEME_RXP } from '@common/constants'
 import { getProxy, getTheme, initHotKey, initSetting, parseEnvParams } from './utils'
 import { navigationUrlWhiteList } from '@common/config'
@@ -176,6 +177,55 @@ export const registerDeeplink = (startApp: () => void) => {
   })
 }
 
+// ===== 渲染进程崩溃自动恢复（main-security #4）=====
+// 同一 webContents 在 CRASH_RECOVERY_WINDOW_MS（60s）内发生第 2 次及以上崩溃时停止自动 reload，
+// 改为弹系统对话框提示用户重启应用，避免「崩溃 → 自动 reload → 再崩溃」的白屏死循环；
+// 窗口时间过后计数重置，可再次进入自动恢复。
+const CRASH_RECOVERY_WINDOW_MS = 60_000
+// 窗口内允许自动 reload 的崩溃次数上限：超过（即第 2 次起）不再自动 reload
+const CRASH_RECOVERY_MAX_IN_WINDOW = 1
+interface RendererCrashState {
+  crashTimes: number[]
+  isStopped: boolean
+}
+const rendererCrashStates = new Map<number, RendererCrashState>()
+
+// 记录并评估一次渲染进程崩溃：非正常退出时自动 reload；窗口内连续崩溃则停止自动恢复并提示重启
+const handleRendererProcessGone = (contents: WebContents, details: RenderProcessGoneDetails) => {
+  if (contents.isDestroyed()) return
+  if (details.reason === 'clean-exit') return
+  log.warn(`WebContents(${contents.id}) 渲染进程异常退出: reason=${details.reason}, exitCode=${details.exitCode}`)
+  let state = rendererCrashStates.get(contents.id)
+  if (!state) {
+    state = { crashTimes: [], isStopped: false }
+    rendererCrashStates.set(contents.id, state)
+    contents.once('destroyed', () => {
+      rendererCrashStates.delete(contents.id)
+    })
+  }
+  const now = Date.now()
+  if (state.isStopped) {
+    // 距上次崩溃已超过窗口期（应用恢复稳定）时解除停止状态，允许再次自动恢复
+    const lastCrashTime = state.crashTimes[state.crashTimes.length - 1]
+    if (lastCrashTime != null && now - lastCrashTime <= CRASH_RECOVERY_WINDOW_MS) return
+    state.isStopped = false
+    state.crashTimes = []
+  }
+  state.crashTimes.push(now)
+  while (state.crashTimes.length && now - state.crashTimes[0] > CRASH_RECOVERY_WINDOW_MS) state.crashTimes.shift()
+  if (state.crashTimes.length > CRASH_RECOVERY_MAX_IN_WINDOW) {
+    state.isStopped = true
+    log.error(`WebContents(${contents.id}) 在 ${CRASH_RECOVERY_WINDOW_MS / 1000}s 内多次崩溃，已停止自动恢复`)
+    dialog.showErrorBox(
+      '渲染进程反复崩溃 / Renderer crashed repeatedly',
+      '播放器窗口渲染进程在短时间内反复崩溃，已停止自动恢复。\n请重启应用以恢复正常使用。\n\nThe renderer process crashed repeatedly and automatic recovery has been stopped. Please restart the app.',
+    )
+    return
+  }
+  log.warn(`WebContents(${contents.id}) 渲染进程崩溃，自动 reload 恢复（60s 内第 ${state.crashTimes.length} 次）`)
+  contents.reload()
+}
+
 export const listenerAppEvent = (startApp: () => void) => {
   app.on('web-contents-created', (event, contents) => {
     contents.on('will-navigate', (event, navigationUrl) => {
@@ -206,9 +256,25 @@ export const listenerAppEvent = (startApp: () => void) => {
       }
     })
 
+    // 渲染进程崩溃自动恢复：白屏时自动 reload（带 60s 窗口退避），连续崩溃改为提示重启
+    contents.on('render-process-gone', (_event, details) => {
+      handleRendererProcessGone(contents, details)
+    })
+    // 渲染进程无响应：仅记录日志，不弹窗打扰用户
+    contents.on('unresponsive', () => {
+      if (contents.isDestroyed()) return
+      log.warn(`WebContents(${contents.id}) 渲染进程无响应 (unresponsive)`)
+    })
+
     // disable create dictionary
     // https://github.com/lyswhut/lx-music-desktop/issues/773
     contents.session.setSpellCheckerDictionaryDownloadURL('http://0.0.0.0')
+  })
+
+  // 主进程级监听 GPU/Utility 等子进程崩溃（不含渲染进程）：记录日志便于排查
+  app.on('child-process-gone', (_event, details) => {
+    if (details.reason === 'clean-exit') return
+    log.warn(`子进程异常退出: type=${details.type}, reason=${details.reason}, exitCode=${details.exitCode}${details.serviceName ? `, service=${details.serviceName}` : ''}`)
   })
 
   app.on('activate', () => {
