@@ -53,6 +53,7 @@ const winEvent = () => {
   // https://github.com/electron/electron/issues/48859
   // Wayland 下 ready-to-show 可能不触发导致窗口（show:false）永不显示，用 did-finish-load 兜底
   browserWindow.webContents.once('did-finish-load', () => {
+    if (process.env.LX_SMOKE_TEST === '1') console.log('SMOKE: main window loaded')
     if (browserWindow?.isVisible()) return
     if (!global.envParams.cmdParams.hidden || process.env.NODE_ENV === 'development') {
       showWindow()
