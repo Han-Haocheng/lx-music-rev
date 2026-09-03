@@ -39,7 +39,10 @@ const toArgb = (img: Electron.NativeImage): [number, number, Buffer] => {
   const out = Buffer.alloc(width * height * 4)
   const n = width * height
   for (let i = 0; i < n; i++) {
-    const b = bmp[i * 4], g = bmp[i * 4 + 1], r = bmp[i * 4 + 2], a = bmp[i * 4 + 3]
+    const b = bmp[i * 4]
+    const g = bmp[i * 4 + 1]
+    const r = bmp[i * 4 + 2]
+    const a = bmp[i * 4 + 3]
     out[i * 4] = a
     if (a === 0) { out[i * 4 + 1] = out[i * 4 + 2] = out[i * 4 + 3] = 0; continue }
     out[i * 4 + 1] = Math.min(255, Math.round(r * 255 / a))
@@ -138,20 +141,21 @@ class SNIInterface extends Interface {
       },
     })
   }
-  get Category() { return 'ApplicationStatus' }
-  get Id() { return 'lx-music-rev' }
+
+  readonly Category = 'ApplicationStatus'
+  readonly Id = 'lx-music-rev'
   get Title() { return trayTitle }
-  get Status() { return 'Active' }
-  get WindowId() { return 0 }
-  get IconName() { return '' }
+  readonly Status = 'Active'
+  readonly WindowId = 0
+  readonly IconName = ''
   get IconPixmap() { return iconPixmaps }
-  get OverlayIconName() { return '' }
+  readonly OverlayIconName = ''
   get OverlayIconPixmap() { return [] }
-  get AttentionIconName() { return '' }
+  readonly AttentionIconName = ''
   get AttentionIconPixmap() { return [] }
-  get AttentionMovieName() { return '' }
+  readonly AttentionMovieName = ''
   get ToolTip() { return [tooltipText, iconPixmaps, tooltipText.split('\n')[0], tooltipText] }
-  get ItemIsMenu() { return false }
+  readonly ItemIsMenu = false
   get Menu() { return MENU_PATH }
 }
 
@@ -164,15 +168,15 @@ class MenuInterface extends Interface {
     if (item.enabled === false) props.enabled = new Variant('b', false)
     return props
   }
+
   constructor() {
     super(MENU_IFACE)
-    const self = this
     registerMembers(MenuInterface, {
       methods: {
-        GetLayout: { name: 'GetLayout', inSignature: 'iias', outSignature: 'u(ia{sv}av)', fn: (parentId: number, recursionDepth: number, propNames: string[]) => self.buildLayout(parentId) },
-        GetGroupProperties: { name: 'GetGroupProperties', inSignature: 'ai', outSignature: 'a(ia{sv})', fn: (ids: number[]) => self.buildGroupProps(ids) },
+        GetLayout: { name: 'GetLayout', inSignature: 'iias', outSignature: 'u(ia{sv}av)', fn: (parentId: number, recursionDepth: number, propNames: string[]) => this.buildLayout(parentId) },
+        GetGroupProperties: { name: 'GetGroupProperties', inSignature: 'ai', outSignature: 'a(ia{sv})', fn: (ids: number[]) => this.buildGroupProps(ids) },
         GetProperty: { name: 'GetProperty', inSignature: 'is', outSignature: 'v', fn: () => new Variant('s', '') },
-        Event: { name: 'Event', inSignature: 'isvu', outSignature: '', fn: (id: number, eventId: string, data: unknown, timestamp: number) => self.handleEvent(id, eventId) },
+        Event: { name: 'Event', inSignature: 'isvu', outSignature: '', fn: (id: number, eventId: string, data: unknown, timestamp: number) => { this.handleEvent(id, eventId) } },
         EventGroup: { name: 'EventGroup', inSignature: 'a(isv)', outSignature: '', fn: () => {} },
         AboutToShow: { name: 'AboutToShow', inSignature: 'i', outSignature: '', fn: () => { menuRefreshHandler?.() } },
       },
@@ -182,11 +186,13 @@ class MenuInterface extends Interface {
       },
     })
   }
+
   buildLayout(parentId: number): [number, [number, Record<string, Variant>, Variant[]]] {
     const rootProps: Record<string, Variant> = { 'children-display': new Variant('s', 'submenu') }
     const children: Variant[] = menuItems.map(item => new Variant('(ia{sv}av)', [item.id, MenuInterface.buildItemProps(item), []]))
     return [menuRevision, [0, rootProps, children]]
   }
+
   buildGroupProps(ids: number[]): Array<[number, Record<string, Variant>]> {
     const result: Array<[number, Record<string, Variant>]> = []
     for (const id of ids) {
@@ -195,12 +201,14 @@ class MenuInterface extends Interface {
     }
     return result
   }
+
   handleEvent(id: number, eventId: string) {
     if (eventId !== 'clicked') return
     menuItems.find(i => i.id === id)?.onClick?.()
   }
+
   emitMenuUpdate(revision: number, parentId: number) {
-    const options = this.constructor.prototype.$signals['LayoutUpdated']
+    const options = this.constructor.prototype.$signals.LayoutUpdated
     // $emitter 为 dbus-next 内部实现（d.ts 未声明），通过 any 桥接
     ;(this as any).$emitter.emit('signal', options, [revision, parentId])
   }
@@ -218,23 +226,25 @@ export const createSniTray = async(onShowWindow: () => void) => {
   activateHandler = onShowWindow
   try {
     const busAddress =
-      processEnv.DBUS_SESSION_BUS_ADDRESS
-      ?? (processEnv.XDG_RUNTIME_DIR ? `unix:path=${processEnv.XDG_RUNTIME_DIR}/bus` : undefined)
+      processEnv.DBUS_SESSION_BUS_ADDRESS ??
+      (processEnv.XDG_RUNTIME_DIR ? `unix:path=${processEnv.XDG_RUNTIME_DIR}/bus` : undefined)
     bus = dbus.sessionBus(busAddress ? { busAddress } : undefined)
 
-    serviceName = `org.freedesktop.StatusNotifierItem-${process.pid}-1`
-    let reply = await bus.requestName(serviceName, dbus.NameFlag.DO_NOT_QUEUE)
+    const nameBase = `org.freedesktop.StatusNotifierItem-${process.pid}`
+    let candidateName = `${nameBase}-1`
+    let reply = await bus.requestName(candidateName, dbus.NameFlag.DO_NOT_QUEUE)
     if (reply !== dbus.RequestNameReply.PRIMARY_OWNER) {
-      serviceName = `org.freedesktop.StatusNotifierItem-${process.pid}-2`
-      reply = await bus.requestName(serviceName, dbus.NameFlag.DO_NOT_QUEUE)
+      candidateName = `${nameBase}-2`
+      reply = await bus.requestName(candidateName, dbus.NameFlag.DO_NOT_QUEUE)
     }
+    serviceName = candidateName
     sniIface = new SNIInterface()
     menuIface = new MenuInterface()
     bus.export(SNI_PATH, sniIface)
     bus.export(MENU_PATH, menuIface)
     // 注册给 KDE watcher；watcher 可能尚未就绪，重试几次
     for (let i = 0; i < 5; i++) {
-      try { await registerWithWatcher(); return } catch (err) { log.error('register watcher retry', err); await new Promise(r => setTimeout(r, 400)) }
+      try { await registerWithWatcher(); return } catch (err) { log.error('register watcher retry', err); await new Promise(resolve => setTimeout(resolve, 400)) }
     }
   } catch (err) {
     log.error('tray sni create failed:', err)
