@@ -15,8 +15,10 @@ import registerModules from '@main/modules'
 
 // Linux（如 Intel Xe/MESA 实验驱动）下 GPU 进程 GL 初始化失败会退出，
 // 导致窗口永不触发 ready-to-show（show:false 时窗口不可见）。
-// 禁用硬件加速走软件渲染，保证窗口正常显示。
-if (process.platform === 'linux') {
+// 默认禁用硬件加速走软件渲染，保证窗口正常显示；
+// 用户可显式加 -ehw 参数启用硬件加速（自担 GL 风险，仅 Linux 生效）。
+// 注意：此判断在 initGlobalData/applyElectronEnvParams 之前，只能读 process.argv。
+if (process.platform === 'linux' && !process.argv.includes('-ehw')) {
   app.disableHardwareAcceleration()
 }
 

@@ -13,6 +13,11 @@ declare namespace LX {
     dha?: boolean
 
     /**
+     * 启用硬件加速启动（Linux 默认禁用，-ehw 显式启用；仅 Linux 生效）
+     */
+    ehw?: boolean
+
+    /**
      * 以非透明模式启动
      */
     dt?: boolean
