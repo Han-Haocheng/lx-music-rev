@@ -112,6 +112,8 @@ export default {
   cursor: pointer;
 
   svg {
+    width: 18px;
+    height: 18px;
     filter: drop-shadow(0 0 1px rgba(0, 0, 0, 0.2));
   }
   &:hover {

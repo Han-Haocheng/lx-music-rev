@@ -120,6 +120,10 @@ export default {
   .footerLeftControlBtn {
     // width: 18px;
     // height: 18px;
+    svg {
+      width: 16px;
+      height: 16px;
+    }
     opacity: .5;
     cursor: pointer;
     transition: opacity @transition-normal;
