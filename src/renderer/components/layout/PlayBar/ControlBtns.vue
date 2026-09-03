@@ -26,6 +26,10 @@
         <use xlink:href="#icon-playlist" />
       </svg>
     </button>
+    <material-favorite-group-select-modal
+      v-model:show="isShowAddMusicToFavorite" :music-info="playMusicInfo.musicInfo"
+      @add-to-user-list="handleFavoriteAddToList"
+    />
     <common-list-add-modal v-model:show="isShowAddMusicTo" :music-info="playMusicInfo.musicInfo" />
     <common-download-modal v-model:show="isShowDownload" :music-info="playMusicInfo.musicInfo" />
     <play-queue :show="isShowPlayQueue" @close="isShowPlayQueue = false" />
@@ -33,7 +37,7 @@
 </template>
 
 <script>
-import { ref } from '@common/utils/vueTools'
+import { nextTick, ref } from '@common/utils/vueTools'
 import useToggleDesktopLyric from '@renderer/utils/compositions/useToggleDesktopLyric'
 import { musicInfo, playMusicInfo } from '@renderer/store/player/state'
 import { appSetting } from '@renderer/store/setting'
@@ -45,6 +49,7 @@ export default {
   },
   setup() {
     const isShowAddMusicTo = ref(false)
+    const isShowAddMusicToFavorite = ref(false)
     const isShowDownload = ref(false)
     const isShowPlayQueue = ref(false)
     const {
@@ -54,7 +59,13 @@ export default {
     } = useToggleDesktopLyric()
     const addMusicTo = () => {
       if (!musicInfo.id) return
-      isShowAddMusicTo.value = true
+      isShowAddMusicToFavorite.value = true
+    }
+    const handleFavoriteAddToList = () => {
+      isShowAddMusicToFavorite.value = false
+      void nextTick(() => {
+        isShowAddMusicTo.value = true
+      })
     }
     const download = () => {
       if (!musicInfo.id || musicInfo.source === 'local') return
@@ -63,12 +74,14 @@ export default {
     return {
       appSetting,
       isShowAddMusicTo,
+      isShowAddMusicToFavorite,
       isShowDownload,
       isShowPlayQueue,
       toggleDesktopLyricBtnTitle,
       toggleDesktopLyric,
       toggleLockDesktopLyric,
       addMusicTo,
+      handleFavoriteAddToList,
       download,
       playMusicInfo,
     }

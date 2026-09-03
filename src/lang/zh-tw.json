@@ -86,6 +86,8 @@
   "favorite_group_remove": "刪除群組",
   "favorite_group_remove_tip": "確定刪除群組「{name}」嗎？群組內已收藏的歌曲不會被刪除",
   "favorite_group_rename": "重新命名",
+  "favorite_group_select_add_to_list": "新增至使用者清單...",
+  "favorite_group_select_title": "新增至收藏",
   "fullscreen_exit": "退出全螢幕",
   "history_clear": "清空搜尋歷史",
   "history_remove": "右擊移除該歷史",

@@ -90,6 +90,10 @@
       v-model:show="isShowListAdd" :is-move="isMove" :from-list-id="listId"
       :music-info="selectedAddMusicInfo" :exclude-list-id="excludeListIds" teleport="#view"
     />
+    <material-favorite-group-select-modal
+      v-model:show="isShowFavoriteGroupAdd" :music-info="selectedAddMusicInfo"
+      teleport="#view" @add-to-user-list="handleFavoriteGroupModalAddToList"
+    />
     <common-list-add-multiple-modal
       v-model:show="isShowListAddMultiple" :from-list-id="listId"
       :is-move="isMoveMultiple" :music-list="selectedList" :exclude-list-id="excludeListIds" teleport="#view" @confirm="removeAllSelect"
@@ -120,6 +124,7 @@ import useMusicActions from './useMusicActions'
 import useSearch from './useSearch'
 import useListScroll from './useListScroll'
 import useMusicToggle from './useMusicToggle'
+import { nextTick } from '@common/utils/vueTools'
 import { appSetting } from '@renderer/store/setting'
 import { addListMusics } from '@renderer/store/list/action'
 import { loveList } from '@renderer/store/list/state'
@@ -195,6 +200,21 @@ export default {
       handleShowMusicAddModal,
       handleShowMusicMoveModal,
     } = useMusicAdd({ selectedList, list })
+
+    const isShowFavoriteGroupAdd = ref(false)
+    const handleShowMusicFavoriteGroupModal = (index) => {
+      isMove.value = false
+      selectedAddMusicInfo.value = list.value[index]
+      void nextTick(() => {
+        isShowFavoriteGroupAdd.value = true
+      })
+    }
+    const handleFavoriteGroupModalAddToList = () => {
+      isShowFavoriteGroupAdd.value = false
+      void nextTick(() => {
+        isShowListAdd.value = true
+      })
+    }
 
     const {
       isShowDownload,
@@ -315,7 +335,7 @@ export default {
           handleQuickCollect(index)
           break
         case 'listAddSelect':
-          handleShowMusicAddModal(index, true)
+          handleShowMusicFavoriteGroupModal(index)
           break
       }
     }
@@ -349,6 +369,8 @@ export default {
       isShowListAddMultiple,
       isMoveMultiple,
       selectedAddMusicInfo,
+      isShowFavoriteGroupAdd,
+      handleFavoriteGroupModalAddToList,
 
       isShowMusicSortModal,
       selectedNum,
