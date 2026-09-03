@@ -13,30 +13,25 @@
             </transition>
             {{ h2.title }}
           </h2>
-          <!-- <ul v-if="h2.children.length" :class="$style.tocList">
-            <li v-for="h3 in h2.children" :key="h3.id" :class="$style.tocSubListItem">
-              <h3 :class="[$style.tocH3, toc.activeId == h3.id ? $style.active : null]" :aria-label="h3.title">
-                <a :href="'#' + h3.id" @click.stop="toc.activeId = h3.id">{{ h3.title }}</a>
-              </h3>
+          <ul v-if="avtiveComponentName == h2.id && subList.length" :class="$style.tocSubList">
+            <li v-for="item in subList" :key="item.id" :class="$style.tocSubListItem">
+              <h3
+                :class="[$style.tocH3, {[$style.active]: activeSubId == item.id }]"
+                :aria-label="item.title" @click="scrollToSub(item.id)"
+              >{{ item.title }}</h3>
             </li>
-          </ul> -->
+          </ul>
         </li>
       </ul>
     </div>
     <div ref="dom_content_ref" class="scroll" :class="$style.setting">
       <dl>
         <component :is="avtiveComponentName" />
-        <!-- <SettingBasic />
-        <SettingPlay />
-        <SettingDesktopLyric />
-        <SettingSearch />
-        <SettingList />
-        <SettingDownload />
-        <SettingSync />
+        <!-- <SettingGeneral />
+        <SettingPlayLyric />
+        <SettingDownloadBackup />
+        <SettingSyncNetwork />
         <SettingHotKey />
-        <SettingNetwork />
-        <SettingBackup />
-        <SettingOther />
         <SettingAbout /> -->
       </dl>
     </div>
@@ -44,38 +39,25 @@
 </template>
 
 <script>
-import { ref, computed, nextTick } from '@common/utils/vueTools'
-// import { currentStting } from './setting'
+import { ref, computed, nextTick, watch, onMounted } from '@common/utils/vueTools'
 import { useI18n } from '@renderer/plugins/i18n'
 import { useRoute } from '@common/utils/vueRouter'
 
-import SettingBasic from './components/SettingBasic.vue'
-import SettingPlay from './components/SettingPlay.vue'
-import SettingDesktopLyric from './components/SettingDesktopLyric.vue'
-import SettingSearch from './components/SettingSearch.vue'
-import SettingList from './components/SettingList.vue'
-import SettingDownload from './components/SettingDownload.vue'
-import SettingSync from './components/SettingSync/index.vue'
+import SettingGeneral from './components/SettingGeneral.vue'
+import SettingPlayLyric from './components/SettingPlayLyric.vue'
+import SettingDownloadBackup from './components/SettingDownloadBackup.vue'
+import SettingSyncNetwork from './components/SettingSyncNetwork.vue'
 import SettingHotKey from './components/SettingHotKey.vue'
-import SettingNetwork from './components/SettingNetwork.vue'
-import SettingBackup from './components/SettingBackup.vue'
-import SettingOther from './components/SettingOther.vue'
 import SettingAbout from './components/SettingAbout.vue'
 
 export default {
   name: 'Setting',
   components: {
-    SettingBasic,
-    SettingPlay,
-    SettingDesktopLyric,
-    SettingSearch,
-    SettingList,
-    SettingDownload,
-    SettingSync,
+    SettingGeneral,
+    SettingPlayLyric,
+    SettingDownloadBackup,
+    SettingSyncNetwork,
     SettingHotKey,
-    SettingNetwork,
-    SettingBackup,
-    SettingOther,
     SettingAbout,
   },
   setup() {
@@ -86,17 +68,11 @@ export default {
 
     const tocList = computed(() => {
       return [
-        { id: 'SettingBasic', title: t('setting__basic') },
-        { id: 'SettingPlay', title: t('setting__play') },
-        { id: 'SettingDesktopLyric', title: t('setting__desktop_lyric') },
-        { id: 'SettingSearch', title: t('setting__search') },
-        { id: 'SettingList', title: t('setting__list') },
-        { id: 'SettingDownload', title: t('setting__download') },
+        { id: 'SettingGeneral', title: t('setting__general') },
+        { id: 'SettingPlayLyric', title: t('setting__play_lyric') },
+        { id: 'SettingDownloadBackup', title: t('setting__download_backup') },
+        { id: 'SettingSyncNetwork', title: t('setting__sync_network') },
         { id: 'SettingHotKey', title: t('setting__hot_key') },
-        { id: 'SettingSync', title: t('setting__sync') },
-        { id: 'SettingNetwork', title: t('setting__network') },
-        { id: 'SettingBackup', title: t('setting__backup') },
-        { id: 'SettingOther', title: t('setting__other') },
         { id: 'SettingAbout', title: t('setting__about') },
       ]
     })
@@ -105,6 +81,34 @@ export default {
       ? route.query.name
       : tocList.value[0].id)
 
+    const subList = ref([])
+    const activeSubId = ref('')
+
+    const updateSubList = () => {
+      activeSubId.value = ''
+      const container = dom_content_ref.value
+      if (!container) {
+        subList.value = []
+        return
+      }
+      const list = []
+      container.querySelectorAll('dt[id], h3[id]').forEach(el => {
+        const title = (el.textContent ?? '').trim()
+        if (el.id && title) list.push({ id: el.id, title })
+      })
+      subList.value = list
+    }
+
+    const scrollToSub = id => {
+      activeSubId.value = id
+      const container = dom_content_ref.value
+      if (!container) return
+      const el = container.querySelector('#' + CSS.escape(id))
+      if (!el) return
+      const top = el.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop
+      container.scrollTo({ top: Math.max(top - 8, 0), behavior: 'smooth' })
+    }
+
     const toggleTab = id => {
       avtiveComponentName.value = id
       void nextTick(() => {
@@ -112,51 +116,27 @@ export default {
           top: 0,
           behavior: 'smooth',
         })
+        updateSubList()
       })
     }
+
+    watch(avtiveComponentName, () => {
+      void nextTick(updateSubList)
+    })
+    onMounted(() => {
+      void nextTick(updateSubList)
+    })
 
     return {
       tocList,
       avtiveComponentName,
       dom_content_ref,
       toggleTab,
+      subList,
+      activeSubId,
+      scrollToSub,
     }
   },
-  // mounted() {
-  //   this.initTOC()
-  // },
-  // methods: {
-  //   initTOC() {
-  //     const list = this.$refs.dom_setting_list.children
-  //     const toc = []
-  //     let prevTitle
-  //     for (const item of list) {
-  //       if (item.tagName == 'DT') {
-  //         prevTitle = {
-  //           title: item.innerText.replace(/[（(].+?[)）]/, ''),
-  //           id: item.getAttribute('id'),
-  //           dom: item,
-  //           children: [],
-  //         }
-  //         toc.push(prevTitle)
-  //         continue
-  //       }
-  //       const h3 = item.querySelector('h3')
-  //       if (h3) {
-  //         prevTitle.children.push({
-  //           title: h3.innerText.replace(/[（(].+?[)）]/, ''),
-  //           id: h3.getAttribute('id'),
-  //           dom: h3,
-  //         })
-  //       }
-  //     }
-  //     console.log(toc)
-  //     this.toc.list = toc
-  //   },
-  //   handleListScroll(event) {
-  //     // console.log(event.target.scrollTop)
-  //   },
-  // },
 }
 </script>
 
@@ -199,19 +179,34 @@ export default {
   margin-left: -0.45em;
   vertical-align: -0.05em;
 }
-// .tocH3 {
-//   font-size: 13px;
-//   opacity: .8;
-// }
+.tocSubList {
+  padding: 2px 0 6px;
+}
+.tocSubListItem {
+  padding-top: 3px;
+}
+.tocH3 {
+  line-height: 1.5;
+  .mixin-ellipsis-1();
+  font-size: 12px;
+  opacity: .85;
+  color: var(--color-font);
+  padding: 4px 10px 4px 22px;
+  cursor: pointer;
+  transition: @transition-fast;
+  transition-property: background-color, color;
 
-// .tocList {
-//   .tocList {
-//     // padding-left: 15px;
-//   }
-// }
-// .tocSubListItem {
-//   padding-top: 10px;
-// }
+  &:not(.active) {
+    &:hover {
+      background-color: var(--color-button-background-hover);
+      opacity: 1;
+    }
+  }
+  &.active {
+    opacity: 1;
+    color: var(--color-primary);
+  }
+}
 
 .setting {
   padding: 0 15px 15px;
@@ -234,12 +229,9 @@ export default {
     }
 
     dd {
-      // margin-left: 15px;
-      // font-size: 13px;
       > div {
         padding: 0 15px;
       }
-
     }
     h3 {
       font-size: 12px;
@@ -272,29 +264,4 @@ export default {
     }
   }
 }
-
-// .btn-content {
-//   display: inline-block;
-//   transition: @transition-theme;
-//   transition-property: opacity, transform;
-//   opacity: 1;
-//   transform: scale(1);
-
-//   &.hide {
-//     opacity: 0;
-//     transform: scale(0);
-//   }
-// }
-
-
-// :global(dt):target, :global(h3):target {
-//   animation: highlight 1s ease;
-// }
-
-// @keyframes highlight {
-//   from { background: yellow; }
-//   to { background: transparent; }
-// }
-
 </style>
-
