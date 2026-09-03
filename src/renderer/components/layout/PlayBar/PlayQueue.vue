@@ -16,29 +16,33 @@
               </svg>
             </button>
           </div>
-          <div ref="dom_list" :class="['scroll', $style.content]">
+          <div :class="$style.content">
             <p v-if="!list.length" :class="$style.empty">{{ $t('playlist_empty_tip') }}</p>
-            <div
-              v-for="(item, index) in list" :key="getRealMusicInfo(item).id"
-              :class="[$style.row, { [$style.active]: isActiveIndex(index) }]"
-              @click="handlePlay(index)"
+            <base-virtualized-list
+              v-if="list.length" ref="listRef" v-slot="{ item, index }" :list="displayList"
+              key-name="id" :item-height="44" container-class="scroll" content-class="list"
             >
-              <div :class="$style.index">
-                <svg v-if="isActiveIndex(index)" version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 512 512" space="preserve">
-                  <use xlink:href="#icon-play-outline" />
-                </svg>
-                <span v-else>{{ index + 1 }}</span>
+              <div
+                :class="[$style.row, { [$style.active]: isActiveIndex(index) }]"
+                @click="handlePlay(index)"
+              >
+                <div :class="$style.index">
+                  <svg v-if="isActiveIndex(index)" version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 512 512" space="preserve">
+                    <use xlink:href="#icon-play-outline" />
+                  </svg>
+                  <span v-else>{{ index + 1 }}</span>
+                </div>
+                <div :class="$style.info">
+                  <p :class="$style.name" :aria-label="item.name">{{ item.name }}</p>
+                  <p :class="$style.singer" :aria-label="item.singer">{{ item.singer }}</p>
+                </div>
+                <button :class="$style.removeBtn" :aria-label="$t('list__remove')" @click.stop="handleRemove(index)">
+                  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 212.982 212.982" space="preserve">
+                    <use xlink:href="#icon-delete" />
+                  </svg>
+                </button>
               </div>
-              <div :class="$style.info">
-                <p :class="$style.name" :aria-label="displayName(item)">{{ displayName(item) }}</p>
-                <p :class="$style.singer" :aria-label="displaySinger(item)">{{ displaySinger(item) }}</p>
-              </div>
-              <button :class="$style.removeBtn" :aria-label="$t('list__remove')" @click.stop="handleRemove(index)">
-                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 212.982 212.982" space="preserve">
-                  <use xlink:href="#icon-delete" />
-                </svg>
-              </button>
-            </div>
+            </base-virtualized-list>
           </div>
         </div>
       </div>
@@ -67,14 +71,24 @@ export default {
   emits: ['close'],
   setup(props, { emit }) {
     const t = useI18n()
-    const dom_list = ref(null)
+    const listRef = ref(null)
     const list = computed(() => (playInfo.playerListId ? getList(playInfo.playerListId) : []))
+
+    // 虚拟列表的数据源：将原始列表扁平化为 [{ id, name, singer, raw }]，id 供 key 使用，raw 供操作回查
+    const displayList = computed(() => list.value.map(item => {
+      const musicInfo = getRealMusicInfo(item)
+      return {
+        id: musicInfo.id,
+        name: musicInfo.name,
+        singer: musicInfo.singer,
+        raw: item,
+      }
+    }))
 
     const isActiveIndex = (index) => !playMusicInfo.isTempPlay && playInfo.playIndex === index
 
     const getRealMusicInfo = (item) => ('progress' in item ? item.metadata.musicInfo : item)
     const displayName = (item) => getRealMusicInfo(item).name
-    const displaySinger = (item) => getRealMusicInfo(item).singer
 
     const handleClose = () => {
       emit('close')
@@ -110,10 +124,12 @@ export default {
     }
 
     const handleLocate = () => {
+      if (!props.show || playMusicInfo.isTempPlay || playInfo.playIndex < 0) return
+      if (!list.value.length) return
+      // 弹层面板整体处于 v-if="show" 下，watch(pre) 触发时 DOM 尚未挂载，需等一次 nextTick 拿到 listRef
+      // 之后直接设置 scrollTop 即可（content 高度由 list.length * 44 决定），无需等待虚拟列表首屏渲染
       void nextTick(() => {
-        if (!props.show || playMusicInfo.isTempPlay || playInfo.playIndex < 0) return
-        const el = dom_list.value?.children[playInfo.playIndex]
-        el?.scrollIntoView({ block: 'center' })
+        listRef.value?.scrollToIndex(playInfo.playIndex, 0, false)
       })
     }
 
@@ -122,12 +138,12 @@ export default {
     })
 
     return {
-      dom_list,
+      listRef,
       list,
+      displayList,
       isActiveIndex,
       getRealMusicInfo,
       displayName,
-      displaySinger,
       handleClose,
       handlePlay,
       handleRemove,
@@ -199,7 +215,9 @@ export default {
 .content {
   flex: auto;
   min-height: 0;
-  overflow-y: scroll !important;
+  display: flex;
+  flex-flow: column nowrap;
+  // 滚动由 base-virtualized-list 容器承担（其自带 height:100%; overflow-y:auto）
 }
 .empty {
   padding: 24px 0;
