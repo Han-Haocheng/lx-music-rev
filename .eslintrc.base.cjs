@@ -1,4 +1,6 @@
 const baseRule = {
+  'no-console': ['error', { allow: ['warn', 'error'] }],
+  'no-debugger': 'error',
   'no-new': 'off',
   camelcase: 'off',
   'no-return-assign': 'off',

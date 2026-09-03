@@ -12,6 +12,8 @@ export default {
   },
   info(...params: any[]) {
     // if (global.lx.isEnableSyncLog) writeLog.info(...params)
+    // 同步模块统一日志框架自身的 console 输出通道
+    // eslint-disable-next-line no-console -- 日志框架实现需要直接输出
     console.log(...params)
   },
   warn(...params: any[]) {

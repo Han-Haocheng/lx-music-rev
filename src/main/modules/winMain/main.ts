@@ -53,6 +53,8 @@ const winEvent = () => {
   // https://github.com/electron/electron/issues/48859
   // Wayland 下 ready-to-show 可能不触发导致窗口（show:false）永不显示，用 did-finish-load 兜底
   browserWindow.webContents.once('did-finish-load', () => {
+    // 冒烟测试探针（无头运行测试判据，生产零影响）
+    // eslint-disable-next-line no-console -- 冒烟测试基建
     if (process.env.LX_SMOKE_TEST === '1') console.log('SMOKE: main window loaded')
     if (browserWindow?.isVisible()) return
     if (!global.envParams.cmdParams.hidden || process.env.NODE_ENV === 'development') {

@@ -134,7 +134,7 @@ export const setMusicUrl = (musicInfo: LX.Music.MusicInfo | LX.Download.ListItem
     if (!url) return
     setResource(url)
   }).catch((err: any) => {
-    console.log(err)
+    console.warn(err)
     setAllStatus(err.message)
     window.app_event.error()
     if (appSetting['player.autoSkipOnError']) addDelayNextTimeout()
@@ -175,7 +175,7 @@ const handleRestorePlay = async(restorePlayInfo: LX.Player.SavedPlayInfo) => {
     })
     window.app_event.lyricUpdated()
   }).catch((err) => {
-    console.log(err)
+    console.warn(err)
     if (musicInfo.id != playMusicInfo.musicInfo?.id) return
     setAllStatus(window.i18n.t('lyric__load_error'))
   })
@@ -226,7 +226,7 @@ const handlePlay = () => {
     })
     window.app_event.lyricUpdated()
   }).catch((err) => {
-    console.log(err)
+    console.warn(err)
     if (musicInfo.id != playMusicInfo.musicInfo?.id) return
     setAllStatus(window.i18n.t('lyric__load_error'))
   })

@@ -26,6 +26,8 @@
         window.dom_style_theme.innerText = `:root {${(Object.entries(colors)).map(([key, value]) => `${key}:${value};`).join('')}}`
       }
       window.setLyricColor = colors => {
+        // 歌词调试页：供外部注入调色观察
+        // eslint-disable-next-line no-console -- 调试页工具函数
         console.log(colors)
         window.dom_style_lyric.innerText = `:root {${(Object.entries(colors)).map(([key, value]) => `${key}:${value};`).join('')}}`
       }
