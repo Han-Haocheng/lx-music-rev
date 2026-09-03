@@ -57,9 +57,9 @@ const writeMeta = async(filePath, meta, picPath) => {
 
   reader.pipe(flacProcessor).pipe(writer).on('finish', () => {
     fs.unlink(filePath, err => {
-      if (err) return console.log(err.message)
+      if (err) return console.warn(err.message)
       fs.rename(tempPath, filePath, err => {
-        if (err) console.log(err.message)
+        if (err) console.warn(err.message)
       })
     })
   })
@@ -80,7 +80,7 @@ module.exports = (filePath, meta, proxy) => {
     if (success) {
       writeMeta(filePath, meta, picPath).finally(() => {
         fs.unlink(picPath, err => {
-          if (err) console.log(err.message)
+          if (err) console.warn(err.message)
         })
       })
     } else writeMeta(filePath, meta)

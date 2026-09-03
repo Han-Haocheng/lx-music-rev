@@ -31,7 +31,7 @@ module.exports = (filePath, meta, proxy) => {
       meta.APIC = picPath
       handleWriteMeta(meta, filePath)
       fs.unlink(picPath, err => {
-        if (err) console.log(err.message)
+        if (err) console.warn(err.message)
       })
     } else {
       delete meta.APIC

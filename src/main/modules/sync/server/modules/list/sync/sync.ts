@@ -4,6 +4,7 @@ import { getUserSpace, getUserConfig } from '../../../user'
 import { buildUserListInfoFull, getLocalListData, setLocalListData } from '@main/modules/sync/listEvent'
 import { SYNC_CLOSE_CODE } from '@common/constants_sync'
 import { sendSyncError } from '../../../utils'
+import log from '../../../../log'
 // import { LIST_IDS } from '@common/constants'
 
 // type ListInfoType = LX.List.UserListInfoFull | LX.List.MyDefaultListInfoFull | LX.List.MyLoveListInfoFull
@@ -21,7 +22,6 @@ const patchListData = (listData: Partial<LX.Sync.List.ListData>): LX.Sync.List.L
 }
 
 const getRemoteListData = async(socket: LX.Sync.Server.Socket): Promise<LX.Sync.List.ListData> => {
-  console.log('getRemoteListData')
   return patchListData(await socket.remoteQueueList.list_sync_get_list_data())
 }
 
@@ -76,7 +76,7 @@ const overwriteRemoteListData = async(socket: LX.Sync.Server.Socket, listData: L
       sendSyncError(err.message)
       client.close(SYNC_CLOSE_CODE.failed)
       // client.moduleReadys.list = false
-      console.log(err.message)
+      log.warn(err.message)
     }))
   })
   if (!tasks.length) return
@@ -199,7 +199,6 @@ const handleMergeListData = async(socket: LX.Sync.Server.Socket): Promise<[LX.Sy
 
   if (mode == 'cancel') throw new Error('cancel')
   const [remoteListData, localListData] = await Promise.all([getRemoteListData(socket), getLocalListData()])
-  console.log('handleMergeListData', 'remoteListData, localListData')
   let listData: LX.Sync.List.ListData
   let requiredUpdateLocalListData = true
   let requiredUpdateRemoteListData = true
@@ -233,15 +232,11 @@ const handleMergeListData = async(socket: LX.Sync.Server.Socket): Promise<[LX.Sy
 
 const handleSyncList = async(socket: LX.Sync.Server.Socket) => {
   const [remoteListData, localListData] = await Promise.all([getRemoteListData(socket), getLocalListData()])
-  console.log('handleSyncList', 'remoteListData, localListData')
-  console.log('localListData', localListData.defaultList.length || localListData.loveList.length || localListData.userList.length)
-  console.log('remoteListData', remoteListData.defaultList.length || remoteListData.loveList.length || remoteListData.userList.length)
   const userSpace = getUserSpace(socket.userInfo.name)
   const clientId = socket.keyInfo.clientId
   if (localListData.defaultList.length || localListData.loveList.length || localListData.userList.length) {
     if (remoteListData.defaultList.length || remoteListData.loveList.length || remoteListData.userList.length) {
       const [mergedList, requiredUpdateLocalListData, requiredUpdateRemoteListData] = await handleMergeListData(socket)
-      console.log('handleMergeListData', 'mergedList', requiredUpdateLocalListData, requiredUpdateRemoteListData)
       let key
       if (requiredUpdateLocalListData) {
         key = await setLocalList(socket, mergedList)
@@ -406,7 +401,6 @@ const syncList = async(socket: LX.Sync.Server.Socket) => {
     if (userCurrentListInfoKey) {
       const listData = await user.listManage.snapshotDataManage.getSnapshot(userCurrentListInfoKey)
       if (listData) {
-        console.log('handleMergeListDataFromSnapshot')
         await handleMergeListDataFromSnapshot(socket, listData)
         return
       }

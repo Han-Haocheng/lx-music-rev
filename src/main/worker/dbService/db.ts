@@ -40,7 +40,6 @@ export const init = (lxDataPath: string): boolean | null => {
   // db.exec('VACUUM "main"')
 
   process.on('exit', () => { db.close() })
-  console.log('db inited')
   // require('./test')
   return dbFileExists
 }

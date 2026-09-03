@@ -180,7 +180,6 @@ export const listenerAppEvent = (startApp: () => void) => {
   app.on('web-contents-created', (event, contents) => {
     contents.on('will-navigate', (event, navigationUrl) => {
       if (process.env.NODE_ENV !== 'production') {
-        console.log('navigation to url:', navigationUrl.length > 130 ? navigationUrl.substring(0, 130) + '...' : navigationUrl)
         return
       }
       if (!navigationUrlWhiteList.some(url => url.test(navigationUrl))) {

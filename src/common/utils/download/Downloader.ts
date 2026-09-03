@@ -139,8 +139,6 @@ class Task extends EventEmitter {
             return
           }
           if ((response.statusCode == 301 || response.statusCode == 302) && response.headers.location && this.redirectNum < this.maxRedirectNum) {
-            console.log('current url:', url)
-            console.log('redirect to:', response.headers.location)
             redirected = true
             this.redirectNum++
             const location = response.headers.location
@@ -297,7 +295,6 @@ class Task extends EventEmitter {
         void this.__handleStop().finally(() => {
           // this.__handleError(new Error('Resume failed, response chunk does not match.'))
           // Resume failed, response chunk does not match, remove file and restart download
-          console.log('Resume failed, response chunk does not match.')
           fs.unlink(this.chunkInfo.path, (unlinkErr: any) => {
             // this.__handleError(err)
             this.chunkInfo.startByte = '0'
@@ -314,7 +311,6 @@ class Task extends EventEmitter {
     }
     // console.log('data', chunk)
     if (this.status == STATUS.stopped || this.ws == null) {
-      console.log('cancel write')
       return
     }
     this.dataWriteQueueLength++
@@ -324,7 +320,7 @@ class Task extends EventEmitter {
       this.dataWriteQueueLength--
       if (this.status == STATUS.running) this.__calculateProgress(0)
       if (err) {
-        console.log(err)
+        console.warn(err)
         this.__handleError(err)
         return
       }

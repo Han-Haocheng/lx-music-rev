@@ -257,7 +257,7 @@ const handleStartServer = async(port = 9527, ip = '0.0.0.0') => await new Promis
     // This function is not defined on purpose. Implement it with your own logic.
     authConnection(request, err => {
       if (err) {
-        console.log(err)
+        log.warn(err)
         socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n')
         socket.destroy()
         return
@@ -289,7 +289,7 @@ const handleStartServer = async(port = 9527, ip = '0.0.0.0') => await new Promis
   })
 
   httpServer.on('error', error => {
-    console.log(error)
+    log.error(error)
     reject(error)
   })
   httpServer.on('connection', (socket) => {
@@ -343,18 +343,18 @@ export const stopServer = async() => {
     sendServerStatus(status)
     return
   }
-  console.log('stoping sync server...')
+  log.info('stoping sync server...')
   status.message = 'stoping...'
   sendServerStatus(status)
   stopingServer = true
   await handleStopServer().then(() => {
-    console.log('sync server stoped')
+    log.info('sync server stoped')
     status.status = false
     status.message = ''
     status.address = []
     status.code = ''
   }).catch(err => {
-    console.log(err)
+    log.error(err)
     status.message = err.message
   }).finally(() => {
     sendServerStatus(status)
@@ -364,7 +364,6 @@ export const stopServer = async() => {
 
 export const startServer = async(port: number) => {
   // if (status.status) await handleStopServer()
-  console.log('status.status', status.status, stopingServer)
   if (stopingServer) return
   if (status.status) await handleStopServer()
 
@@ -373,7 +372,7 @@ export const startServer = async(port: number) => {
 
   log.info('starting sync server')
   await handleStartServer(port).then(() => {
-    console.log('sync server started')
+    log.info('sync server started')
     status.status = true
     status.message = ''
     status.address = getAddress()
@@ -381,7 +380,7 @@ export const startServer = async(port: number) => {
     void generateCode()
     codeTools.start()
   }).catch(err => {
-    console.log(err)
+    log.error(err)
     status.status = false
     status.message = err.message
     status.address = []

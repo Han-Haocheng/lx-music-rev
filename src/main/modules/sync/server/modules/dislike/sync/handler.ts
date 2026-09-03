@@ -6,6 +6,7 @@
 import { SYNC_CLOSE_CODE } from '@common/constants_sync'
 import { getUserSpace } from '@main/modules/sync/server/user'
 import { sendSyncError } from '../../../utils'
+import log from '../../../../log'
 import { handleRemoteDislikeAction } from '@main/modules/sync/dislikeEvent'
 // import { encryptMsg } from '@/utils/tools'
 
@@ -27,7 +28,7 @@ const handler: LX.Sync.ServerSyncHandlerDislikeActions<LX.Sync.Server.Socket> = 
         sendSyncError(err.message)
         client.close(SYNC_CLOSE_CODE.failed)
         // client.moduleReadys.dislike = false
-        console.log(err.message)
+        log.warn(err.message)
       })
     })
   },

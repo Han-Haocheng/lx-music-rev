@@ -27,7 +27,6 @@ if (process.platform === 'linux' && !process.argv.includes('-ehw')) {
 // 初始化只并发执行一次，避免数据库、设置被重复初始化以及主窗口被重复创建
 let initing = false
 const init = async() => {
-  console.log('init')
   if (initing) return
   initing = true
   try {

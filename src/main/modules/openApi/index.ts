@@ -197,7 +197,7 @@ const handleStartServer = async(port: number, ip: string) => new Promise<void>((
           handleSubscribePlayerStatus(req, res, query)
           return
         } catch (err) {
-          console.log(err)
+          console.warn(err)
           code = 500
           msg = 'Error'
         }
@@ -210,7 +210,7 @@ const handleStartServer = async(port: number, ip: string) => new Promise<void>((
     sendResponse(res, code, msg)
   })
   httpServer.on('error', error => {
-    console.log(error)
+    console.error(error)
     reject(error)
   })
   httpServer.on('connection', (socket) => {
@@ -271,7 +271,7 @@ export const stopServer = async() => {
     status.message = ''
     status.address = ''
   }).catch(err => {
-    console.log(err)
+    console.warn(err)
     status.message = err.message
   })
   return status
@@ -285,7 +285,7 @@ export const startServer = async(port: number, bindLan: boolean) => {
     if (bindLan) address = [...address, ...getAddress()]
     status.address = address.join(', ')
   }).catch(err => {
-    console.log(err)
+    console.error(err)
     status.status = false
     status.message = err.message
     status.address = ''

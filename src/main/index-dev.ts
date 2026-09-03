@@ -24,11 +24,8 @@ app.on('ready', () => {
   const installExtension = (win: BrowserWindow, winName: string) => {
     openDevTools(win.webContents)
     installDevToolsExtension(VUEJS_DEVTOOLS_ID, win.webContents.session)
-      .then((name: string) => {
-        console.log('[' + winName + '] Added Extension:  ' + name)
-      })
       .catch((err: Error) => {
-        console.log('[' + winName + '] An error occurred: ', err)
+        console.warn('[' + winName + '] An error occurred: ', err)
       })
   }
 

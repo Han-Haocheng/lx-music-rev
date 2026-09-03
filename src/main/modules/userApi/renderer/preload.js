@@ -155,7 +155,7 @@ const handleInit = (context, info) => {
       }
     }
   } catch (error) {
-    console.log(error)
+    console.warn(error)
     sendMessage(USER_API_RENDERER_EVENT_NAME.init, null, false, error.message)
     return
   }

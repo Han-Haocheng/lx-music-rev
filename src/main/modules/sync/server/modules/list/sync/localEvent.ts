@@ -2,6 +2,7 @@ import { SYNC_CLOSE_CODE } from '@common/constants_sync'
 import { registerListActionEvent } from '../../../../listEvent'
 import { getUserSpace } from '../../../user'
 import { sendSyncError } from '../../../utils'
+import log from '../../../../log'
 
 // let socket: LX.Sync.Server.Socket | null
 let unregisterLocalListAction: (() => void) | null
@@ -21,7 +22,7 @@ const sendListAction = async(wss: LX.Sync.Server.SocketServer, action: LX.Sync.L
       sendSyncError(err.message)
       client.close(SYNC_CLOSE_CODE.failed)
       // client.moduleReadys.list = false
-      console.log(err.message)
+      log.warn(err.message)
     })
   }
 }

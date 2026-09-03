@@ -48,20 +48,20 @@ module.exports = (url, filePath, proxy) => {
             } else {
               resolve(false)
               fs.unlink(filePath, err => {
-                if (err) console.log(err.message)
+                if (err) console.warn(err.message)
               })
             }
           }).on('error', err => {
             // console.log('response error')
-            if (err) console.log(err.message)
+            if (err) console.warn(err.message)
             fs.unlink(filePath, err => {
-              if (err) console.log(err.message)
+              if (err) console.warn(err.message)
             })
             resolve(false)
           })
       })
       .on('error', err => {
-        if (err) console.log(err.message)
+        if (err) console.warn(err.message)
         // delete meta.APIC
         // handleWriteMeta(meta, filePath)
         resolve(false)

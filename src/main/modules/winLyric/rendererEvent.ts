@@ -44,7 +44,6 @@ export default () => {
     event.senderFrame?.postMessage(WIN_LYRIC_RENDERER_EVENT_NAME.provide_main_window_channel, null, [port2])
     // Now the main window and the worker can communicate with each other
     // without going through the main process!
-    console.log('request_main_window_channel')
   })
 
   mainOn<boolean>(WIN_LYRIC_RENDERER_EVENT_NAME.mouse_enter_leave, ({ params: isEnter }) => {

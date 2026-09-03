@@ -98,7 +98,6 @@ export const loadApi = async(apiId: string) => {
   const targetApi = getUserApis().find(api => api.id == apiId)
   if (!targetApi) throw new Error('api not found')
   userApi = targetApi
-  console.log('load api', userApi.name)
   await createWindow(userApi)
   // if (!userApi) return global.lx_event.userApi.status(status = { status: false, message: 'api script is not found' })
   // if (!global.modules.userApiWindow) {

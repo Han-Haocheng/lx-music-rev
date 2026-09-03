@@ -33,7 +33,6 @@ export const getUserSpace = (userName = 'default') => {
 
   let user = users.get(userName)
   if (!user) {
-    console.log('new user data manage:', userName)
     const dataManage = new UserDataManage(userName)
     const listManage = new ListManage(dataManage)
     const dislikeManage = new DislikeManage(dataManage)

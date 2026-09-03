@@ -121,7 +121,6 @@ export default () => {
   })
 
   mainOn(WIN_MAIN_RENDERER_EVENT_NAME.update_check, () => {
-    console.log('check')
     checkUpdate()
   })
 

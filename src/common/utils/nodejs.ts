@@ -148,7 +148,7 @@ export const gunzipData = async(buf: Buffer): Promise<string> => {
 export const saveLxConfigFile = async(path: string, data: any) => {
   if (!path.endsWith('.lxmc')) path += '.lxmc'
   fs.writeFile(path, await gzipData(JSON.stringify(data)), 'binary', err => {
-    console.log(err)
+    console.warn(err)
   })
 }
 

@@ -5,6 +5,7 @@ import { getLocalDislikeData, setLocalDislikeData } from '@main/modules/sync/dis
 import { SYNC_CLOSE_CODE } from '@common/constants_sync'
 import { sendSyncError } from '../../../utils'
 import { filterRules } from '../utils'
+import log from '../../../../log'
 // import { LIST_IDS } from '@common/constants'
 
 // type ListInfoType = LX.Dislike.UserListInfoFull | LX.Dislike.MyDefaultListInfoFull | LX.Dislike.MyLoveListInfoFull
@@ -15,7 +16,6 @@ const wait = async(time = 1000) => await new Promise((resolve, reject) => setTim
 
 
 const getRemoteListData = async(socket: LX.Sync.Server.Socket): Promise<LX.Dislike.DislikeRules> => {
-  console.log('getRemoteListData')
   return (await socket.remoteQueueDislike.dislike_sync_get_list_data()) ?? ''
 }
 
@@ -70,7 +70,7 @@ const overwriteRemoteListData = async(socket: LX.Sync.Server.Socket, listData: L
       sendSyncError(err.message)
       client.close(SYNC_CLOSE_CODE.failed)
       // client.moduleReadys.list = false
-      console.log(err.message)
+      log.warn(err.message)
     }))
   })
   if (!tasks.length) return
@@ -92,7 +92,6 @@ const handleMergeListData = async(socket: LX.Sync.Server.Socket): Promise<[LX.Di
 
   if (mode == 'cancel') throw new Error('cancel')
   const [remoteListData, localListData] = await Promise.all([getRemoteListData(socket), getLocalDislikeData()])
-  console.log('handleMergeListData', 'remoteListData, localListData')
   let listData: LX.Dislike.DislikeRules
   let requiredUpdateLocalListData = true
   let requiredUpdateRemoteListData = true
@@ -120,15 +119,11 @@ const handleMergeListData = async(socket: LX.Sync.Server.Socket): Promise<[LX.Di
 
 const handleSyncList = async(socket: LX.Sync.Server.Socket) => {
   const [remoteListData, localListData] = await Promise.all([getRemoteListData(socket), getLocalDislikeData()])
-  console.log('handleSyncList', 'remoteListData, localListData')
-  console.log('localListData', localListData.length)
-  console.log('remoteListData', remoteListData.length)
   const userSpace = getUserSpace(socket.userInfo.name)
   const clientId = socket.keyInfo.clientId
   if (localListData.length) {
     if (remoteListData.length) {
       const [mergedList, requiredUpdateLocalListData, requiredUpdateRemoteListData] = await handleMergeListData(socket)
-      console.log('handleMergeListData', 'mergedList', requiredUpdateLocalListData, requiredUpdateRemoteListData)
       let key
       if (requiredUpdateLocalListData) {
         key = await setLocalList(socket, mergedList)
@@ -204,7 +199,6 @@ const syncDislike = async(socket: LX.Sync.Server.Socket) => {
     if (userCurrentDislikeInfoKey) {
       const listData = await user.dislikeManage.snapshotDataManage.getSnapshot(userCurrentDislikeInfoKey)
       if (listData) {
-        console.log('handleMergeDislikeDataFromSnapshot')
         await handleMergeListDataFromSnapshot(socket, listData)
         return
       }
