@@ -1,18 +1,28 @@
 <template>
   <div ref="dom_lists" :class="$style.lists">
     <div :class="$style.listHeader">
-      <h2 :class="$style.listsTitle">{{ $t('my_list') }}</h2>
+      <h2 :class="$style.listsTitle">{{ listId == LOCAL_LIST_ID ? $t('local_music') : $t('my_list') }}</h2>
       <div :class="$style.headerBtns">
-        <button :class="$style.listsAdd" :aria-label="$t('lists__new_list_btn')" @click="isShowNewList = true">
-          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="70%" viewBox="0 0 24 24" space="preserve">
-            <use xlink:href="#icon-list-add" />
-          </svg>
-        </button>
-        <button :class="$style.listsAdd" :aria-label="$t('list_update_modal__title')" @click="isShowListUpdateModal = true">
-          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" style="transform: rotate(45deg);" height="70%" viewBox="0 0 24 24" space="preserve">
-            <use xlink:href="#icon-refresh" />
-          </svg>
-        </button>
+        <template v-if="listId == LOCAL_LIST_ID">
+          <button :class="$style.listsTextBtn" :disabled="fetchingListStatus[LOCAL_LIST_ID]" @click="handleImportLocalFiles">
+            {{ $t('local_music__import_files') }}
+          </button>
+          <button :class="$style.listsTextBtn" :disabled="fetchingListStatus[LOCAL_LIST_ID]" @click="handleScanLocalFolder">
+            {{ $t('local_music__scan_folder') }}
+          </button>
+        </template>
+        <template v-else>
+          <button :class="$style.listsAdd" :aria-label="$t('lists__new_list_btn')" @click="isShowNewList = true">
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="70%" viewBox="0 0 24 24" space="preserve">
+              <use xlink:href="#icon-list-add" />
+            </svg>
+          </button>
+          <button :class="$style.listsAdd" :aria-label="$t('list_update_modal__title')" @click="isShowListUpdateModal = true">
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" style="transform: rotate(45deg);" height="70%" viewBox="0 0 24 24" space="preserve">
+              <use xlink:href="#icon-refresh" />
+            </svg>
+          </button>
+        </template>
       </div>
     </div>
     <ul ref="dom_lists_list" class="scroll" :class="[$style.listsContent, { [$style.sortable]: isModDown }]">
@@ -31,6 +41,19 @@
             <svg-icon v-if="defaultList.id == listId" name="angle-right-solid" :class="$style.activeIcon" />
           </transition>
           {{ $t(defaultList.name) }}
+        </span>
+      </li>
+      <li
+        class="local-list" :class="[$style.listsItem, {[$style.active]: LOCAL_LIST_ID == listId}, {[$style.fetching]: fetchingListStatus[LOCAL_LIST_ID]}]"
+        :aria-label="$t('local_music')" :aria-selected="LOCAL_LIST_ID == listId"
+        @click="handleListToggle(LOCAL_LIST_ID)"
+      >
+        <span :class="$style.listsLabel">
+          <transition name="list-active">
+            <svg-icon v-if="LOCAL_LIST_ID == listId" name="angle-right-solid" :class="$style.activeIcon" />
+          </transition>
+          <svg-icon name="audio-wave" :class="$style.listsIcon" />
+          {{ $t('local_music') }}
         </span>
       </li>
       <li
@@ -76,6 +99,7 @@ import ListUpdateModal from './components/ListUpdateModal.vue'
 
 import { defaultList, userLists, fetchingListStatus } from '@renderer/store/list/state'
 import { removeUserList } from '@renderer/store/list/action'
+import { LOCAL_LIST_ID, importLocalFiles, scanLocalFolder } from '@renderer/store/localList'
 
 import { ref, watch } from '@common/utils/vueTools'
 import { useRouter } from '@common/utils/vueRouter'
@@ -184,6 +208,14 @@ export default {
       }).catch(_ => _)
     }
 
+    const handleImportLocalFiles = () => {
+      void importLocalFiles()
+    }
+
+    const handleScanLocalFolder = () => {
+      void scanLocalFolder()
+    }
+
     const handleMenuClick = (action) => {
       if (rightClickItemIndex.value < -2) return
       let index = rightClickItemIndex.value
@@ -199,7 +231,7 @@ export default {
     })
 
     watch(() => userLists, (lists) => {
-      if (lists.some(l => l.id == props.listId)) return
+      if (props.listId == LOCAL_LIST_ID || lists.some(l => l.id == props.listId)) return
       void router.replace({
         path: '/list',
         query: {
@@ -211,9 +243,12 @@ export default {
     return {
       rightClickItemIndex,
       defaultList,
+      LOCAL_LIST_ID,
       userLists,
       fetchingListStatus,
       dom_lists_list,
+      handleImportLocalFiles,
+      handleScanLocalFolder,
       isShowListUpdateModal,
       isShowListSortModal,
       sortListInfo,
@@ -291,6 +326,28 @@ export default {
     opacity: .6 !important;
   }
 }
+.listsTextBtn {
+  margin-top: 6px;
+  height: 30px;
+  padding: 0 8px;
+  background: none;
+  border: none;
+  outline: none;
+  border-radius: @radius-border;
+  cursor: pointer;
+  color: var(--color-primary);
+  font-size: 12px;
+  &:disabled {
+    opacity: .5;
+    cursor: default;
+  }
+  &:active {
+    opacity: .7 !important;
+  }
+  &:hover:not(:disabled) {
+    opacity: .8;
+  }
+}
 .listsContent {
   flex: auto;
   min-width: 0;
@@ -361,6 +418,12 @@ export default {
   font-size: 13px;
   line-height: @lists-item-height;
   .mixin-ellipsis-1();
+}
+.listsIcon {
+  width: 13px;
+  height: 13px;
+  margin-right: 4px;
+  vertical-align: -1px;
 }
 .listsInput {
   width: 100%;
