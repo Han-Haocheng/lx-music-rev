@@ -1,4 +1,5 @@
 import { getDB } from '../../db'
+import { cachedStatement } from '../../stmtCache'
 
 const RAW_LYRIC = 'raw'
 const EDITED_LYRIC = 'edited'
@@ -8,8 +9,7 @@ const EDITED_LYRIC = 'edited'
  * @returns 查询语句
  */
 export const createLyricQueryStatement = () => {
-  const db = getDB()
-  return db.prepare<[string]>(`
+  return cachedStatement(`
     SELECT "type", "text", "source"
     FROM "main"."lyric"
     WHERE "id"=?
@@ -21,8 +21,7 @@ export const createLyricQueryStatement = () => {
  * @returns 查询语句
  */
 export const createRawLyricQueryStatement = () => {
-  const db = getDB()
-  return db.prepare<[string]>(`
+  return cachedStatement(`
     SELECT "type", "text"
     FROM "main"."lyric"
     WHERE "id"=? AND "source"='${RAW_LYRIC}'
@@ -92,8 +91,7 @@ export const createRawLyricCountStatement = () => {
  * @returns 查询语句
  */
 export const createEditedLyricQueryStatement = () => {
-  const db = getDB()
-  return db.prepare<[string]>(`
+  return cachedStatement(`
     SELECT "type", "text"
     FROM "main"."lyric"
     WHERE "id"=? AND "source"='${EDITED_LYRIC}'
@@ -155,3 +153,4 @@ export const createEditedLyricCountStatement = () => {
   const db = getDB()
   return db.prepare<[]>(`SELECT COUNT(*) as count FROM "main"."lyric" WHERE "source"='${EDITED_LYRIC}'`)
 }
+

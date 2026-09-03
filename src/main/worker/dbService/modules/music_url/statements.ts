@@ -1,12 +1,12 @@
 import { getDB } from '../../db'
+import { cachedStatement } from '../../stmtCache'
 
 /**
  * 创建歌曲url查询语句
  * @returns 查询语句
  */
 export const createQueryStatement = () => {
-  const db = getDB()
-  return db.prepare<[string]>(`
+  return cachedStatement(`
     SELECT "url"
     FROM "main"."music_url"
     WHERE "id"=?
@@ -67,3 +67,4 @@ export const createCountStatement = () => {
   const db = getDB()
   return db.prepare<[]>('SELECT COUNT(*) as count FROM "main"."music_url"')
 }
+

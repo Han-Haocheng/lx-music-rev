@@ -1,4 +1,5 @@
 import { getDB } from '../../db'
+import { cachedStatement } from '../../stmtCache'
 
 
 /**
@@ -6,8 +7,7 @@ import { getDB } from '../../db'
  * @returns 查询语句
  */
 export const createListQueryStatement = () => {
-  const db = getDB()
-  return db.prepare<[]>(`
+  return cachedStatement(`
     SELECT "id", "name", "source", "sourceListId", "position", "locationUpdateTime"
     FROM "main"."my_list"
     `)
@@ -59,8 +59,7 @@ export const createListUpdateStatement = () => {
  * @returns 查询语句
  */
 export const createMusicInfoQueryStatement = () => {
-  const db = getDB()
-  return db.prepare<[LX.DBService.MusicInfoQuery]>(`
+  return cachedStatement(`
     SELECT mInfo."id", mInfo."name", mInfo."singer", mInfo."source", mInfo."interval", mInfo."meta"
     FROM my_list_music_info mInfo
     LEFT JOIN my_list_music_info_order O
@@ -126,8 +125,7 @@ export const createMusicInfoDeleteStatement = () => {
  * @returns 删除语句
  */
 export const createMusicInfoByListAndMusicInfoIdQueryStatement = () => {
-  const db = getDB()
-  return db.prepare<[LX.DBService.ListMusicInfoQuery]>(`SELECT "id", "name", "singer", "source", "interval", "meta"
+  return cachedStatement(`SELECT "id", "name", "singer", "source", "interval", "meta"
     FROM "main"."my_list_music_info"
     WHERE "id"=@musicInfoId
     AND "listId"=@listId`)
@@ -138,8 +136,7 @@ export const createMusicInfoByListAndMusicInfoIdQueryStatement = () => {
  * @returns 删除语句
  */
 export const createMusicInfoByMusicInfoIdQueryStatement = () => {
-  const db = getDB()
-  return db.prepare<[string]>(`SELECT "id", "name", "singer", "source", "interval", "meta", "listId"
+  return cachedStatement(`SELECT "id", "name", "singer", "source", "interval", "meta", "listId"
     FROM "main"."my_list_music_info"
     WHERE "id"=?`)
 }
