@@ -12,26 +12,35 @@
       <base-input v-else ref="newGroupInput" :class="$style.newGroupInput" :value="newGroupName" :placeholder="$t('favorite_group_new_input')" @keyup.enter="handleSaveNewGroup" @blur="handleSaveNewGroup" />
     </header>
     <div :class="$style.main">
-      <ul :class="['scroll', $style.groups]">
-        <li
-          :class="[$style.groupItem, { [$style.active]: currentGroupId == null }]"
-          :aria-label="$t('favorite_group_all')"
-          @click="currentGroupId = null"
-        >
-          <span :class="$style.groupLabel">{{ $t('favorite_group_all') }}</span>
-          <span :class="$style.count">{{ loveListMusics.length }}</span>
-        </li>
-        <li
-          v-for="group in favoriteGroups" :key="group.id"
-          :class="[$style.groupItem, { [$style.active]: currentGroupId == group.id, [$style.editing]: editingGroupId == group.id }]"
-          :aria-label="group.name"
-          @click="currentGroupId = group.id" @contextmenu.prevent="handleGroupRightClick(group, $event)"
-        >
-          <span :class="$style.groupLabel">{{ group.name }}</span>
-          <span :class="$style.count">{{ groupCounts[group.id] ?? '' }}</span>
-          <base-input :class="$style.groupEditInput" :value="group.name" @keyup.enter="handleRenameGroup(group, $event)" @blur="handleRenameGroup(group, $event)" />
-        </li>
-      </ul>
+      <div :class="$style.groupsWrap">
+        <ul :class="['scroll', $style.groups]">
+          <li
+            :class="[$style.groupItem, { [$style.active]: currentGroupId == null }]"
+            :aria-label="$t('favorite_group_all')"
+            @click="currentGroupId = null"
+          >
+            <span :class="$style.groupLabel">{{ $t('favorite_group_all') }}</span>
+            <span :class="$style.count">{{ loveListMusics.length }}</span>
+          </li>
+          <li
+            v-for="group in favoriteGroups" :key="group.id"
+            :class="[$style.groupItem, { [$style.active]: currentGroupId == group.id, [$style.editing]: editingGroupId == group.id }]"
+            :aria-label="group.name"
+            @click="currentGroupId = group.id" @contextmenu.prevent="handleGroupRightClick(group, $event)"
+          >
+            <span :class="$style.groupLabel">{{ group.name }}</span>
+            <span :class="$style.count">{{ groupCounts[group.id] ?? '' }}</span>
+            <base-input :class="$style.groupEditInput" :value="group.name" @keyup.enter="handleRenameGroup(group, $event)" @blur="handleRenameGroup(group, $event)" />
+          </li>
+        </ul>
+        <p v-if="!favoriteGroups.length" :class="$style.emptyTip">{{ $t('favorite_group_empty') }}</p>
+        <button :class="$style.newGroupBtn" :aria-label="$t('favorite_group_new')" @click="handleNewGroup">
+          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 24 24" space="preserve">
+            <use xlink:href="#icon-list-add" />
+          </svg>
+          <span>{{ $t('favorite_group_new') }}</span>
+        </button>
+      </div>
       <div :class="$style.listWrap">
         <MusicList v-if="currentGroupId == null" :list-id="LOVE_ID" :group-actions-visible="true" @group-modal="handleGroupModal" />
         <MusicList v-else :list-id="LOVE_ID" :music-list="groupMusicList" :group-actions-visible="true" @group-modal="handleGroupModal" />
@@ -214,6 +223,8 @@ export default {
   transition: opacity @transition-normal;
   &:hover {
     opacity: 1;
+    background-color: var(--color-primary-background-hover);
+    color: var(--color-primary);
   }
 }
 .newGroupInput {
@@ -224,12 +235,19 @@ export default {
   min-height: 0;
   display: flex;
 }
-.groups {
+.groupsWrap {
   flex: none;
   width: 15%;
   min-width: 120px;
-  overflow-y: scroll !important;
+  min-height: 0;
+  display: flex;
+  flex-flow: column nowrap;
   border-right: var(--color-list-header-border-bottom);
+}
+.groups {
+  flex: auto;
+  min-height: 0;
+  overflow-y: scroll !important;
 }
 .groupItem {
   display: flex;
@@ -270,6 +288,33 @@ export default {
 .groupEditInput {
   flex: auto;
   display: none;
+}
+.emptyTip {
+  flex: none;
+  padding: 6px 10px 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--color-font-label);
+}
+.newGroupBtn {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 10px;
+  border: none;
+  border-top: var(--color-list-header-border-bottom);
+  background: none;
+  outline: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-button-font);
+  transition: background-color @transition-fast, color @transition-fast;
+  &:hover {
+    background-color: var(--color-primary-background-hover);
+    color: var(--color-primary);
+  }
 }
 .listWrap {
   flex: auto;
