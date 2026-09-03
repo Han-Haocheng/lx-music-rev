@@ -17,6 +17,16 @@ import type {
 } from './state'
 
 const cache = new Map<string, any>()
+// 歌单列表/详情数据缓存：加 FIFO 容量上限，避免长会话浏览大量歌单导致内存持续增长
+// 超出上限时按插入顺序淘汰最旧缓存项；get 命中不刷新、不淘汰
+const cacheMaxSize = 40
+const setCache = (key: string, data: any) => {
+  cache.set(key, data)
+  if (cache.size > cacheMaxSize) {
+    const firstEntry = cache.keys().next()
+    if (!firstEntry.done) cache.delete(firstEntry.value)
+  }
+}
 
 export const setTags = (tagInfo: TagInfo, source: LX.OnlineSource) => {
   tags[source] = markRaw(tagInfo)
@@ -106,7 +116,7 @@ export const getAndSetList = async(source: LX.OnlineSource, tabId: string, sortI
   listInfo.key = key
   // clearList()
   return musicSdk[source]?.songList.getList(sortId, tabId, page).then((result: ListInfo) => {
-    cache.set(key, result)
+    setCache(key, result)
     if (key != listInfo.key) return
     setList(result, tabId, sortId, page)
   }).catch((error: any) => {
@@ -130,7 +140,7 @@ export const getListDetail = async(id: string, source: LX.OnlineSource, page: nu
 
   return musicSdk[source]?.songList.getListDetail(id, page).then((result: ListDetailInfo) => {
     result.list = markRawList(deduplicationList(result.list.map(m => toNewMusicInfo(m)) as LX.Music.MusicInfoOnline[]))
-    cache.set(key, result)
+    setCache(key, result)
     return result
   })
 }
@@ -152,7 +162,7 @@ export const getListDetailAll = async(id: string, source: LX.OnlineSource, isRef
       ? Promise.resolve(cache.get(key))
       : musicSdk[source]?.songList.getListDetail(id, page).then((result: ListDetailInfo) => {
         result.list = markRawList(deduplicationList(result.list.map(m => toNewMusicInfo(m)) as LX.Music.MusicInfoOnline[]))
-        cache.set(key, result)
+        setCache(key, result)
         return result
       }) ?? Promise.reject(new Error('source not found' + source))
   }
