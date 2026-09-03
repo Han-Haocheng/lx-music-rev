@@ -7,10 +7,18 @@
       <div v-if="subList.length" class="scroll" :class="$style.toc">
         <ul :class="$style.tocList">
           <li v-for="item in subList" :key="item.id" :class="$style.tocListItem">
-            <h3
-              :class="[$style.tocH3, {[$style.active]: activeSubId == item.id }]"
+            <h2
+              :class="[$style.tocDt, {[$style.active]: activeSubId == item.id }]"
               :aria-label="item.title" @click="scrollToSub(item.id)"
-            >{{ item.title }}</h3>
+            >{{ item.title }}</h2>
+            <ul v-if="item.children && item.children.length" :class="$style.tocSubList">
+              <li v-for="(child, childIndex) in item.children" :key="item.id + '_' + child.id + '_' + childIndex" :class="$style.tocSubListItem">
+                <h3
+                  :class="[$style.tocH3, {[$style.active]: activeSubId == child.id }]"
+                  :aria-label="child.title" @click="scrollToSub(child.id)"
+                >{{ child.title }}</h3>
+              </li>
+            </ul>
           </li>
         </ul>
       </div>
@@ -83,9 +91,16 @@ export default {
         return
       }
       const list = []
+      let currentDt = null
       container.querySelectorAll('dt[id], h3[id]').forEach(el => {
         const title = (el.textContent ?? '').trim()
-        if (el.id && title) list.push({ id: el.id, title })
+        if (!el.id || !title) return
+        if (el.tagName === 'DT') {
+          currentDt = { id: el.id, title, children: [] }
+          list.push(currentDt)
+        } else if (el.tagName === 'H3' && currentDt) {
+          currentDt.children.push({ id: el.id, title })
+        }
       })
       subList.value = list
     }
@@ -165,12 +180,37 @@ export default {
 .tocListItem {
   padding-top: 1px;
 }
-.tocH3 {
+.tocDt {
   line-height: 1.5;
   .mixin-ellipsis-1();
   font-size: 13px;
   color: var(--color-font);
   padding: 5px 12px;
+  cursor: pointer;
+  transition: @transition-fast;
+  transition-property: background-color, color;
+
+  &:not(.active) {
+    &:hover {
+      background-color: var(--color-button-background-hover);
+    }
+  }
+  &.active {
+    color: var(--color-primary);
+  }
+}
+.tocSubList {
+  padding: 0 0 2px;
+}
+.tocSubListItem {
+  padding-top: 1px;
+}
+.tocH3 {
+  line-height: 1.5;
+  .mixin-ellipsis-1();
+  font-size: 12px;
+  color: var(--color-font);
+  padding: 3px 12px 3px 24px;
   cursor: pointer;
   transition: @transition-fast;
   transition-property: background-color, color;
