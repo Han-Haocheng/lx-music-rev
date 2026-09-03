@@ -73,6 +73,5 @@ publish/utils/githubToken.js
 src/**/*-internal.js
 lx-music-desktop.code-workspace
 
-# Local tooling：.dsh/branches 协作框架纳入版本控制；plans/rollback 为会话产物忽略
-.dsh/plans/
-.dsh/rollback/
+# DSH 本地工具目录（含会话记录/计划/协作脚本/skill），一律不入版本控制
+.dsh/
