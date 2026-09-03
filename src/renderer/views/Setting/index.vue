@@ -1,39 +1,30 @@
 <template>
   <div :class="$style.main">
-    <div class="scroll" :class="$style.toc">
-      <ul :class="$style.tocList" role="toolbar">
-        <li v-for="h2 in tocList" :key="h2.id" :class="$style.tocListItem" role="presentation">
-          <h2
-            :class="[$style.tocH2, {[$style.active]: avtiveComponentName == h2.id }]"
-            role="tab" :aria-selected="avtiveComponentName == h2.id"
-            :aria-label="h2.title" ignore-tip @click="toggleTab(h2.id)"
-          >
-            <transition name="list-active">
-              <svg-icon v-if="avtiveComponentName == h2.id" name="angle-right-solid" :class="$style.activeIcon" />
-            </transition>
-            {{ h2.title }}
-          </h2>
-          <ul v-if="avtiveComponentName == h2.id && subList.length" :class="$style.tocSubList">
-            <li v-for="item in subList" :key="item.id" :class="$style.tocSubListItem">
-              <h3
-                :class="[$style.tocH3, {[$style.active]: activeSubId == item.id }]"
-                :aria-label="item.title" @click="scrollToSub(item.id)"
-              >{{ item.title }}</h3>
-            </li>
-          </ul>
-        </li>
-      </ul>
+    <div :class="$style.header">
+      <base-tab v-model="avtiveComponentName" :class="$style.tab" :list="tocList" item-key="id" item-label="title" @change="toggleTab" />
     </div>
-    <div ref="dom_content_ref" class="scroll" :class="$style.setting">
-      <dl>
-        <component :is="avtiveComponentName" />
-        <!-- <SettingGeneral />
-        <SettingPlayLyric />
-        <SettingDownloadBackup />
-        <SettingSyncNetwork />
-        <SettingHotKey />
-        <SettingAbout /> -->
-      </dl>
+    <div :class="$style.body">
+      <div v-if="subList.length" class="scroll" :class="$style.toc">
+        <ul :class="$style.tocList">
+          <li v-for="item in subList" :key="item.id" :class="$style.tocListItem">
+            <h3
+              :class="[$style.tocH3, {[$style.active]: activeSubId == item.id }]"
+              :aria-label="item.title" @click="scrollToSub(item.id)"
+            >{{ item.title }}</h3>
+          </li>
+        </ul>
+      </div>
+      <div ref="dom_content_ref" class="scroll" :class="$style.setting">
+        <dl>
+          <component :is="avtiveComponentName" />
+          <!-- <SettingGeneral />
+          <SettingPlayLyric />
+          <SettingDownloadBackup />
+          <SettingSyncNetwork />
+          <SettingHotKey />
+          <SettingAbout /> -->
+        </dl>
+      </div>
     </div>
   </div>
 </template>
@@ -145,53 +136,41 @@ export default {
 
 .main {
   display: flex;
-  flex-flow: row nowrap;
+  flex-flow: column nowrap;
   height: 100%;
-  border-top: var(--color-list-header-border-bottom);
+}
+.header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  border-bottom: var(--color-list-header-border-bottom);
+}
+.tab {
+  font-size: 13px;
+}
+.body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-flow: row nowrap;
 }
 
 .toc {
-  flex: 0 0 16%;
+  flex: 0 0 15%;
   overflow-y: scroll;
 }
-.tocH2 {
-  line-height: 1.5;
-  .mixin-ellipsis-1();
-  font-size: 13px;
-  color: var(--color-font);
-  padding: 8px 10px;
-  transition: @transition-fast;
-  transition-property: background-color, color;
-
-  &:not(.active) {
-    cursor: pointer;
-    &:hover {
-      background-color: var(--color-button-background-hover);
-    }
-  }
-  &.active {
-    color: var(--color-primary);
-  }
+.tocList {
+  padding: 8px 0;
 }
-.activeIcon {
-  height: .9em;
-  width: .9em;
-  margin-left: -0.45em;
-  vertical-align: -0.05em;
-}
-.tocSubList {
-  padding: 2px 0 6px;
-}
-.tocSubListItem {
-  padding-top: 3px;
+.tocListItem {
+  padding-top: 1px;
 }
 .tocH3 {
   line-height: 1.5;
   .mixin-ellipsis-1();
-  font-size: 12px;
-  opacity: .85;
+  font-size: 13px;
   color: var(--color-font);
-  padding: 4px 10px 4px 22px;
+  padding: 5px 12px;
   cursor: pointer;
   transition: @transition-fast;
   transition-property: background-color, color;
@@ -199,11 +178,9 @@ export default {
   &:not(.active) {
     &:hover {
       background-color: var(--color-button-background-hover);
-      opacity: 1;
     }
   }
   &.active {
-    opacity: 1;
     color: var(--color-primary);
   }
 }
