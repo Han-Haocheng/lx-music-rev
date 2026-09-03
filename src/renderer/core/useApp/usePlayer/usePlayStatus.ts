@@ -2,7 +2,7 @@ import { onBeforeUnmount, watch } from '@common/utils/vueTools'
 import { sendPlayerStatus, onPlayerAction } from '@renderer/utils/ipc'
 // import store from '@renderer/store'
 
-import { loveList } from '@renderer/store/list/state'
+import { loveList, allMusicList } from '@renderer/store/list/state'
 import { addListMusics, removeListMusics, checkListExistMusic } from '@renderer/store/list/action'
 import { playMusicInfo, musicInfo } from '@renderer/store/player/state'
 import { throttle } from '@common/utils'
@@ -17,7 +17,16 @@ export default () => {
   let collect = false
 
   const updateCollectStatus = async() => {
-    let status = !!playMusicInfo.musicInfo && await checkListExistMusic(loveList.id, playMusicInfo.musicInfo.id)
+    let status = false
+    const curMusicInfo = playMusicInfo.musicInfo
+    if (curMusicInfo) {
+      // 收藏状态优先用渲染层 LOVE 列表缓存判断（与 DB 同一数据源），避免每次列表变更/切歌都走 IPC 回查
+      const loveMusics = allMusicList.get(loveList.id)
+      status = loveMusics
+        ? loveMusics.some(musicInfo => musicInfo.id == curMusicInfo.id)
+        // LOVE 列表尚未加载到缓存时回退 DB 查询兜底（语义与原实现一致）
+        : await checkListExistMusic(loveList.id, curMusicInfo.id)
+    }
     if (collect == status) return false
     collect = status
     return true
