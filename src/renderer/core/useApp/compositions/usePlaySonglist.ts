@@ -28,7 +28,7 @@ export default () => {
     }
     list = await getListDetailAll(id, source)
     if (isPlayingList) {
-      if (tempListMeta.id == id) await setTempList(playListId, list)
+      if (tempListMeta.id == playListId) await setTempList(playListId, list)
     } else {
       await setTempList(playListId, list)
       playList(tempList.id, getListPlayIndex(list, playIndex))
