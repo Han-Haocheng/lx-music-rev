@@ -271,10 +271,8 @@ export default {
       startIndex = -1
       endIndex = -1
       if (cachedList.length) {
-        void nextTick(() => {
-          requestAnimationFrame(() => {
-            updateView()
-          })
+        requestAnimationFrame(() => {
+          updateView()
         })
       } else {
         views.value = []
@@ -299,7 +297,6 @@ export default {
       if (props.list.length) {
         void nextTick(() => {
           requestAnimationFrame(() => {
-            console.log('updateView')
             updateView()
           })
         })
