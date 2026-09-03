@@ -1,4 +1,5 @@
-/* eslint-disable no-template-curly-in-string */
+/* eslint-disable no-template-curly-in-string, no-console */
+// 构建 CLI：按设计向 stdout 输出进度与参数日志（no-console 例外）
 
 const builder = require('electron-builder')
 const beforePack = require('./build-before-pack')

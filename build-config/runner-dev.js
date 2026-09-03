@@ -1,3 +1,6 @@
+/* eslint-disable no-console */
+// dev runner CLI：按设计向 stdout 输出编译状态/进程日志（no-console 例外）
+
 process.env.NODE_ENV = 'development'
 
 const chalk = require('chalk')
