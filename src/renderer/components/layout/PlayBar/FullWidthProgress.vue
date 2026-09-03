@@ -101,6 +101,10 @@ export default {
       const listId = playMusicInfo.listId
       if (!listId || listId == LIST_IDS.DOWNLOAD || !playMusicInfo.musicInfo) return
       if (playInfo.playIndex == -1) return
+      if (listId == LIST_IDS.LOVE) {
+        void router.push({ path: '/favorite' })
+        return
+      }
       void router.push({
         path: '/list',
         query: {

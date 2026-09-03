@@ -34,18 +34,6 @@
         </span>
       </li>
       <li
-        class="default-list" :class="[$style.listsItem, {[$style.active]: loveList.id == listId}, {[$style.clicked]: rightClickItemIndex == -1}, {[$style.fetching]: fetchingListStatus[loveList.id]}]"
-        :aria-label="$t(loveList.name)" :aria-selected="loveList.id == listId"
-        @contextmenu="handleListsItemRigthClick($event, -1)" @click="handleListToggle(loveList.id)"
-      >
-        <span :class="$style.listsLabel">
-          <transition name="list-active">
-            <svg-icon v-if="loveList.id == listId" name="angle-right-solid" :class="$style.activeIcon" />
-          </transition>
-          {{ $t(loveList.name) }}
-        </span>
-      </li>
-      <li
         v-for="(item, index) in userLists"
         :key="item.id" class="user-list"
         :class="[$style.listsItem, {[$style.active]: item.id == listId}, {[$style.clicked]: rightClickItemIndex == index}, {[$style.fetching]: fetchingListStatus[item.id]}]"
@@ -86,7 +74,7 @@ import DuplicateMusicModal from './components/DuplicateMusicModal.vue'
 import ListSortModal from './components/ListSortModal.vue'
 import ListUpdateModal from './components/ListUpdateModal.vue'
 
-import { defaultList, loveList, userLists, fetchingListStatus } from '@renderer/store/list/state'
+import { defaultList, userLists, fetchingListStatus } from '@renderer/store/list/state'
 import { removeUserList } from '@renderer/store/list/action'
 
 import { ref, watch } from '@common/utils/vueTools'
@@ -223,7 +211,6 @@ export default {
     return {
       rightClickItemIndex,
       defaultList,
-      loveList,
       userLists,
       fetchingListStatus,
       dom_lists_list,

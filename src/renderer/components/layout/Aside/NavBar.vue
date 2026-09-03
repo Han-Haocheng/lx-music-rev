@@ -58,10 +58,19 @@ export default {
         {
           to: '/list',
           tips: t('my_list'),
+          icon: '#icon-list',
+          iconSize: '0 0 24 24',
+          size,
+          name: 'List',
+          enable: true,
+        },
+        {
+          to: '/favorite',
+          tips: t('favorite'),
           icon: '#icon-love',
           iconSize: '0 0 444.87 391.18',
           size,
-          name: 'List',
+          name: 'Favorite',
           enable: true,
         },
         {

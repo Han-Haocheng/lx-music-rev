@@ -7,6 +7,7 @@
 
 <script>
 import { getListPrevSelectId } from '@renderer/utils/data'
+import { LIST_IDS } from '@common/constants'
 
 import MyList from './MyList/index.vue'
 import MusicList from './MusicList/index.vue'
@@ -21,10 +22,16 @@ export default {
     let id = to.query.id
     if (!id) {
       id = await getListPrevSelectId()
+      if (id == LIST_IDS.LOVE) {
+        next({ path: '/favorite' })
+        return
+      }
       next({
         path: to.path,
         query: { id },
       })
+    } else if (id == LIST_IDS.LOVE) {
+      next({ path: '/favorite' })
     } else next()
   },
   beforeRouteUpdate(to, from) {
@@ -32,6 +39,10 @@ export default {
     if (to.query.updated) return
     let id = to.query.id
     if (id == null) return
+    if (id == LIST_IDS.LOVE) {
+      this.$router.replace({ path: '/favorite' }).catch(_ => _)
+      return
+    }
     // if (!getList(id)) {
     //   id = defaultList.id
     // }
