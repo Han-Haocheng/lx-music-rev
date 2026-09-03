@@ -1,4 +1,4 @@
-import { mainSend } from '@common/mainIpc'
+import { mainSend, registerBrowserWindowIpcSender } from '@common/mainIpc'
 import { BrowserWindow } from 'electron'
 import fs from 'fs'
 import path from 'node:path'
@@ -98,6 +98,8 @@ export const createWindow = async(userApi: LX.UserApi.UserApiInfo) => {
       preload: preloadUrl,
     },
   })
+  // 登记 userApi 窗口为 IPC 发送方：仅放行 userApi_* 专属通道（main-security #2）
+  registerBrowserWindowIpcSender(browserWindow, 'userApi')
 
   for (const eventName of denyEvents) {
     // @ts-expect-error

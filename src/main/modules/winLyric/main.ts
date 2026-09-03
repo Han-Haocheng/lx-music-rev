@@ -2,7 +2,7 @@ import path from 'node:path'
 import { BrowserWindow } from 'electron'
 import { debounce, getPlatform, isLinux, isWin } from '@common/utils'
 import { initWindowSize, minHeight, minWidth } from './utils'
-import { mainSend } from '@common/mainIpc'
+import { mainSend, registerBrowserWindowIpcSender } from '@common/mainIpc'
 import { encodePath } from '@common/utils/electron'
 
 // require('./event')
@@ -142,6 +142,8 @@ export const createWindow = () => {
       backgroundThrottling: false,
     },
   })
+  // 登记歌词窗口为合法 IPC 发送方（main-security #2：拒绝非应用窗口调用 IPC）
+  registerBrowserWindowIpcSender(browserWindow)
 
   const winURL = process.env.NODE_ENV !== 'production' ? 'http://localhost:9081/lyric.html' : `file://${path.join(encodePath(__dirname), 'lyric.html')}`
   void browserWindow.loadURL(winURL + `?os=${getPlatform()}&dark=${shouldUseDarkColors}&theme=${encodeURIComponent(JSON.stringify(theme))}`)

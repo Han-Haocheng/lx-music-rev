@@ -3,7 +3,7 @@ import path from 'node:path'
 import { createTaskBarButtons, getWindowSizeInfo } from './utils'
 import { getPlatform, isLinux, isWin } from '@common/utils'
 import { getProxy, openDevTools as handleOpenDevTools } from '@main/utils'
-import { mainSend } from '@common/mainIpc'
+import { mainSend, registerBrowserWindowIpcSender } from '@common/mainIpc'
 import { sendFocus, sendTaskbarButtonClick } from './rendererEvent'
 import { encodePath } from '@common/utils/electron'
 
@@ -119,6 +119,8 @@ export const createWindow = () => {
     if (isLinux) options.resizable = true
   }
   browserWindow = new BrowserWindow(options)
+  // 登记主窗口为合法 IPC 发送方（main-security #2：拒绝非应用窗口调用 IPC）
+  registerBrowserWindowIpcSender(browserWindow)
 
   const winURL = process.env.NODE_ENV !== 'production' ? 'http://localhost:9080' : `file://${path.join(encodePath(__dirname), 'index.html')}`
   void browserWindow.loadURL(winURL + `?os=${getPlatform()}&dt=${global.envParams.cmdParams.dt}&dark=${shouldUseDarkColors}&theme=${encodeURIComponent(JSON.stringify(theme))}`)
