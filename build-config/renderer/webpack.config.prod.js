@@ -18,20 +18,28 @@ const gitInfo = {
   commit_date: '',
 }
 
+// 记录构建所对应的提交信息（页面 COMMIT_ID/COMMIT_DATE 展示用）。
+// 本地开发构建允许脏树（跳过提交信息嵌入即可）；CI（IS_CI=true）必须工作区干净，
+// 脏树说明产物与提交不一致，应 fail-fast——throw 置于 try/catch 之外，避免被空 catch 吞掉。
+let isClean = false
 try {
-  let isClean = !execSync('git status --porcelain').toString().trim()
-  if (process.env.BUILD_WIN7) {
-    console.warn('BUILD_WIN7 is set, skipping git status check.')
-    console.log('Workspace status:', execSync('git status --porcelain').toString().trim())
-    isClean = true
-  }
-  if (isClean) {
+  isClean = !execSync('git status --porcelain').toString().trim()
+} catch {
+  // git 不可用（例如非 git 目录构建）时按非干净处理
+}
+
+if (isClean) {
+  try {
     gitInfo.commit_id = execSync('git log -1 --pretty=format:"%H"').toString().trim()
     gitInfo.commit_date = execSync('git log -1 --pretty=format:"%ad" --date=iso-strict').toString().trim()
-  } else if (process.env.IS_CI) {
-    throw new Error('Working directory is not clean')
+  } catch {
+    // 提交信息读取失败时保留空值，不阻断构建
   }
-} catch {}
+}
+
+if (!isClean && process.env.IS_CI) {
+  throw new Error('Working directory is not clean')
+}
 
 module.exports = merge(baseConfig, {
   mode: 'production',
