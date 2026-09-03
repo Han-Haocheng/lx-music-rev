@@ -127,7 +127,7 @@ export default {
               },
             })
           } catch (error) {
-            console.log(error)
+            console.warn(error)
             return
           }
         }
@@ -143,7 +143,6 @@ export default {
             if (tempType == type) continue
             config = tempInfo.keys[newHotKey]
             if (config) {
-              console.log(newHotKey, info, config, info.name, config.name)
               // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
               delete current_hot_key.value[tempType].keys[newHotKey]
               break
@@ -161,7 +160,7 @@ export default {
               data: originKey,
             })
           } catch (error) {
-            console.log(error)
+            console.warn(error)
           }
         }
         await handleHotKeySaveConfig()

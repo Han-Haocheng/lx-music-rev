@@ -45,7 +45,7 @@ export default {
           authCode: code,
         },
       }).catch(err => {
-        console.log(err)
+        console.warn(err)
       })
     }
     return {

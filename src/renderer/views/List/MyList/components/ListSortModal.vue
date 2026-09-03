@@ -114,7 +114,6 @@ export default {
 
       let list = [...(await getListMusics(props.listInfo.id))]
       list = await window.lx.worker.main.sortListMusicInfo(list, sortType.value, sortField.value, window.i18n.locale)
-      console.log(sortType.value, sortField.value)
 
       closeModal()
       void updateListMusicsPosition({ listId: props.listInfo.id, position: 0, ids: list.map(m => m.id) })

@@ -140,7 +140,7 @@ const probeSources = async() => {
       })
     }
   } catch (err) {
-    console.log(err)
+    console.warn(err)
   }
 }
 
@@ -165,7 +165,7 @@ const handleSwitchSource = async(source: string) => {
     if (source != info.source && sourceStatusMap[info.source] != 'unavailable') sourceStatusMap[info.source] = 'available'
     isShowSourcePanel.value = false
   } catch (err) {
-    console.log(err)
+    console.warn(err)
     showToast(t('play_source_switch_failed'))
   } finally {
     isSwitching.value = false
@@ -203,7 +203,7 @@ const handleSwitchQuality = async(quality: LX.Quality) => {
     effectiveQuality.value = realQuality
     isShowQualityPanel.value = false
   } catch (err) {
-    console.log(err)
+    console.warn(err)
     showToast(t('play_quality_switch_failed'))
   } finally {
     isSwitching.value = false

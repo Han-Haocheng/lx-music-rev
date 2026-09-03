@@ -127,7 +127,6 @@ export default {
       this.$refs.dom_input.focus()
     },
     handleTemplistClick(index) {
-      console.log(index)
       this.sendEvent('listClick', index)
     },
     handleFocus() {

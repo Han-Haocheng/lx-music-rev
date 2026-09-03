@@ -23,7 +23,6 @@ export const addLocalFile = async(listInfo: LX.List.MyListInfo) => {
   })
   if (canceled || !filePaths.length) return
 
-  console.log(filePaths)
   setFetchingListStatus(listInfo.id, true)
   await handleAddMusics(listInfo.id, filePaths)
   setFetchingListStatus(listInfo.id, false)

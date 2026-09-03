@@ -85,7 +85,7 @@ export default {
             })
           }
         } catch (err) {
-          console.log(err)
+          console.warn(err)
         }
       }
       const defaultList = allLists.shift().list
@@ -110,7 +110,7 @@ export default {
             })
           }
         } catch (err) {
-          console.log(err)
+          console.warn(err)
         }
       }
       const defaultList = allLists.shift().list
@@ -118,7 +118,6 @@ export default {
       await overwriteListFull({ defaultList, loveList, userList: allLists })
     }
     const importOldSettingData = (setting) => {
-      console.log(setting)
       setting = migrateSetting(setting)
       setting['common.isAgreePact'] = false
       updateSetting(setting)
@@ -263,7 +262,6 @@ export default {
       } catch (error) {
         return
       }
-      console.log(listData.type)
 
       switch (listData.type) {
         case 'defautlList': // 兼容0.6.2及以前版本的列表数据

@@ -168,7 +168,7 @@ export default {
           this.$refs.dom_commentNew.scrollTo(0, 0)
         })
       }).catch(err => {
-        console.log(err)
+        console.warn(err)
         if (err.message == '取消请求') return
         this.newComment.isLoadError = true
         this.newComment.isLoading = false
@@ -187,7 +187,7 @@ export default {
           this.$refs.dom_commentHot.scrollTo(0, 0)
         })
       }).catch(err => {
-        console.log(err)
+        console.warn(err)
         if (err.message == '取消请求') return
         this.hotComment.isLoadError = true
         this.hotComment.isLoading = false

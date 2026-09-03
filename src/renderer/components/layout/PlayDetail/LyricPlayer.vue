@@ -128,7 +128,6 @@ export default {
         rlrc: rlyric,
         lxlrc: lxlyric,
       })
-      console.log(offset)
       setLyricOffset(offset)
     }
 
