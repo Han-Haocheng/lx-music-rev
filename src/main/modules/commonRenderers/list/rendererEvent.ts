@@ -51,4 +51,25 @@ export default () => {
   mainHandle<string, string[]>(PLAYER_EVENT_NAME.list_music_get_list_ids, async({ params: musicInfoId }) => {
     return global.lx.worker.dbService.getMusicExistListIds(musicInfoId)
   })
+  mainHandle<[], LX.DBService.FavoriteGroupInfo[]>(PLAYER_EVENT_NAME.favorite_group_get, async() => {
+    return global.lx.worker.dbService.favoriteGroupGet()
+  })
+  mainHandle<{ name: string, id: string }>(PLAYER_EVENT_NAME.favorite_group_add, async({ params: { name, id } }) => {
+    await global.lx.worker.dbService.favoriteGroupAdd(name, id)
+  })
+  mainHandle<{ id: string, name: string }>(PLAYER_EVENT_NAME.favorite_group_update, async({ params: { id, name } }) => {
+    await global.lx.worker.dbService.favoriteGroupUpdate(id, name)
+  })
+  mainHandle<{ id: string }>(PLAYER_EVENT_NAME.favorite_group_remove, async({ params: { id } }) => {
+    await global.lx.worker.dbService.favoriteGroupRemove(id)
+  })
+  mainHandle<string, string[]>(PLAYER_EVENT_NAME.favorite_group_music_get, async({ params: musicInfoId }) => {
+    return global.lx.worker.dbService.favoriteGroupMusicGet(musicInfoId)
+  })
+  mainHandle<{ musicInfoId: string, groupIds: string[] }>(PLAYER_EVENT_NAME.favorite_group_music_set, async({ params: { musicInfoId, groupIds } }) => {
+    await global.lx.worker.dbService.favoriteGroupMusicSet(musicInfoId, groupIds)
+  })
+  mainHandle<string, string[]>(PLAYER_EVENT_NAME.favorite_group_music_list_get, async({ params: groupId }) => {
+    return global.lx.worker.dbService.favoriteGroupMusicListGet(groupId)
+  })
 }
