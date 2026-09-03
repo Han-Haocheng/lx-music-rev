@@ -19,6 +19,9 @@ module.exports = {
     bufferutil: 'bufferutil',
     'utf-8-validate': 'utf-8-validate',
     'qrc_decode.node': isDev ? path.join(__dirname, '../../build/Release/qrc_decode.node') : path.join('../build/Release/qrc_decode.node'),
+    // dbus-next 的 address-x11 在函数体内 require('x11')（仅 X11 窗口选择取址路径），x11 是可选项
+    // 不随 npm ci 安装；webpack 静态解析会报 Can't resolve 'x11' 使主进程构建失败，故外部化。
+    'x11': 'x11',
   },
   resolve: {
     alias: {
