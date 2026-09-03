@@ -1,4 +1,3 @@
-// import { getSongListSetting } from '@renderer/utils/data'
 import { deduplicationList, toNewMusicInfo } from '@renderer/utils'
 import musicSdk from '@renderer/utils/musicSdk'
 import { markRaw, markRawList } from '@common/utils/vueTools'
@@ -92,9 +91,6 @@ export const getTags = async<T extends LX.OnlineSource>(source: T) => {
  * @returns
  */
 export const getAndSetList = async(source: LX.OnlineSource, tabId: string, sortId: string, page: number, isRefresh = false) => {
-  // let source = rootState.setting.songList.source
-  // let tabId = rootState.setting.songList.tagInfo.id
-  // let sortId = rootState.setting.songList.sortId
   // console.log(sortId)
   let key = `slist__${source}__${sortId}__${tabId}__${page}`
   // if (state.list.list.length && state.list.key == key) return
@@ -116,7 +112,7 @@ export const getAndSetList = async(source: LX.OnlineSource, tabId: string, sortI
   }).catch((error: any) => {
     clearList()
     listInfo.noItemLabel = window.i18n.t('list__load_failed')
-    console.log(error)
+    console.warn(error)
     throw error
   })
 }
@@ -198,7 +194,7 @@ export const getAndSetListDetail = async(id: string, source: LX.OnlineSource, pa
   }).catch((error: any) => {
     clearListDetail()
     listDetailInfo.noItemLabel = window.i18n.t('list__load_failed')
-    console.log(error)
+    console.warn(error)
     throw error
   })
 }

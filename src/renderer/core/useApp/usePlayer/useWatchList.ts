@@ -21,7 +21,6 @@ export default () => {
           setPlayMusicInfo(null, null)
         })
       } else if (!playMusicInfo.isTempPlay) {
-        console.log('current music removed')
         void playNext(true)
       }
     }

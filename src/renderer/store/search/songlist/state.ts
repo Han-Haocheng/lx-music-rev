@@ -1,8 +1,6 @@
 import { reactive, markRaw } from '@common/utils/vueTools'
 import music from '@renderer/utils/musicSdk'
 
-// import { deduplicationList } from '@common/utils/renderer'
-
 import { type ListInfo } from '@renderer/store/songList/state'
 
 export type { ListInfoItem } from '@renderer/store/songList/state'

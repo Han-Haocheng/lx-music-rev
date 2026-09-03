@@ -258,7 +258,6 @@ export const getOnlineOtherSourceMusicUrl = async({ musicInfos, quality, onToggl
     itemQuality = quality ?? getPlayQuality(appSetting['player.playQuality'], musicInfo)
     if (!musicInfo.meta._qualitys[itemQuality]) continue
 
-    console.log('try toggle to: ', musicInfo.source, musicInfo.name, musicInfo.singer, musicInfo.interval)
     onToggleSource(musicInfo)
     break
   }
@@ -280,7 +279,7 @@ export const getOnlineOtherSourceMusicUrl = async({ musicInfos, quality, onToggl
     // eslint-disable-next-line @typescript-eslint/promise-function-async
   }).catch((err: any) => {
     if (err.message == requestMsg.tooManyRequests) throw err
-    console.log(err)
+    console.warn(err)
     return getOnlineOtherSourceMusicUrl({ musicInfos, quality, onToggleSource, isRefresh, retryedSource })
   })
 }
@@ -313,12 +312,11 @@ export const handleGetOnlineMusicUrl = async({ musicInfo, quality, onToggleSourc
   return reqPromise.then(({ url, type }: { url: string, type: LX.Quality }) => {
     return { musicInfo, url, quality: type, isFromCache: false }
   }).catch(async(err: any) => {
-    console.log(err)
+    console.warn(err)
     if (!allowToggleSource || err.message == requestMsg.tooManyRequests) throw err
     onToggleSource()
     // eslint-disable-next-line @typescript-eslint/promise-function-async
     return getOtherSource(musicInfo).then(otherSource => {
-      console.log('find otherSource', otherSource)
       if (otherSource.length) {
         return getOnlineOtherSourceMusicUrl({
           musicInfos: [...otherSource],
@@ -350,7 +348,6 @@ export const getOnlineOtherSourcePicUrl = async({ musicInfos, onToggleSource, is
     if (retryedSource.includes(musicInfo.source)) continue
     retryedSource.push(musicInfo.source)
     // if (!assertApiSupport(musicInfo.source)) continue
-    console.log('try toggle to: ', musicInfo.source, musicInfo.name, musicInfo.singer, musicInfo.interval)
     onToggleSource(musicInfo)
     break
   }
@@ -369,7 +366,7 @@ export const getOnlineOtherSourcePicUrl = async({ musicInfos, onToggleSource, is
     return { musicInfo, url, isFromCache: false }
     // eslint-disable-next-line @typescript-eslint/promise-function-async
   }).catch((err: any) => {
-    console.log(err)
+    console.warn(err)
     return getOnlineOtherSourcePicUrl({ musicInfos, onToggleSource, isRefresh, retryedSource })
   })
 }
@@ -397,12 +394,11 @@ export const handleGetOnlinePicUrl = async({ musicInfo, isRefresh, onToggleSourc
   return reqPromise.then((url: string) => {
     return { musicInfo, url, isFromCache: false }
   }).catch(async(err: any) => {
-    console.log(err)
+    console.warn(err)
     if (!allowToggleSource) throw err
     onToggleSource()
     // eslint-disable-next-line @typescript-eslint/promise-function-async
     return getOtherSource(musicInfo).then(otherSource => {
-      console.log('find otherSource', otherSource)
       if (otherSource.length) {
         return getOnlineOtherSourcePicUrl({
           musicInfos: [...otherSource],
@@ -433,7 +429,6 @@ export const getOnlineOtherSourceLyricInfo = async({ musicInfos, onToggleSource,
     if (retryedSource.includes(musicInfo.source)) continue
     retryedSource.push(musicInfo.source)
     // if (!assertApiSupport(musicInfo.source)) continue
-    console.log('try toggle to: ', musicInfo.source, musicInfo.name, musicInfo.singer, musicInfo.interval)
     onToggleSource(musicInfo)
     break
   }
@@ -461,7 +456,7 @@ export const getOnlineOtherSourceLyricInfo = async({ musicInfos, onToggleSource,
     } : Promise.reject(new Error('failed'))
     // eslint-disable-next-line @typescript-eslint/promise-function-async
   }).catch((err: any) => {
-    console.log(err)
+    console.warn(err)
     return getOnlineOtherSourceLyricInfo({ musicInfos, onToggleSource, isRefresh, retryedSource })
   })
 }
@@ -495,13 +490,12 @@ export const handleGetOnlineLyricInfo = async({ musicInfo, onToggleSource, isRef
       isFromCache: false,
     } : Promise.reject(new Error('failed'))
   }).catch(async(err: any) => {
-    console.log(err)
+    console.warn(err)
     if (!allowToggleSource) throw err
 
     onToggleSource()
     // eslint-disable-next-line @typescript-eslint/promise-function-async
     return getOtherSource(musicInfo).then(otherSource => {
-      console.log('find otherSource', otherSource)
       if (otherSource.length) {
         return getOnlineOtherSourceLyricInfo({
           musicInfos: [...otherSource],

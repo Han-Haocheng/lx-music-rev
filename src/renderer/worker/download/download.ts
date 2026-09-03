@@ -118,7 +118,6 @@ const createTask = async(downloadInfo: LX.Download.ListItem, savePath: string, s
       downloadInfo.isComplate = true
       downloadInfo.status = DOWNLOAD_STATUS.COMPLETED
       sendAction(downloadInfo.id, { action: 'complete' })
-      console.log('on complate')
     },
     onError(err: any) {
       console.error(err)
@@ -148,10 +147,9 @@ const createTask = async(downloadInfo: LX.Download.ListItem, savePath: string, s
       }
       if (err.message?.startsWith('Resume failed')) {
         removeFile(downloadInfo.metadata.filePath).catch(err => {
-          console.log('删除不匹配的文件失败：', err.message)
+          console.warn('删除不匹配的文件失败：', err.message)
           // commit('onError', { downloadInfo, errorMsg: '删除不匹配的文件失败：' + err.message })
         }).finally(() => {
-          console.log('正在重试')
           void dls.get(downloadInfo.id)?.start()
           // sendAction(downloadInfo.id, {
           //   action: 'statusText',
@@ -163,7 +161,6 @@ const createTask = async(downloadInfo: LX.Download.ListItem, savePath: string, s
       if (err.code == 'ENOTFOUND') {
         sendAction(downloadInfo.id, { action: 'refreshUrl' })
       } else {
-        console.log('Download failed, Attempting Retry')
         setTimeout(() => {
           void dls.get(downloadInfo.id)?.start()
         }, 1000)
@@ -199,14 +196,12 @@ const createTask = async(downloadInfo: LX.Download.ListItem, savePath: string, s
           break
         default:
           void dls.get(downloadInfo.id)?.start()
-          console.log('正在重试')
           // commit('setStatusText', { downloadInfo, text: '正在重试' })
           break
       }
     },
     onStart() {
       sendAction(downloadInfo.id, { action: 'start' })
-      console.log('on start')
     },
     onProgress(status) {
       downloadInfo.total = status.total
@@ -218,7 +213,6 @@ const createTask = async(downloadInfo: LX.Download.ListItem, savePath: string, s
       // console.log(status)
     },
     onStop() {
-      console.log('on stop')
       // sendAction(downloadInfo.id, { action: 'pause' })
       // commit('pauseTask', downloadInfo)
       // dispatch('startTask')
@@ -299,7 +293,7 @@ export const pauseTask = async(id: string) => {
     try {
       await dl.stop()
     } catch (e) {
-      console.log(e)
+      console.warn(e)
     }
   }
   // commit('setStatus', { downloadInfo: downloadInfo, status: DOWNLOAD_STATUS.PAUSE })
@@ -317,7 +311,7 @@ export const removeTask = async(id: string) => {
     try {
       await dl.stop()
     } catch (e) {
-      console.log(e)
+      console.warn(e)
     }
   }
 

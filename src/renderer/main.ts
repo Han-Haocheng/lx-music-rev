@@ -57,7 +57,6 @@ void getSetting().then(setting => {
     }
     setting['common.langId'] = langId
     void updateSetting({ 'common.langId': langId })
-    console.log('Set lang', setting['common.langId'])
   }
   window.setLang(setting['common.langId'])
   window.i18n.setLanguage(setting['common.langId'])

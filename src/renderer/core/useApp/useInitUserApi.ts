@@ -59,7 +59,6 @@ export default () => {
                       // console.log(res)
                       return { type, url: res.data.url }
                     }).catch(async err => {
-                      console.log(err.message)
                       return Promise.reject(err)
                     }),
                   }
@@ -87,7 +86,6 @@ export default () => {
                       // console.log(res)
                       return res.data
                     }).catch(async err => {
-                      console.log(err.message)
                       return Promise.reject(err)
                     }),
                   }
@@ -115,7 +113,6 @@ export default () => {
                       // console.log(res)
                       return res.data
                     }).catch(async err => {
-                      console.log(err.message)
                       return Promise.reject(err)
                     }),
                   }
@@ -181,7 +178,7 @@ export default () => {
       // }
       userApi.list = list
     }).catch(err => {
-      console.log(err)
+      console.warn(err)
     })
   }
 }

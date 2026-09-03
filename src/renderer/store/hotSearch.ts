@@ -1,8 +1,6 @@
 import { reactive, markRaw } from '@common/utils/vueTools'
 import music from '@renderer/utils/musicSdk'
 
-// import { deduplicationList } from '@common/utils/renderer'
-
 export type Source = LX.OnlineSource | 'all'
 
 interface SourceLists extends Partial<Record<LX.OnlineSource, string[]>> {
@@ -53,7 +51,7 @@ export const getList = async(source: Source): Promise<string[]> => {
         sourceList[source]?.length
           ? Promise.resolve({ source, list: sourceList[source] })
           : (music[source]?.hotSearch.getList() ?? Promise.reject(new Error('source not found: ' + source))).catch((err: any) => {
-              console.log(err)
+              console.warn(err)
               return { source, list: [] }
             }),
       )

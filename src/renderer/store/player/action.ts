@@ -1,4 +1,3 @@
-// import { reactive, ref, shallowRef } from '@common/utils/vueTools'
 import {
   type PlayerMusicInfo,
   musicInfo,
@@ -41,7 +40,6 @@ export const setPlay = (val: boolean) => {
 }
 
 export const setStatus = (val: string) => {
-  console.log('setStatus', val)
   status.value = val
 }
 
@@ -51,7 +49,6 @@ export const setStatusText = (val: string) => {
 }
 
 export const setAllStatus = (val: string) => {
-  console.log('setAllStatus', val)
   status.value = val
   statusText.value = val
 }

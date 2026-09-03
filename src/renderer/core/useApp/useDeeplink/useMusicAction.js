@@ -200,7 +200,6 @@ const useSearchPlayMusic = () => {
     if (!info.name) return
     const musicList = await searchMusic(info.name, info.singer || '', info.albumName || '', info.interval || null)
     if (musicList.length) {
-      console.log('find music:', musicList)
       const musicInfo = musicList[0]
       markRaw(musicInfo)
       const isPlaying = !!playMusicInfo.musicInfo
@@ -211,7 +210,7 @@ const useSearchPlayMusic = () => {
         if (isPlaying) playNext()
       }
     } else {
-      console.log('msuic not found:', info)
+      // 未找到匹配的音乐
     }
   }
 }

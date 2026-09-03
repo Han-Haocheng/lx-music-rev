@@ -145,7 +145,6 @@ export default (isComputeHeight) => {
   }
 
   const handleWheel = (event) => {
-    console.log(event.deltaY)
     if (cancelScrollFn) {
       cancelScrollFn()
       cancelScrollFn = null

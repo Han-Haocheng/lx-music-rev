@@ -591,7 +591,6 @@ export const saveLyric = async(musicInfo: LX.Music.MusicInfo, lyricInfo: LX.Musi
         lyrics: info,
       }))
     }
-    console.log(tasks)
     await Promise.all(tasks)
   } else {
     await rendererInvoke<LX.Music.LyricInfoSave>(WIN_MAIN_RENDERER_EVENT_NAME.save_lyric_raw, {

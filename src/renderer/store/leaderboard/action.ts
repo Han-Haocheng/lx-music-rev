@@ -1,4 +1,3 @@
-// import { getLeaderboardSetting } from '@renderer/utils/data'
 import { deduplicationList, toNewMusicInfo } from '@renderer/utils'
 import musicSdk from '@renderer/utils/musicSdk'
 import { markRaw, markRawList } from '@common/utils/vueTools'
@@ -120,7 +119,7 @@ export const getAndSetListDetail = async(id: string, page: number, isRefresh = f
   }).catch((error: any) => {
     clearListDetail()
     listDetailInfo.noItemLabel = window.i18n.t('list__load_failed')
-    console.log(error)
+    console.warn(error)
     throw error
   })
 }

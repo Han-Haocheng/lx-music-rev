@@ -14,7 +14,4 @@ module.exports = {
       },
     },
   ],
-  ignorePatterns: [
-    'vendors',
-  ],
 }

@@ -48,7 +48,7 @@ export default () => {
               port: appSetting['sync.server.port'],
             },
           }).catch(err => {
-            console.log(err)
+            console.warn(err)
           })
         }
         break
@@ -61,7 +61,7 @@ export default () => {
               host: appSetting['sync.client.host'],
             },
           }).catch(err => {
-            console.log(err)
+            console.warn(err)
           })
         }
         break
@@ -73,7 +73,7 @@ export default () => {
               enable: appSetting['sync.enable'],
             },
           }).catch(err => {
-            console.log(err)
+            console.warn(err)
           })
         }
         break
@@ -114,7 +114,7 @@ export default () => {
           enable: appSetting['sync.enable'],
         },
       }).catch(err => {
-        console.log(err)
+        console.warn(err)
       })
     }
   })

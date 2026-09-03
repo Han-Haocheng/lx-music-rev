@@ -155,13 +155,13 @@ const saveMeta = (downloadInfo: LX.Download.ListItem) => {
       ? downloadInfo.metadata.musicInfo.meta.picUrl
         ? Promise.resolve(downloadInfo.metadata.musicInfo.meta.picUrl)
         : getPicUrl({ musicInfo: downloadInfo.metadata.musicInfo, isRefresh: false, allowToggleSource: isUseOtherSource }).catch(err => {
-          console.log(err)
+          console.warn(err)
           return null
         })
       : Promise.resolve(null),
     appSetting['download.isEmbedLyric']
       ? getLyricInfo({ musicInfo: downloadInfo.metadata.musicInfo, isRefresh: false, allowToggleSource: isUseOtherSource }).catch(err => {
-        console.log(err)
+        console.warn(err)
         return null
       })
       : Promise.resolve(null),
@@ -245,7 +245,7 @@ const handleRefreshUrl = (downloadInfo: LX.Download.ListItem) => {
       void window.lx.worker.download.updateUrl(downloadInfo.id, url)
     })
     .catch(err => {
-      console.log(err)
+      console.warn(err)
       handleError(downloadInfo, err.message)
     })
 }

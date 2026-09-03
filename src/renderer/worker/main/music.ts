@@ -23,7 +23,7 @@ export const getMusicFilePic = async(filePath: string) => {
       await fs.writeFile(tempFile, picture.data)
       return tempFile
     } catch (err) {
-      console.log(err)
+      console.warn(err)
     }
   }
   return `data:${picture.format};base64,${Buffer.from(picture.data).toString('base64')}`

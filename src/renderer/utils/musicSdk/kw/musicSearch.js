@@ -34,7 +34,7 @@ export default {
       // const format = (info.FORMATS || info.formats).split('|')
 
       if (!info.N_MINFO) {
-        console.log('N_MINFO is undefined')
+        console.warn('N_MINFO is undefined')
         return null
       }
 

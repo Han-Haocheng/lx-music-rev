@@ -97,7 +97,7 @@ export const search = async(text: string, page: number, sourceId: LX.OnlineSourc
     for (const source of sources) {
       if (source == 'all' || (page > 1 && page > (maxPages[source]!))) continue
       task.push((music[source]?.songList.search(text, page, listInfos.all.limit) ?? Promise.reject(new Error('source not found: ' + source))).catch((error: any) => {
-        console.log(error)
+        console.warn(error)
         return {
           list: [],
           total: 0,
@@ -120,7 +120,7 @@ export const search = async(text: string, page: number, sourceId: LX.OnlineSourc
     }) ?? Promise.reject(new Error('source not found: ' + sourceId))).catch((error: any) => {
       resetListInfo(sourceId)
       listInfo.noItemLabel = window.i18n.t('list__load_failed')
-      console.log(error)
+      console.warn(error)
       throw error
     })
   }

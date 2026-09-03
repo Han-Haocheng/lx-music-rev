@@ -83,7 +83,7 @@ export const init = () => {
     // ... and start sending it work!
 
     port.onmessageerror = (event) => {
-      console.log('onmessageerror', event)
+      console.warn('onmessageerror', event)
     }
 
     getInfo()

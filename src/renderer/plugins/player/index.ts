@@ -298,7 +298,6 @@ export const startPanner = () => {
 let isConnected = true
 const connectNode = () => {
   if (isConnected) return
-  console.log('connect Node')
   analyser?.connect(biquads.get(`hz${freqs[0]}`)!)
   isConnected = true
   if (pitchShifterNodeTempValue == 1 && pitchShifterNodeLoadStatus == 'connected') {
@@ -307,7 +306,6 @@ const connectNode = () => {
 }
 const disconnectNode = () => {
   if (!isConnected) return
-  console.log('disconnect Node')
   analyser?.disconnect()
   isConnected = false
   if (pitchShifterNodeTempValue == 1 && pitchShifterNodeLoadStatus == 'connected') {
@@ -315,7 +313,6 @@ const disconnectNode = () => {
   }
 }
 const connectPitchShifterNode = () => {
-  console.log('connect Pitch Shifter Node')
   audio!.addEventListener('playing', connectNode)
   audio!.addEventListener('pause', disconnectNode)
   audio!.addEventListener('waiting', disconnectNode)
@@ -335,7 +332,6 @@ const connectPitchShifterNode = () => {
   pitchShifterNodePitchFactor.value = pitchShifterNodeTempValue
 }
 const disconnectPitchShifterNode = () => {
-  console.log('disconnect Pitch Shifter Node')
   const lastBiquadFilter = (biquads.get(`hz${freqs.at(-1)!}`)!)
   lastBiquadFilter.disconnect()
   lastBiquadFilter.connect(convolver)
@@ -357,7 +353,6 @@ const loadPitchShifterNode = () => {
     './pitch-shifter/phase-vocoder.js',
     import.meta.url,
   )).then(() => {
-    console.log('pitch shifter audio worklet loaded')
     // https://github.com/olvb/phaze/issues/26#issuecomment-1574629971
     pitchShifterNode = new AudioWorkletNode(audioContext, 'phase-vocoder-processor', { outputChannelCount: [2] })
     let pitchFactorParam = pitchShifterNode.parameters.get('pitchFactor')

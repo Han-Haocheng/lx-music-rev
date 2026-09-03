@@ -261,8 +261,7 @@ export default {
     let result
     try {
       result = await httpFetch(url, options).promise
-    } catch (err) {
-      console.log(err)
+    } catch {
       return this.createHttp(url, options, ++retryNum)
     }
     // console.log(result.statusCode, result.body)

@@ -67,7 +67,7 @@ export const createLocalMusicInfo = async(path: string): Promise<LX.Music.MusicI
   try {
     metadata = await parseFile(path)
   } catch (err) {
-    console.log(err)
+    console.warn(err)
     return null
   }
 
@@ -107,7 +107,7 @@ const getFileMetadata = async(path: string) => {
   prevFileInfo.path = path
   return prevFileInfo.promise = checkPath(path).then(async(isExist) => {
     return isExist ? import('music-metadata').then(async({ parseFile }) => parseFile(path)).catch(err => {
-      console.log(err)
+      console.warn(err)
       return null
     }) : null
   })
@@ -180,7 +180,6 @@ export const getLocalMusicFileLyric = async(path: string): Promise<LX.Music.Lyri
     const lrcBuf = await readFile(lrcPath)
     const { detect } = await import('jschardet')
     const { confidence, encoding } = detect(lrcBuf)
-    console.log('lrc file encoding', confidence, encoding)
     if (confidence > 0.8) {
       const iconv = (await import('iconv-lite')).default
       if (iconv.encodingExists(encoding)) {
@@ -196,13 +195,12 @@ export const getLocalMusicFileLyric = async(path: string): Promise<LX.Music.Lyri
   // 尝试读取同目录下的同名krc文件
   lrcPath = path.replace(filePath, '.krc')
   stats = await getFileStats(lrcPath)
-  console.log(lrcPath, stats?.size)
   if (stats && stats.size < 1024 * 1024 * 10) {
     const lrcBuf = await readFile(lrcPath)
     try {
       return await decodeKrc(lrcBuf)
     } catch (e) {
-      console.log(e)
+      console.warn(e)
     }
   }
 

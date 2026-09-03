@@ -21,7 +21,6 @@ export default () => {
     if (isWin) setWindowResizeable(false)
   }
   const handleLyricMouseDown = event => {
-    console.log(event.target, event.currentTarget)
     if (event.target !== event.currentTarget) return
     handleLyricDown(event.target, event.clientX, event.clientY)
   }

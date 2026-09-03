@@ -29,7 +29,7 @@ export const setUserApi = async(apiId: string) => {
     }).catch(err => {
       if (prevId != apiId) return
       if (!window.lx.apiInitPromise[1]) window.lx.apiInitPromise[2](false)
-      console.log(err)
+      console.warn(err)
       let api = apiSourceInfo.find(api => !api.disabled)
       if (!api) return
       apiSource.value = api.id

@@ -94,7 +94,6 @@ export default () => {
     // setTimeout(() => {
     setAllStatus(t('player__end'))
     if (window.lx.isPlayedStop) {
-      console.log('played stop')
       return
     }
     // resetPlayerMusicInfo()

@@ -1,5 +1,3 @@
-// import {  } from '@renderer/utils/ipc'
-
 import { appSetting } from '@renderer/store/setting'
 import { fetchingListStatus, listUpdateTimes, allMusicList, userLists, tempListMeta } from './state'
 import {

@@ -35,7 +35,6 @@ export default () => {
       if (params.data) params.data = JSON.parse(decodeURIComponent(params.data))
     }
     params.paths = paths.map(p => decodeURIComponent(p))
-    console.log(params)
     switch (type) {
       case 'music':
         await handleMusicAction(action, params)
@@ -51,7 +50,6 @@ export default () => {
   }
 
   const rDeeplink = onDeeplink(async({ params: link }) => {
-    console.log(link)
     if (!isInited) return
     clearEnvParamsDeeplink()
     try {

@@ -1,7 +1,3 @@
-// import { getListFromState } from './list'
-// import { downloadList } from './download'
-
-
 // export const getList = (listId: string | null): LX.Download.ListItem[] | LX.Music.MusicInfo[] => {
 //   return listId == 'download' ? downloadList : getListFromState(listId)
 // }

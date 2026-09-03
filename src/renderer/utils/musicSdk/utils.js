@@ -16,7 +16,7 @@ export const getHostIp = hostname => {
     // family: 4,
     all: false,
   }, (err, address, family) => {
-    if (err) return console.log(err)
+    if (err) return
     // console.log(address, family)
     ipMap.set(hostname, { address, family })
   })

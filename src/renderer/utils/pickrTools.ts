@@ -72,7 +72,6 @@ export const pickrTools: PickrTools = {
     pickrTools.pickr.on('swatchselect', (color: any) => {
       swatchselectColor = color
     }).on('change', throttleChange).on('cancel', () => {
-      console.log('cancel')
       change(color)
       reset?.()
     })

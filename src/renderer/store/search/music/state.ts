@@ -1,8 +1,6 @@
 import { reactive, markRaw } from '@common/utils/vueTools'
 import music from '@renderer/utils/musicSdk'
 
-// import { deduplicationList } from '@common/utils/renderer'
-
 export declare interface ListInfo {
   list: LX.Music.MusicInfo[]
   total: number

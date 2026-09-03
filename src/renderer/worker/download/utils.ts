@@ -19,13 +19,13 @@ export const saveLrc = async(lrcData: LX.Music.LyricInfo, info: {
   switch (info.format) {
     case 'gbk':
       fs.writeFile(info.filePath, iconv.encode(lrc, 'gbk', { addBOM: true }), err => {
-        if (err) console.log(err)
+        if (err) console.warn(err)
       })
       break
     case 'utf8':
     default:
       fs.writeFile(info.filePath, iconv.encode(lrc, 'utf8', { addBOM: true }), err => {
-        if (err) console.log(err)
+        if (err) console.warn(err)
       })
       break
   }

@@ -86,41 +86,33 @@ export default () => {
   // const registerMediaSessionHandler = () => {
   navigator.mediaSession.setActionHandler('play', () => {
     if (isPlay.value || !playMusicInfo) return
-    console.log('play')
     play()
   })
   navigator.mediaSession.setActionHandler('pause', () => {
     if (!isPlay.value || !playMusicInfo) return
-    console.log('pause')
     pause()
   })
   navigator.mediaSession.setActionHandler('stop', () => {
-    console.log('stop')
     setStop()
   })
   navigator.mediaSession.setActionHandler('seekbackward', details => {
-    console.log('seekbackward')
     const seekOffset = details.seekOffset ?? 5
     setProgress(Math.max(getCurrentTime() - seekOffset, 0))
   })
   navigator.mediaSession.setActionHandler('seekforward', details => {
-    console.log('seekforward')
     const seekOffset = details.seekOffset ?? 5
     setProgress(Math.min(getCurrentTime() + seekOffset, getDuration()))
   })
   navigator.mediaSession.setActionHandler('seekto', details => {
-    console.log('seekto', details.seekTime)
     if (details.seekTime == null) return
     let time = Math.min(details.seekTime, getDuration())
     time = Math.max(time, 0)
     setProgress(time)
   })
   navigator.mediaSession.setActionHandler('previoustrack', () => {
-    console.log('previoustrack')
     void playPrev()
   })
   navigator.mediaSession.setActionHandler('nexttrack', () => {
-    console.log('nexttrack')
     void playNext()
   })
   // navigator.mediaSession.setActionHandler('skipad', () => {

@@ -32,7 +32,6 @@ const scanAudioFiles = async(dirPath: string): Promise<string[]> => {
     try {
       entries = await readdir(current, { withFileTypes: true })
     } catch (err) {
-      console.log(err)
       continue
     }
     for (const entry of entries) {
@@ -94,7 +93,7 @@ export const scanLocalFolder = async() => {
     if (!musicPaths.length) return
     await addLocalMusics(musicPaths)
   } catch (err) {
-    console.log(err)
+    console.warn(err)
     void dialog({
       message: window.i18n.t('local_music__scan_failed'),
     })
