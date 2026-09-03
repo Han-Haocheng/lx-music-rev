@@ -153,7 +153,7 @@ function startRendererLyric() {
         overlay: false,
       },
       setupMiddlewares(middlewares, devServer) {
-        devServer.app.use(hotMiddlewareRenderer)
+        devServer.app.use(hotMiddlewareRendererLyric)
         setImmediate(() => {
           devServer.middleware.waitUntilValid(resolve)
         })
