@@ -4,7 +4,7 @@ SettingNetwork
 </template>
 
 <script>
-import SettingSync from './SettingSync.vue'
+import SettingSync from './SettingSync/index.vue'
 import SettingNetwork from './SettingNetwork.vue'
 
 export default {
