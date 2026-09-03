@@ -8,8 +8,23 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-03
+
+LX Music rev 在 1.0.0 基础上的首个功能迭代版本：并行开发的设置页改版、WebDAV 数据同步、收藏/播放列表拆分三条分支合并集成至 master，并修复托盘自实现与设置页重组引入的构建问题。
+
+### 新增
+
+- 设置页改版：16 个分散分页合并重组为「常规 / 播放与歌词 / 下载与备份 / 同步与网络 / 快捷键 / 关于」6 个分组页，新增左侧目录导航与组内小节锚点定位（选中分组后在左侧显示组内 h3 小节并联动滚动）
+- 数据同步新增 WebDAV 模式：新增 WebDAV 客户端（连接测试、上传/下载/获取状态），主进程同步模块、渲染端设置 store 与启动编排接入 webdav 模式，设置页「同步与网络」新增 WebDAV 模式选择与配置/操作界面
+- 「收藏」与「播放列表」拆分：新增独立收藏页（/favorite，复用 MusicList 并固定 LOVE 列表源），左侧导航新增「我的收藏」入口；「我的列表」移除收藏项、回归歌单管理，收到 LOVE 列表定位时自动跳转收藏页
+- 控制栏新增「播放列表」按钮与播放队列弹层面板：展示当前播放队列，支持切歌、移除歌曲、清空已播放与自动定位当前曲目
+- 控制栏与播放详情页新增 ♥ 收藏/取消收藏按钮（useLoveButton，复用 collectMusic/uncollectMusic）
+- 新增 icon-list、icon-playlist、icon-love-o 图标并补齐 zh-cn/zh-tw/en-us 文案
+
 ### 修复
 
+- 修复主进程构建失败：Linux 托盘自实现（StatusNotifierItem + dbusmenu）引入的 dbus-next 会被 webpack 静态解析其函数体内的可选模块 x11（该模块不随 npm ci 安装），导致托盘修复后的 master 推送在 CI 全平台构建失败——将 x11 声明为外部依赖（该代码路径仅在 X11 窗口选择取址时才会执行）
+- 修复设置页改版后 renderer 构建失败：「同步与网络」分组页误引用不存在的 SettingSync.vue，改为引用 SettingSync/index.vue（同时使改版后的设置页能进入 WebDAV 同步配置）
 - 修复自动下载（边听边下载）重复提交同一歌曲时报 UNIQUE constraint failed：主进程保存下载任务前先过滤已存在的 id 并返回实际新增项，渲染端先加载数据库列表再判重，重复播放同一首歌不再报错
 - 修复 Linux 托盘在 KDE Plasma 6 桌面不可用的问题（图标不显示/空白块）：KDE 的 StatusNotifierWatcher 忽略 Electron 注册时携带的“服务名+对象路径”（SNI 对象在 /StatusNotifierItem/1，KDE 固定查询 /StatusNotifierItem 根路径），官方修复（electron#53214）仅进入 44.x，而本 fork 因 Wayland 窗口问题固定 Electron 43.4.1——故 Linux 下弃用 Electron Tray，改用自实现的 StatusNotifierItem + dbusmenu（新增 dbus-next 依赖），在根路径导出图标/提示/菜单并处理点击
 - 修复 Linux 托盘图标显示错乱（@2x 图标按高倍率表示加载导致像素截断）

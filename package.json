@@ -1,7 +1,7 @@
 {
   "name": "lx-music-rev",
   "productName": "lx-music-rev",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "一个免费的音乐查找助手",
   "main": "./dist/main.js",
   "scripts": {
