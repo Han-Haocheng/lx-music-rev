@@ -204,11 +204,23 @@ export default {
       }
     }
 
+    const nameCache = new WeakMap() // downloadInfo -> { format, name }，行数据层面只算一次
     const getName = (downloadInfo) => {
-      return formatMusicName(appSetting['download.fileName'], downloadInfo.metadata.musicInfo.name, downloadInfo.metadata.musicInfo.singer, downloadInfo.metadata.musicInfo.album)
+      const format = appSetting['download.fileName']
+      const cached = nameCache.get(downloadInfo)
+      if (cached && cached.format === format) return cached.name
+      const name = formatMusicName(format, downloadInfo.metadata.musicInfo.name, downloadInfo.metadata.musicInfo.singer, downloadInfo.metadata.musicInfo.album)
+      nameCache.set(downloadInfo, { format, name })
+      return name
     }
+    const typeNameCache = new Map()
     const getTypeName = (quality) => {
-      return quality == 'flac24bit' ? 'FLAC Hires' : quality?.toUpperCase()
+      if (quality == 'flac24bit') return 'FLAC Hires'
+      const cached = typeNameCache.get(quality)
+      if (cached !== undefined) return cached
+      const typeName = quality?.toUpperCase()
+      if (typeName !== undefined) typeNameCache.set(quality, typeName)
+      return typeName
     }
     return {
       listRef,
