@@ -8,6 +8,8 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.2.0-beta.2] - 2026-09-03
+
 ## [1.2.0-beta.1] - 2026-09-03
 
 LX Music rev 1.2.0-beta.1 测试版：本地音乐导入/扫描/播放闭环、播放详情页播放源与音质选择器、收藏夹体验优化、双击列表快速播放、设置页目录两级层级、dev 端口占用自愈，并同步上游精选修复。
@@ -43,6 +45,7 @@ LX Music rev 1.2.0-beta.1 测试版：本地音乐导入/扫描/播放闭环、�
 ### 其他
 
 - 重建 .dsh/branches AI 多分支协作框架（守则 README + branch.sh + worktree.sh），支持 git worktree 并行工作区
+
 
 ## [1.1.1] - 2026-09-03
 
