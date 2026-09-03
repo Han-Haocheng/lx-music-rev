@@ -42,8 +42,12 @@
         </button>
       </div>
       <div :class="$style.listWrap">
-        <MusicList v-if="currentGroupId == null" :list-id="LOVE_ID" :group-actions-visible="true" @group-modal="handleGroupModal" />
-        <MusicList v-else :list-id="LOVE_ID" :music-list="groupMusicList" :group-actions-visible="true" @group-modal="handleGroupModal" />
+        <MusicList
+          :list-id="LOVE_ID"
+          :music-list="currentGroupId == null ? null : groupMusicList"
+          :group-actions-visible="true"
+          @group-modal="handleGroupModal"
+        />
       </div>
     </div>
     <music-group-modal v-model:show="isShowGroupModal" :music-list="groupModalMusicList" @close="isShowGroupModal = false" />

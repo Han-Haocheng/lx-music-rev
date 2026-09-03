@@ -14,25 +14,28 @@ export default ({ props, onLoadedList }) => {
 
 
   const list = ref([])
-  if (props.musicList) {
-    // 外部传入歌曲列表（收藏分组视图）
-    watch(() => props.musicList, l => {
+  const handleListIdChange = id => {
+    if (props.musicList) return
+    getListMusics(id).then(l => {
+      if (id != props.listId || props.musicList) return // 期间已切换目标或已切到 musicList 模式则丢弃
       list.value = [...l]
       onLoadedList()
-    }, {
-      immediate: true,
-    })
-  } else {
-    watch(() => props.listId, id => {
-      getListMusics(id).then(l => {
-        list.value = [...l]
-        if (id != props.listId) return
-        onLoadedList()
-      })
-    }, {
-      immediate: true,
     })
   }
+  // music-list 模式（收藏分组视图/外部传入列表）
+  watch(() => props.musicList, l => {
+    if (l) {
+      list.value = [...l]
+      onLoadedList()
+      return
+    }
+    handleListIdChange(props.listId)
+  }, { immediate: true })
+  // list-id 模式（主列表页/收藏全部）
+  watch(() => props.listId, id => {
+    if (props.musicList) return
+    handleListIdChange(id)
+  })
 
   const playerInfo = computed(() => ({
     isPlayList: playMusicInfo.listId == props.listId,
