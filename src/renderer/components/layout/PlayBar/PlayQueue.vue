@@ -170,7 +170,7 @@ export default {
   right: 16px;
   bottom: 84px;
   width: 360px;
-  max-height: 60vh;
+  height: 60vh;
   display: flex;
   flex-flow: column nowrap;
   overflow: hidden;
