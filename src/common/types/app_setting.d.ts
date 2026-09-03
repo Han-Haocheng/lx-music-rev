@@ -648,7 +648,7 @@ declare global {
       /**
        * 同步服务模式
        */
-      'sync.mode': 'server' | 'client'
+      'sync.mode': 'server' | 'client' | 'webdav'
 
       /**
        * 是否启用同步服务
@@ -669,6 +669,36 @@ declare global {
        * 同步服务地址
        */
       'sync.client.host': string
+
+      /**
+       * WebDAV 同步 - 服务器地址
+       */
+      'sync.webdav.url': string
+
+      /**
+       * WebDAV 同步 - 用户名
+       */
+      'sync.webdav.username': string
+
+      /**
+       * WebDAV 同步 - 密码
+       */
+      'sync.webdav.password': string
+
+      /**
+       * WebDAV 同步 - 远程目录
+       */
+      'sync.webdav.remotePath': string
+
+      /**
+       * WebDAV 同步 - 启动时自动下载
+       */
+      'sync.webdav.autoDownloadOnStart': boolean
+
+      /**
+       * WebDAV 同步 - 退出时自动上传
+       */
+      'sync.webdav.autoUploadOnQuit': boolean
 
 
       /**
