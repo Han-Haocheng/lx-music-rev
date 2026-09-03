@@ -121,6 +121,8 @@ import useSearch from './useSearch'
 import useListScroll from './useListScroll'
 import useMusicToggle from './useMusicToggle'
 import { appSetting } from '@renderer/store/setting'
+import { addListMusics } from '@renderer/store/list/action'
+import { loveList } from '@renderer/store/list/state'
 export default {
   name: 'MusicList',
   components: {
@@ -280,6 +282,11 @@ export default {
         clipboardWriteText(str)
       })
     }
+    const handleQuickCollect = (index) => {
+      const item = list.value[index]
+      if (!item) return
+      void addListMusics(loveList.id, [item])
+    }
     const handleListBtnClick = ({ action, index }) => {
       switch (action) {
         case 'download':
@@ -292,6 +299,9 @@ export default {
           handleSearch(index)
           break
         case 'listAdd':
+          handleQuickCollect(index)
+          break
+        case 'listAddSelect':
           handleShowMusicAddModal(index, true)
           break
       }

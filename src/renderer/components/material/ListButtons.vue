@@ -5,7 +5,13 @@
         <use xlink:href="#icon-testPlay" />
       </svg>
     </button>
-    <button v-if="listAddBtn" type="button" :aria-label="$t('list__add_to')" @contextmenu.capture.stop @click.stop="handleClick('listAdd')">
+    <button
+      v-if="listAddBtn" type="button" :aria-label="$t('list__add_to')"
+      @contextmenu.capture.stop
+      @mousedown="handleAddDown" @mouseup="handleAddUp" @mouseleave="handleAddCancel"
+      @touchstart="handleAddDown" @touchend="handleAddUp" @touchcancel="handleAddCancel"
+      @click.stop="handleAddClick"
+    >
       <svg v-once version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="100%" viewBox="0 0 42 42" space="preserve">
         <use xlink:href="#icon-addTo" />
       </svg>
@@ -94,6 +100,34 @@ export default {
   methods: {
     handleClick(action) {
       this.$emit('btn-click', { action, index: this.index })
+    },
+    // “添加”按钮：短按（≤500ms）快速收藏，长按选择目标收藏夹
+    handleAddDown() {
+      this.addLongPressed = false
+      this.addTimer = window.setTimeout(() => {
+        this.addTimer = null
+        this.addLongPressed = true
+        this.handleClick('listAddSelect')
+      }, 500)
+    },
+    handleAddUp() {
+      if (this.addTimer != null) {
+        window.clearTimeout(this.addTimer)
+        this.addTimer = null
+      }
+    },
+    handleAddCancel() {
+      if (this.addTimer != null) {
+        window.clearTimeout(this.addTimer)
+        this.addTimer = null
+      }
+    },
+    handleAddClick() {
+      if (this.addLongPressed) {
+        this.addLongPressed = false
+        return
+      }
+      this.handleClick('listAdd')
     },
   },
 }

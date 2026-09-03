@@ -109,6 +109,8 @@ import useMusicDownload from './useMusicDownload'
 import useMusicAdd from './useMusicAdd'
 import useMusicActions from './useMusicActions'
 import { appSetting } from '@renderer/store/setting'
+import { addListMusics } from '@renderer/store/list/action'
+import { loveList } from '@renderer/store/list/state'
 export default {
   name: 'MaterialOnlineList',
   props: {
@@ -230,6 +232,11 @@ export default {
         clipboardWriteText(str)
       })
     }
+    const handleQuickCollect = (index) => {
+      const item = props.list[index]
+      if (!item) return
+      void addListMusics(loveList.id, [item])
+    }
     const handleListBtnClick = ({ action, index }) => {
       switch (action) {
         case 'download':
@@ -242,6 +249,9 @@ export default {
           handleSearch(index)
           break
         case 'listAdd':
+          handleQuickCollect(index)
+          break
+        case 'listAddSelect':
           handleShowMusicAddModal(index, true)
           break
       }
