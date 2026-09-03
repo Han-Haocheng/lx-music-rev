@@ -1,16 +1,55 @@
-name: Publish NPM Version Info
+name: Publish Version Info
 
 on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 jobs:
-  dispatch:
+  update-version-file:
+    name: Update publish/version.json on master
     runs-on: ubuntu-latest
     steps:
-      - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@v4
+      - name: Check out master
+        uses: actions/checkout@v6
         with:
-          token: ${{ secrets.PAT }}
-          repository: Han-Haocheng/lx-music-rev-version-info # TODO: 换成你自己的版本信息仓库，没有就删除此 workflow
-          event-type: npm-release
+          ref: master
+
+      - name: Update version.json from release info
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node <<'EOF'
+          const { execSync } = require('child_process')
+          const fs = require('fs')
+          const tag = process.env.RELEASE_TAG
+          if (!tag) throw new Error('missing release tag')
+          const body = execSync(
+            `gh api repos/${process.env.GITHUB_REPOSITORY}/releases/tags/${tag} --jq .body`,
+            { encoding: 'utf8' }
+          ).trim()
+          const file = 'publish/version.json'
+          const cur = JSON.parse(fs.readFileSync(file, 'utf8'))
+          const next = {
+            version: tag.replace(/^v/, ''),
+            desc: body,
+            history: [{ version: cur.version, desc: cur.desc }, ...(cur.history || [])],
+          }
+          fs.writeFileSync(file, JSON.stringify(next, null, 2) + '\n')
+          console.log('version.json ->', next.version)
+          EOF
+
+      - name: Commit and push
+        run: |
+          git add publish/version.json
+          if git diff --cached --quiet; then
+            echo 'version.json unchanged, skip commit'
+            exit 0
+          fi
+          git -c user.name="lx-music-rev[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "docs: 发布 ${RELEASE_TAG##v} 自动更新 version.json [skip ci]"
+          git push origin master
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
