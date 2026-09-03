@@ -66,20 +66,31 @@ export const getDownloadList = (): LX.Download.ListItem[] => {
 /**
  * 添加下载歌曲信息
  * @param downloadInfos url信息
+ * @returns 实际新增的下载任务（已存在的任务会被静默跳过）
  */
-export const downloadInfoSave = (downloadInfos: LX.Download.ListItem[], addMusicLocationType: LX.AddMusicLocationType) => {
+export const downloadInfoSave = (downloadInfos: LX.Download.ListItem[], addMusicLocationType: LX.AddMusicLocationType): LX.Download.ListItem[] => {
   if (!list) initDownloadList()
+  // 自动下载等场景可能重复提交同一任务（同一首歌反复播放），
+  // 已存在的 id 直接跳过，不再触发 UNIQUE 约束错误
+  const existedIds = new Set(list.map(item => item.id))
+  const newDownloadInfos = downloadInfos.filter(item => {
+    if (existedIds.has(item.id)) return false
+    existedIds.add(item.id)
+    return true
+  })
+  if (!newDownloadInfos.length) return []
   if (addMusicLocationType == 'top') {
     let newList = [...list]
-    arrUnshift(newList, downloadInfos)
-    insertDownloadList(toDBDownloadInfo(downloadInfos), newList.slice(downloadInfos.length - 1).map((info, index) => {
+    arrUnshift(newList, newDownloadInfos)
+    insertDownloadList(toDBDownloadInfo(newDownloadInfos), newList.slice(newDownloadInfos.length - 1).map((info, index) => {
       return { id: info.id, position: index }
     }))
     list = newList
   } else {
-    insertDownloadList(toDBDownloadInfo(downloadInfos, list.length), [])
-    arrPush(list, downloadInfos)
+    insertDownloadList(toDBDownloadInfo(newDownloadInfos, list.length), [])
+    arrPush(list, newDownloadInfos)
   }
+  return newDownloadInfos
 }
 
 /**

@@ -10,7 +10,9 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### 修复
 
+- 修复自动下载（边听边下载）重复提交同一歌曲时报 UNIQUE constraint failed：主进程保存下载任务前先过滤已存在的 id 并返回实际新增项，渲染端先加载数据库列表再判重，重复播放同一首歌不再报错
 - 修复 Linux 托盘在 KDE Plasma 6 桌面不可用的问题（图标不显示/空白块）：KDE 的 StatusNotifierWatcher 忽略 Electron 注册时携带的“服务名+对象路径”（SNI 对象在 /StatusNotifierItem/1，KDE 固定查询 /StatusNotifierItem 根路径），官方修复（electron#53214）仅进入 44.x，而本 fork 因 Wayland 窗口问题固定 Electron 43.4.1——故 Linux 下弃用 Electron Tray，改用自实现的 StatusNotifierItem + dbusmenu（新增 dbus-next 依赖），在根路径导出图标/提示/菜单并处理点击
+- 修复 Linux 托盘图标显示错乱（@2x 图标按高倍率表示加载导致像素截断）
 - 恢复系统托盘左键点击显示主窗口（全平台）
 
 ## [1.0.0] - 2026-09-02

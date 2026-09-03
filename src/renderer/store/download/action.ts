@@ -58,12 +58,13 @@ export const getDownloadList = async(): Promise<LX.Download.ListItem[]> => {
 const addTasks = async(list: LX.Download.ListItem[]) => {
   const addMusicLocationType = appSetting['list.addMusicLocationType']
 
-  await downloadTasksCreate(list.map(i => toRaw(i)), addMusicLocationType)
+  // 主进程会静默跳过已存在的任务，只返回实际新增的
+  const addedList = await downloadTasksCreate(list.map(i => toRaw(i)), addMusicLocationType)
 
   if (addMusicLocationType === 'top') {
-    arrUnshift(downloadList, list)
+    arrUnshift(downloadList, addedList)
   } else {
-    arrPush(downloadList, list)
+    arrPush(downloadList, addedList)
   }
   window.app_event.downloadListUpdate()
 }
@@ -361,6 +362,8 @@ const filterTask = (list: LX.Download.ListItem[]) => {
  */
 export const createDownloadTasks = async(list: LX.Music.MusicInfoOnline[], quality: LX.Quality, listId?: string) => {
   if (!list.length) return
+  // 确保内存下载列表已从数据库载入，避免重复任务漏判
+  await getDownloadList()
   const tasks = filterTask(await window.lx.worker.download.createDownloadTasks(list, quality,
     appSetting['download.fileName'],
     toRaw(qualityList.value), listId),

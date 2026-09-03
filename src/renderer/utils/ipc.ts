@@ -839,7 +839,7 @@ export const downloadTasksGet = async() => {
   return rendererInvoke<LX.Download.ListItem[]>(WIN_MAIN_RENDERER_EVENT_NAME.download_list_get)
 }
 export const downloadTasksCreate = async(list: LX.Download.ListItem[], addMusicLocationType: LX.AddMusicLocationType) => {
-  return rendererInvoke<LX.Download.saveDownloadMusicInfo>(WIN_MAIN_RENDERER_EVENT_NAME.download_list_add, {
+  return rendererInvoke<LX.Download.saveDownloadMusicInfo, LX.Download.ListItem[]>(WIN_MAIN_RENDERER_EVENT_NAME.download_list_add, {
     list,
     addMusicLocationType,
   })
