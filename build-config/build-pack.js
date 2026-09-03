@@ -27,20 +27,20 @@ const options = {
   files: [
     '!node_modules/**/*',
     'node_modules/font-list',
-    'node_modules/better-sqlite3/lib',
-    'node_modules/better-sqlite3/package.json',
-    'node_modules/better-sqlite3/build/Release/better_sqlite3.node',
-    'node_modules/electron-font-manager/index.js',
-    'node_modules/electron-font-manager/package.json',
-    'node_modules/electron-font-manager/build/Release/font_manager.node',
+    // 原生模块运行时依赖：bufferutil / utf-8-validate 均通过 node-gyp-build 加载二进制
     'node_modules/node-gyp-build',
     'node_modules/bufferutil',
     'node_modules/utf-8-validate',
-    'build/Release/qrc_decode.node',
     'dist/**/*',
   ],
   asar: {
     smartUnpack: false,
+    // bufferutil / utf-8-validate 的 .node 原生模块无法在 asar 内 dlopen，
+    // 必须解包到 app.asar.unpacked；保持 smartUnpack:false 精确可控，仅显式解包这两个包
+    asarUnpack: [
+      '**/node_modules/bufferutil/**',
+      '**/node_modules/utf-8-validate/**',
+    ],
   },
   extraResources: [
     './licenses',
