@@ -4,12 +4,7 @@
       <h2 :class="$style.listsTitle">{{ listId == LOCAL_LIST_ID ? $t('local_music') : $t('my_list') }}</h2>
       <div :class="$style.headerBtns">
         <template v-if="listId == LOCAL_LIST_ID">
-          <button :class="$style.listsTextBtn" :disabled="fetchingListStatus[LOCAL_LIST_ID]" @click="handleImportLocalFiles">
-            {{ $t('local_music__import_files') }}
-          </button>
-          <button :class="$style.listsTextBtn" :disabled="fetchingListStatus[LOCAL_LIST_ID]" @click="handleScanLocalFolder">
-            {{ $t('local_music__scan_folder') }}
-          </button>
+          <span v-if="!appSetting['local.scanFolders'].length" :class="$style.listsHint">{{ $t('local_music__scan_hint') }}</span>
         </template>
         <template v-else>
           <button :class="$style.listsAdd" :aria-label="$t('lists__new_list_btn')" @click="isShowNewList = true">
@@ -100,7 +95,8 @@ import ListUpdateModal from './components/ListUpdateModal.vue'
 import { defaultList, userLists, fetchingListStatus } from '@renderer/store/list/state'
 import { getListMusics, removeUserList } from '@renderer/store/list/action'
 import { playList } from '@renderer/core/player'
-import { LOCAL_LIST_ID, importLocalFiles, scanLocalFolder } from '@renderer/store/localList'
+import { LOCAL_LIST_ID } from '@renderer/store/localList'
+import { appSetting } from '@renderer/store/setting'
 
 import { ref, watch } from '@common/utils/vueTools'
 import { useRouter } from '@common/utils/vueRouter'
@@ -233,14 +229,6 @@ export default {
       playList(id, 0)
     }
 
-    const handleImportLocalFiles = () => {
-      void importLocalFiles()
-    }
-
-    const handleScanLocalFolder = () => {
-      void scanLocalFolder()
-    }
-
     const handleMenuClick = (action) => {
       if (rightClickItemIndex.value < -2) return
       let index = rightClickItemIndex.value
@@ -272,8 +260,7 @@ export default {
       userLists,
       fetchingListStatus,
       dom_lists_list,
-      handleImportLocalFiles,
-      handleScanLocalFolder,
+      appSetting,
       isShowListUpdateModal,
       isShowListSortModal,
       sortListInfo,
@@ -374,6 +361,14 @@ export default {
   &:hover:not(:disabled) {
     opacity: .8;
   }
+}
+.listsHint {
+  margin-top: 6px;
+  height: 30px;
+  padding: 0 8px;
+  line-height: 30px;
+  color: var(--color-font-label);
+  font-size: 11px;
 }
 .listsContent {
   flex: auto;

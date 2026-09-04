@@ -2,7 +2,8 @@ import { readdir } from 'node:fs/promises'
 import { joinPath } from '@common/utils/nodejs'
 import { addListMusics } from '@renderer/store/list/action'
 import { fetchingListStatus } from '@renderer/store/list/state'
-import { showSelectDialog } from '@renderer/utils/ipc'
+import { openPath } from '@renderer/utils/ipc'
+import { appSetting, updateSetting } from '@renderer/store/setting'
 import { dialog } from '@renderer/plugins/Dialog'
 
 /**
@@ -56,48 +57,82 @@ const addLocalMusics = async(filePaths: string[]) => {
   }
 }
 
-/**
- * 导入本地音乐文件（多选，过滤音频扩展名）
- */
-export const importLocalFiles = async() => {
-  const { canceled, filePaths } = await showSelectDialog({
-    title: window.i18n.t('lists__add_local_file_desc'),
-    properties: ['openFile', 'multiSelections'],
-    filters: [
-      { name: 'Media File', extensions: LOCAL_AUDIO_EXTS },
-    ],
-  })
-  if (canceled || !filePaths.length) return
+/** 归一化路径用于比较：统一分隔符、去尾部斜杠；Windows（盘符路径）不区分大小写 */
+const normalizePathForCompare = (p: string): string => {
+  let normalized = p.replace(/[\\/]+/g, '/').replace(/\/+$/, '')
+  if (/^[a-zA-Z]:[/]/.test(normalized)) normalized = normalized.toLowerCase()
+  return normalized
+}
 
+/** 判断 ancestor 是否为 descendant 的祖先目录（含自身）；基于归一化路径的分隔符边界 */
+const isAncestorOrSame = (ancestor: string, descendant: string): boolean => {
+  const a = normalizePathForCompare(ancestor)
+  const b = normalizePathForCompare(descendant)
+  if (a === b) return true
+  return b.startsWith(a + '/')
+}
+
+export interface ScanFolderResult {
+  ok: boolean
+  reason: 'added' | 'duplicate' | 'covered' | 'conflict'
+}
+
+/**
+ * 加入允许扫描文件夹清单（唯一性 + 不可嵌套）：
+ * - duplicate：与清单中路径相同
+ * - covered：清单中已有其祖先目录（已被覆盖扫描，无需重复）
+ * - conflict：清单中已有其子目录（嵌套冗余，先移除子目录再添加）
+ */
+export const addScanFolderToSettings = (folder: string): ScanFolderResult => {
+  const dir = folder.replace(/[\\/]+$/, '')
+  if (!dir) return { ok: false, reason: 'conflict' }
+  const folders = [...(appSetting['local.scanFolders'] ?? [])]
+  for (const existing of folders) {
+    if (normalizePathForCompare(existing) === normalizePathForCompare(dir)) return { ok: false, reason: 'duplicate' }
+    if (isAncestorOrSame(existing, dir)) return { ok: false, reason: 'covered' }
+    if (isAncestorOrSame(dir, existing)) return { ok: false, reason: 'conflict' }
+  }
+  folders.push(dir)
+  updateSetting({ 'local.scanFolders': folders })
+  return { ok: true, reason: 'added' }
+}
+
+/** 从允许扫描文件夹清单移除 */
+export const removeScanFolderFromSettings = (folder: string) => {
+  updateSetting({ 'local.scanFolders': (appSetting['local.scanFolders'] ?? []).filter(f => f !== folder) })
+}
+
+/** 扫描全部允许的文件夹并增量入库（幂等：歌曲 id=绝对路径，DB 层去重） */
+export const scanAllFolders = async(): Promise<{ folderCount: number, fileCount: number }> => {
+  const folders = appSetting['local.scanFolders'] ?? []
   fetchingListStatus[LOCAL_LIST_ID] = true
   try {
-    await addLocalMusics(filePaths)
+    let fileCount = 0
+    for (const folder of folders) {
+      const paths = await scanAudioFiles(folder)
+      if (!paths.length) continue
+      fileCount += paths.length
+      await addLocalMusics(paths)
+    }
+    return { folderCount: folders.length, fileCount }
   } finally {
     fetchingListStatus[LOCAL_LIST_ID] = false
   }
 }
 
 /**
- * 扫描文件夹：选择目录后递归收集音频文件并导入
+ * 用系统默认方式打开本地音乐文件；
+ * 成功后所在文件夹自动加入允许扫描清单（按唯一性/嵌套规则处理并反馈）
  */
-export const scanLocalFolder = async() => {
-  const { canceled, filePaths } = await showSelectDialog({
-    title: window.i18n.t('local_music__scan_folder_desc'),
-    properties: ['openDirectory'],
-  })
-  if (canceled || !filePaths.length) return
-
-  fetchingListStatus[LOCAL_LIST_ID] = true
-  try {
-    const musicPaths = await scanAudioFiles(filePaths[0])
-    if (!musicPaths.length) return
-    await addLocalMusics(musicPaths)
-  } catch (err) {
-    console.warn(err)
-    void dialog({
-      message: window.i18n.t('local_music__scan_failed'),
-    })
-  } finally {
-    fetchingListStatus[LOCAL_LIST_ID] = false
+export const openLocalMusicFile = async(musicInfo: LX.Music.MusicInfo): Promise<void> => {
+  const filePath = (musicInfo?.meta as { filePath?: string } | undefined)?.filePath
+  if (!filePath) return
+  const { ok, dir } = await openPath(filePath)
+  if (!ok || !dir) return
+  const result = addScanFolderToSettings(dir)
+  if (result.reason == 'added') {
+    void dialog({ message: window.i18n.t('local_music__folder_added_to_scan', { name: dir }) })
+  } else if (result.reason == 'conflict') {
+    void dialog({ message: window.i18n.t('local_music__folder_scan_conflict') })
   }
 }
