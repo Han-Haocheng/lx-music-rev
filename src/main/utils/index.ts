@@ -34,7 +34,8 @@ export const parseEnvParams = (argv = process.argv): { cmdParams: LX.CmdParams, 
 }
 
 const primitiveType = ['string', 'boolean', 'number']
-const checkPrimitiveType = (val: any): boolean => val === null || primitiveType.includes(typeof val)
+// 数组（如 local.scanFolders）按整体替换语义合并，与原始类型一视同仁
+const checkPrimitiveType = (val: any): boolean => val === null || Array.isArray(val) || primitiveType.includes(typeof val)
 // const handleMergeSetting = (defaultSetting: LX.AppSetting, currentSetting: Partial<LX.AppSetting>) => {
 //   const updatedSettingKeys: Array<keyof LX.AppSetting> = []
 //   for (const key of Object.keys(defaultSetting) as Array<keyof LX.AppSetting>) {

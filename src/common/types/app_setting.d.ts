@@ -496,6 +496,16 @@ declare global {
       'list.actionButtonsVisible': boolean
 
       /**
+       * 各列表的排序方案（JSON 字符串：Record<listId, { sortType, sortOrder, customTouched }>）
+       */
+      'list.sortSchemes': string
+
+      /**
+       * 允许扫描的本地音乐文件夹清单
+       */
+      'local.scanFolders': string[]
+
+      /**
        * 是否启用下载功能
        */
       'download.enable': boolean
