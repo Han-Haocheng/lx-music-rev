@@ -8,6 +8,7 @@
 <script>
 import { getListPrevSelectId } from '@renderer/utils/data'
 import { LIST_IDS } from '@common/constants'
+import { perfMark } from '@common/utils/common'
 
 import MyList from './MyList/index.vue'
 import MusicList from './MusicList/index.vue'
@@ -37,6 +38,7 @@ export default {
   beforeRouteUpdate(to, from) {
     // console.log(to, from)
     if (to.query.updated) return
+    perfMark('switch:route')
     let id = to.query.id
     if (id == null) return
     if (id == LIST_IDS.LOVE) {
