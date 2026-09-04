@@ -8,6 +8,9 @@ on:
 env:
   IS_CI: 'true'
 
+permissions:
+  contents: write
+
 jobs:
   CheckCode:
     name: Lint Code
@@ -215,3 +218,36 @@ jobs:
         run: |
           cd build
           md5sum *.deb *.rpm *.pacman *.AppImage
+
+  Release:
+    name: Publish Beta Release
+    runs-on: ubuntu-latest
+    needs: [Windows, Mac, Linux]
+    steps:
+      - name: Check out git repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v7
+        with:
+          pattern: lx-music-desktop-*
+          merge-multiple: true
+          path: artifacts
+
+      - name: Extract release notes from CHANGELOG
+        run: node .github/scripts/extract-changelog.mjs "$(node -p "require('./package.json').version")" > release-body.md
+
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          TAG="v${VERSION}"
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release upload "$TAG" artifacts/* --clobber
+            gh release edit "$TAG" --notes-file release-body.md --prerelease
+          else
+            gh release create "$TAG" artifacts/* --title "$TAG" --notes-file release-body.md --target "${{ github.sha }}" --prerelease
+          fi
