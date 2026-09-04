@@ -244,6 +244,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="$(node -p "require('./package.json').version")"
+          # 守护：dev 合并可能带入正式版版本号——beta 分支只发布预发布版，避免与正式 Release 竞争
+          if [[ "$VERSION" != *-* ]]; then
+            echo "::warning::beta 分支版本 $VERSION 非预发布（dev 合并带入），跳过 Release 发布"
+            exit 0
+          fi
           TAG="v${VERSION}"
           if gh release view "$TAG" > /dev/null 2>&1; then
             gh release upload "$TAG" artifacts/* --clobber
