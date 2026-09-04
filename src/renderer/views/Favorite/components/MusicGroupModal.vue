@@ -52,7 +52,7 @@ export default {
       },
     },
   },
-  emits: ['close'],
+  emits: ['close', 'changed'],
   setup(props, { emit }) {
     const selectedGroupIds = ref([])
     const isEditing = ref(false)
@@ -108,6 +108,8 @@ export default {
       for (const musicInfo of props.musicList) {
         await setMusicGroupIds(musicInfo.id, groupIds)
       }
+      // 通知父组件刷新侧栏计数与当前分组内容
+      emit('changed')
       emit('close')
     }
 

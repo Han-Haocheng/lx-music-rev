@@ -50,7 +50,7 @@
         />
       </div>
     </div>
-    <music-group-modal v-model:show="isShowGroupModal" :music-list="groupModalMusicList" @close="isShowGroupModal = false" />
+    <music-group-modal v-model:show="isShowGroupModal" :music-list="groupModalMusicList" @close="isShowGroupModal = false" @changed="handleGroupModalChanged" />
     <base-menu v-model="isShowGroupMenu" :menus="groupMenus" :xy="groupMenuLocation" item-name="name" @menu-click="handleGroupMenuClick" />
   </div>
 </template>
@@ -60,7 +60,7 @@ import { nextTick } from '@common/utils/vueTools'
 import { LIST_IDS } from '@common/constants'
 import MusicList from '../List/MusicList/index.vue'
 import MusicGroupModal from './components/MusicGroupModal.vue'
-import { favoriteGroups, initFavoriteGroups, getGroupMusics, removeFavoriteGroup, updateFavoriteGroup, addFavoriteGroup } from '@renderer/store/list/favoriteGroup'
+import { favoriteGroups, initFavoriteGroups, getGroupMusics, removeFavoriteGroup, updateFavoriteGroup, addFavoriteGroup, clearGroupMusicsCache } from '@renderer/store/list/favoriteGroup'
 import { getListMusics, getListMusicsFromCache } from '@renderer/store/list/action'
 import { dialog } from '@renderer/plugins/Dialog'
 
@@ -115,6 +115,7 @@ export default {
   },
   methods: {
     async initData() {
+      clearGroupMusicsCache()
       await initFavoriteGroups()
       await this.refreshLoveList()
       await this.refreshGroupMusics()
@@ -144,6 +145,8 @@ export default {
     },
     handleMyListUpdate(ids) {
       if (!ids.includes(LIST_IDS.LOVE)) return
+      // LOVE 列表变更后映射可能残留旧 id（配合主进程孤儿映射清理），先失效缓存再重查
+      clearGroupMusicsCache()
       void this.refreshLoveList()
       void this.refreshGroupMusics()
     },
@@ -200,6 +203,10 @@ export default {
     handleGroupModal(musicList) {
       this.groupModalMusicList = musicList
       this.isShowGroupModal = true
+    },
+    handleGroupModalChanged() {
+      clearGroupMusicsCache()
+      void this.refreshGroupMusics()
     },
   },
 }
