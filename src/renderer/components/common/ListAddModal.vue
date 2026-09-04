@@ -1,7 +1,10 @@
 <template>
   <material-modal :show="show" :bg-close="bgClose" :teleport="teleport" max-width="70%" min-width="200px" @close="handleClose">
     <main :class="$style.main">
-      <h2>{{ $t('list_add__' + (isMove ? 'title_first_move' : 'title_first_add')) }}&nbsp;<span :class="$style.name">{{ currentMusicInfo.name }}</span>&nbsp;{{ $t('list_add__title_last') }}</h2>
+      <h2>{{ $t('list_add__' + (moveMode ? 'title_first_move' : 'title_first_add')) }}&nbsp;<span :class="$style.name">{{ currentMusicInfo.name }}</span>&nbsp;{{ $t('list_add__title_last') }}</h2>
+      <div v-if="fromListId" :class="$style.moveBar">
+        <base-checkbox id="list_add_move_mode" :model-value="moveMode" :label="$t('list_add__move_mode')" @update:model-value="setMoveMode" />
+      </div>
       <div class="scroll" :class="$style.btnContent">
         <base-btn v-for="(item, index) in lists" :key="item.id" :class="$style.btn" :aria-label="$t('list_add__btn_title', { name: item.name })" :disabled="item.isExist" @click="handleClick(index)">{{ item.name }}</base-btn>
         <base-btn :class="[$style.btn, $style.newList, isEditing ? $style.editing : null]" :aria-label="$t('lists__new_list_btn')" @click="handleEditing($event)">
@@ -127,11 +130,17 @@ export default {
       isEditing: false,
       newListName: '',
       rowNum: 3,
+      moveMode: false,
     }
   },
   computed: {
     spaceNum() {
       return this.lists.length < 2 ? 0 : (this.rowNum - this.lists.length % this.rowNum - 1)
+    },
+  },
+  watch: {
+    show(val) {
+      if (val) this.moveMode = this.isMove
     },
   },
   mounted() {
@@ -151,14 +160,17 @@ export default {
           : width < 3840 ? 5 : 6
     },
     handleClick(index) {
-      if (this.isMove) void moveListMusics(this.fromListId, this.lists[index].id, [this.currentMusicInfo])
+      if (this.moveMode) void moveListMusics(this.fromListId, this.lists[index].id, [this.currentMusicInfo])
       else void addListMusics(this.lists[index].id, [this.currentMusicInfo])
 
       this.lists[index].isExist = true
-      if (this.keyModDown && !this.isMove) return
+      if (this.keyModDown && !this.moveMode) return
       this.$nextTick(() => {
         this.handleClose()
       })
+    },
+    setMoveMode(val) {
+      this.moveMode = val
     },
     handleClose() {
       this.$emit('update:show', false)
@@ -207,6 +219,13 @@ export default {
 
 .name {
   color: var(--color-primary);
+}
+
+.moveBar {
+  display: flex;
+  justify-content: center;
+  padding: 0 15px 8px;
+  font-size: 12px;
 }
 
 .btnContent {

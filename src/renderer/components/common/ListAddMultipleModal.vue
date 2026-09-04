@@ -1,9 +1,12 @@
 <template>
   <material-modal :show="show" :bg-close="bgClose" max-width="70%" :teleport="teleport" @close="handleClose">
     <main :class="$style.main">
-      <h2>{{ $t('list_add__multiple_' + (isMove ? 'title_move' : 'title_add'), { num: musicList.length }) }}</h2>
+      <h2>{{ $t('list_add__multiple_' + (moveMode ? 'title_move' : 'title_add'), { num: musicList.length }) }}</h2>
+      <div v-if="fromListId" :class="$style.moveBar">
+        <base-checkbox id="list_add_multiple_move_mode" :model-value="moveMode" :label="$t('list_add__move_mode')" @update:model-value="setMoveMode" />
+      </div>
       <div class="scroll" :class="$style.btnContent">
-        <base-btn v-for="(item, index) in lists" :key="item.id" :class="$style.btn" :aria-label="$t('list_add__multiple_btn_title', { name: item.name })" @click="handleClick(index)">{{ item.name }}</base-btn>
+        <base-btn v-for="(item, index) in lists" :key="item.id" :class="$style.btn" :aria-label="$t('list_add__multiple_btn_title', { name: item.name })" :disabled="existListIds.has(item.id)" @click="handleClick(index)">{{ item.name }}</base-btn>
         <base-btn :class="[$style.btn, $style.newList, isEditing ? $style.editing : null]" :aria-label="$t('lists__new_list_btn')" @click="handleEditing($event)">
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" viewBox="0 0 42 42" space="preserve">
             <use xlink:href="#icon-addTo" />
@@ -17,9 +20,9 @@
 </template>
 
 <script>
-import { computed } from '@common/utils/vueTools'
+import { computed, ref, watch } from '@common/utils/vueTools'
 import { defaultList, loveList, userLists } from '@renderer/store/list/state'
-import { addListMusics, moveListMusics, createUserList } from '@renderer/store/list/action'
+import { addListMusics, moveListMusics, createUserList, getMusicExistListIds } from '@renderer/store/list/action'
 import useKeyDown from '@renderer/utils/compositions/useKeyDown'
 import { useI18n } from '@root/lang'
 import { dialog } from '@renderer/plugins/Dialog'
@@ -75,9 +78,27 @@ export default {
         ...userLists,
       ].filter(l => !props.excludeListId.includes(l.id))
     })
+
+    // 多选弹窗补齐"已存在禁用"：任一选中歌曲已在该列表则禁用该列表按钮（与单选弹窗一致）
+    const existListIds = ref(new Set())
+    watch(() => props.show, (val) => {
+      if (!val || !props.musicList.length) {
+        existListIds.value = new Set()
+        return
+      }
+      const musics = 'progress' in props.musicList[0] ? props.musicList.map(t => t.metadata.musicInfo) : props.musicList
+      const ids = [...new Set(musics.map(m => m?.id).filter(Boolean))]
+      void Promise.all(ids.map(async id => getMusicExistListIds(id))).then(idSets => {
+        const all = new Set()
+        for (const set of idSets) for (const id of set) all.add(id)
+        existListIds.value = all
+      })
+    })
+
     return {
       keyModDown,
       lists,
+      existListIds,
     }
   },
   data() {
@@ -85,12 +106,17 @@ export default {
       isEditing: false,
       newListName: '',
       rowNum: 3,
+      moveMode: false,
     }
   },
   computed: {
-
     spaceNum() {
       return this.lists.length < 2 ? 0 : (this.rowNum - this.lists.length % this.rowNum - 1)
+    },
+  },
+  watch: {
+    show(val) {
+      if (val) this.moveMode = this.isMove
     },
   },
   mounted() {
@@ -112,14 +138,17 @@ export default {
     handleClick(index) {
       const list = 'progress' in this.musicList[0] ? this.musicList.map(t => t.metadata.musicInfo) : this.musicList
 
-      if (this.isMove) void moveListMusics(this.fromListId, this.lists[index].id, list)
+      if (this.moveMode) void moveListMusics(this.fromListId, this.lists[index].id, list)
       else void addListMusics(this.lists[index].id, list)
 
-      if (this.keyModDown && !this.isMove) return
+      if (this.keyModDown && !this.moveMode) return
       this.$nextTick(() => {
         this.handleClose()
         this.$emit('confirm')
       })
+    },
+    setMoveMode(val) {
+      this.moveMode = val
     },
     handleClose() {
       this.$emit('update:show', false)
@@ -164,6 +193,13 @@ export default {
     text-align: center;
     padding: 15px;
   }
+}
+
+.moveBar {
+  display: flex;
+  justify-content: center;
+  padding: 0 15px 8px;
+  font-size: 12px;
 }
 
 .btnContent {

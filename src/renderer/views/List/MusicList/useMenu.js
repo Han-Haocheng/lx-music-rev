@@ -14,8 +14,6 @@ export default ({
   handleSearch,
   handleShowMusicToggleModal,
   handleShowMusicAddModal,
-  handleShowMusicMoveModal,
-  handleShowSortModal,
   handleOpenMusicDetail,
   handleCopyName,
   handleDislikeMusic,
@@ -27,8 +25,6 @@ export default ({
     playLater: true,
     copyName: true,
     addTo: true,
-    moveTo: true,
-    sort: true,
     toggleSource: true,
     download: true,
     search: true,
@@ -66,16 +62,6 @@ export default ({
         name: t('list__add_to'),
         action: 'addTo',
         disabled: !itemMenuControl.addTo,
-      },
-      {
-        name: t('list__move_to'),
-        action: 'moveTo',
-        disabled: !itemMenuControl.moveTo,
-      },
-      {
-        name: t('list__sort'),
-        action: 'sort',
-        disabled: !itemMenuControl.sort,
       },
       {
         name: t('list__toggle_source'),
@@ -149,12 +135,6 @@ export default ({
         break
       case 'addTo':
         handleShowMusicAddModal(index)
-        break
-      case 'moveTo':
-        handleShowMusicMoveModal(index)
-        break
-      case 'sort':
-        handleShowSortModal(index)
         break
       case 'toggleSource':
         handleShowMusicToggleModal(index)
