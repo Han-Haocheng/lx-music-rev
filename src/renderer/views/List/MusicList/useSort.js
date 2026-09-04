@@ -64,7 +64,7 @@ export const useRowDragSort = ({ listRef, list, selectedList, selectedSet, enabl
   }
 
   const handleDragStart = (evt) => {
-    const fromIndex = getItemIndex(evt.item.firstElementChild)
+    const fromIndex = getItemIndex(evt.item)
     const item = Number.isNaN(fromIndex) ? null : list.value[fromIndex]
     if (!item) return
     // 拖动选中块内某行 = 整块移动；否则仅移动该行
@@ -80,7 +80,7 @@ export const useRowDragSort = ({ listRef, list, selectedList, selectedSet, enabl
   const handleDragMove = (evt) => {
     if (!dragState) return false
     const related = evt.related
-    const targetIndex = getItemIndex(related?.firstElementChild)
+    const targetIndex = getItemIndex(related)
     if (Number.isNaN(targetIndex)) return false
     if (targetEl !== related) {
       clearTargetMark()

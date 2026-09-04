@@ -487,16 +487,16 @@ export default {
   .list-item .drag-handle {
     cursor: grab;
   }
-  // 拖拽中的行（SortableJS ghostClass 加在行包裹层上）
-  .row-drag-source .list-item {
+  // 拖拽中的行（SortableJS 源码确认 ghostClass 加在被拖行 dragEl 自身，native 模式无克隆幽灵）
+  .list-item.row-drag-source {
     opacity: .35;
   }
-  // 目标插入位高亮：插入到目标行之前（上边缘）/之后（下边缘）
-  .row-drag-target .list-item {
+  // 目标插入位高亮（类同样加在目标行自身）：插入到目标行之前（上边缘）/之后（下边缘）
+  .list-item.row-drag-target {
     background-color: var(--color-primary-background-hover);
     box-shadow: inset 0 2px 0 var(--color-primary);
   }
-  .row-drag-target-after .list-item {
+  .list-item.row-drag-target-after {
     background-color: var(--color-primary-background-hover);
     box-shadow: inset 0 -2px 0 var(--color-primary);
   }
