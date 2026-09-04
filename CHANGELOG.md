@@ -8,6 +8,8 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.3.0-beta.1] - 2026-09-04
+
 ### 新增
 
 - 列表：表头点击排序（歌曲/歌手/专辑/时长，点击切换升/降序并持久化为该列表的排序方案；列表曾手动排列时先弹确认）
@@ -42,6 +44,7 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 - 收藏：修复分组视图在收藏列表发生任意变更后被整份"全部收藏"列表覆盖渲染的问题（music-list 模式下列表组件不再直接读 store，消除竞态闪变）
 - 收藏：修复"全部"与各分组的滚动位置互相污染——进入分组被带到列表底部、分组内滚动会丢失"全部"视图的浏览位置；滚动位置按视图隔离存取
 - 收藏：分组重命名进入编辑态时自动聚焦输入框，可直接键入修改，点击空白处即可提交或退出
+
 
 ## [1.2.0] - 2026-09-04
 
