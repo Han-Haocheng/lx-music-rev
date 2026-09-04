@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import { watch, shallowReactive, ref, onMounted, onBeforeUnmount, computed, reactive } from '@common/utils/vueTools'
+import { watch, shallowReactive, ref, onMounted, onBeforeUnmount, computed, reactive, type Ref } from '@common/utils/vueTools'
 import { setTags, getTags } from '@renderer/store/songList/action'
 import { tags } from '@renderer/store/songList/state'
 import { useRouter, useRoute } from '@common/utils/vueRouter'
@@ -91,7 +91,7 @@ const setTagPopupWidth = () => {
   }, 50)
 }
 
-const dom_btn = ref<HTMLElement | null>(null)
+const dom_btn: Ref<HTMLElement | null> = ref(null)
 const popupVisible = ref(false)
 const handleShow = () => popupVisible.value = !popupVisible.value
 const handleHide = (evt) => {

@@ -1,5 +1,5 @@
 <template>
-  <material-modal :show="props.modelValue" teleport="#view" width="60%" @close="emit('update:model-value', $event)" @after-enter="$refs.input.focus()">
+  <material-modal :show="props.modelValue" teleport="#view" width="60%" @close="emit('update:model-value', $event)" @after-enter="input?.focus()">
     <main class="scroll" :class="$style.main">
       <h2>{{ $t('songlist__import_input_title') }}</h2>
       <div :class="$style.inputContent">
@@ -55,6 +55,7 @@ const router = useRouter()
 const route = useRoute()
 const text = ref('')
 const source = ref('')
+const input = ref(null)
 
 watch(() => props.modelValue, (visible) => {
   if (!visible) return

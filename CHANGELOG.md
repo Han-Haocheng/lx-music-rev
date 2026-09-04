@@ -12,6 +12,10 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 - 性能：滚动阻塞事件监听器全部标记为 passive（wheel / touchstart / touchmove 共 19 处），消除控制台 Violation 警告，提升列表与歌词区域滚动响应
 
+### 修复
+
+- 列表：修复歌单分类标签按钮与"打开歌单"弹窗的模板 ref 绑定不一致问题（泛型 ref 声明被编译器判定为非 ref；script setup 中 $refs 无效导致输入框不自动聚焦），消除 "Template ref used on a non-ref value" 警告
+
 ## [1.3.0-beta.2] - 2026-09-04
 
 ### 新增

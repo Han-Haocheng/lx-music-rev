@@ -1,5 +1,5 @@
 <template>
-  <ul ref="dom_lists_list" class="scroll" :class="$style.listsContent">
+  <ul class="scroll" :class="$style.listsContent">
     <li
       v-for="(item, index) in list"
       :key="item.id" :class="[$style.listsItem, { [$style.active]: item.id == boardId }, { [$style.clicked]: rightClickItemIndex == index }]"
