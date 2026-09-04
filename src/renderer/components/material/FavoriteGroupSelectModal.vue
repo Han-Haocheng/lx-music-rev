@@ -45,7 +45,7 @@
               <use xlink:href="#icon-addTo" />
             </svg>
           </button>
-          <base-input :class="$style.newGroupInput" :value="newGroupName" :placeholder="$t('favorite_group_new_input')" @keyup.enter="handleSaveNewGroup" @blur="handleSaveNewGroup" />
+          <base-input v-if="isEditing" ref="newGroupInput" v-model="newGroupName" :class="$style.newGroupInput" :placeholder="$t('favorite_group_new_input')" @keyup.enter="handleSaveNewGroup" @blur="handleSaveNewGroup" />
         </div>
       </div>
       <div :class="$style.footer">
@@ -61,7 +61,7 @@
 </template>
 
 <script>
-import { ref, watch } from '@common/utils/vueTools'
+import { ref, watch, nextTick } from '@common/utils/vueTools'
 import { favoriteGroups, addFavoriteGroup, getMusicGroupIds, setMusicGroupIds, clearGroupMusicsCache } from '@renderer/store/list/favoriteGroup'
 import { loveList } from '@renderer/store/list/state'
 import { addListMusics, getMusicExistListIds } from '@renderer/store/list/action'
@@ -93,6 +93,7 @@ export default {
     const groupCheckedIds = ref([])
     const isEditing = ref(false)
     const newGroupName = ref('')
+    const newGroupInput = ref(null)
 
     const handleClose = () => {
       emit('update:show', false)
@@ -154,13 +155,15 @@ export default {
     const handleStartNewGroup = () => {
       if (isEditing.value) return
       isEditing.value = true
+      void nextTick(() => {
+        newGroupInput.value?.focus?.()
+      })
     }
 
-    const handleSaveNewGroup = async(event) => {
+    const handleSaveNewGroup = async() => {
       if (!isEditing.value) return
       isEditing.value = false
-      let name = event.target.value.trim()
-      event.target.value = ''
+      const name = newGroupName.value.trim()
       newGroupName.value = ''
       const musicInfo = currentMusicInfo.value
       if (!name || !musicInfo?.id) return
@@ -181,6 +184,7 @@ export default {
       groupCheckedIds,
       isEditing,
       newGroupName,
+      newGroupInput,
       handleAddToLove,
       handleAddToGroup,
       handleStartNewGroup,

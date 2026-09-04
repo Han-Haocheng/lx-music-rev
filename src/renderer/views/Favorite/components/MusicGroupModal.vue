@@ -10,12 +10,12 @@
         </label>
         <p v-if="!favoriteGroups.length" :class="$style.empty">{{ $t('favorite_group_empty') }}</p>
         <div :class="$style.newGroup">
-          <button :class="$style.newGroupBtn" :aria-label="$t('favorite_group_new')" @click="isEditing = true">
+          <button :class="$style.newGroupBtn" :aria-label="$t('favorite_group_new')" @click="handleStartNewGroup">
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 42 42" space="preserve">
               <use xlink:href="#icon-addTo" />
             </svg>
           </button>
-          <base-input :class="$style.newGroupInput" :value="newGroupName" :placeholder="$t('favorite_group_new_input')" @keyup.enter="handleSaveNewGroup" @blur="handleSaveNewGroup" />
+          <base-input v-if="isEditing" ref="newGroupInput" v-model="newGroupName" :class="$style.newGroupInput" :placeholder="$t('favorite_group_new_input')" @keyup.enter="handleSaveNewGroup" @blur="handleSaveNewGroup" />
         </div>
       </div>
       <div :class="$style.btns">
@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import { ref, watch } from '@common/utils/vueTools'
+import { ref, watch, nextTick } from '@common/utils/vueTools'
 import { favoriteGroups, addFavoriteGroup, getMusicGroupIds, setMusicGroupIds } from '@renderer/store/list/favoriteGroup'
 import baseCheckbox from '@renderer/components/base/Checkbox.vue'
 import baseInput from '@renderer/components/base/Input.vue'
@@ -57,6 +57,7 @@ export default {
     const selectedGroupIds = ref([])
     const isEditing = ref(false)
     const newGroupName = ref('')
+    const newGroupInput = ref(null)
 
     const loadSelected = async() => {
       selectedGroupIds.value = []
@@ -83,6 +84,14 @@ export default {
         void loadSelected()
       }
     })
+
+    const handleStartNewGroup = () => {
+      if (isEditing.value) return
+      isEditing.value = true
+      void nextTick(() => {
+        newGroupInput.value?.focus?.()
+      })
+    }
 
     const handleSaveNewGroup = async() => {
       if (!isEditing.value) return
@@ -111,6 +120,8 @@ export default {
       selectedGroupIds,
       isEditing,
       newGroupName,
+      newGroupInput,
+      handleStartNewGroup,
       handleSaveNewGroup,
       handleConfirm,
       handleClose,
