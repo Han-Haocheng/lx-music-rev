@@ -186,7 +186,7 @@
   "local_music__scan_failed": "Failed to scan local files",
   "local_music__folder_added_to_scan": "Folder added to scan list: {name}",
   "local_music__folder_scan_conflict": "The folder conflicts with a subfolder in the scan list. Adjust scan folders in Settings first",
-  "local_music__scan_hint": "No scan folders configured. Add them in Settings → Download & Backup → Local Music",
+  "local_music__scan_hint": "No scan folders. Add them in Settings",
   "love_list": "Favorites",
   "lyric__load_error": "Failed to get lyrics",
   "lyric__select": "Allow selection of lyrics text",

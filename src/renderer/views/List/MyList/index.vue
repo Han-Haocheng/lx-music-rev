@@ -363,12 +363,18 @@ export default {
   }
 }
 .listsHint {
+  flex: auto;
+  min-width: 0;
   margin-top: 6px;
   height: 30px;
   padding: 0 8px;
   line-height: 30px;
   color: var(--color-font-label);
   font-size: 11px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  .mixin-ellipsis-1();
 }
 .listsContent {
   flex: auto;

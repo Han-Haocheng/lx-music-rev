@@ -186,7 +186,7 @@
   "local_music__scan_failed": "本機檔案掃描匯入失敗",
   "local_music__folder_added_to_scan": "已將所在資料夾加入允許掃描清單：{name}",
   "local_music__folder_scan_conflict": "所在資料夾與掃描清單中的子目錄衝突，請先在設定中調整掃描資料夾",
-  "local_music__scan_hint": "未設定掃描資料夾，請到 設定 → 下載與備份 → 本地音樂 新增",
+  "local_music__scan_hint": "未設定掃描資料夾，請在設定中新增",
   "love_list": "收藏",
   "lyric__load_error": "歌詞獲取失敗",
   "lyric__select": "歌詞文字選取",
