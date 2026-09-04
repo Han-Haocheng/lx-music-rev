@@ -21,7 +21,7 @@
         </thead>
       </table>
     </div>
-    <div v-show="list.length" ref="dom_listContent" :class="$style.content">
+    <div v-show="list.length" ref="dom_listContent" :class="[$style.content, switchFlip ? $style.enterA : $style.enterB]">
       <base-virtualized-list
         v-if="actionButtonsVisible" ref="listRef" v-slot="{ item, index }" :list="list" key-name="id"
         :item-height="listItemHeight" container-class="scroll" content-class="list"
@@ -124,7 +124,7 @@ import useMusicActions from './useMusicActions'
 import useSearch from './useSearch'
 import useListScroll from './useListScroll'
 import useMusicToggle from './useMusicToggle'
-import { nextTick, ref } from '@common/utils/vueTools'
+import { nextTick, ref, watch } from '@common/utils/vueTools'
 import { appSetting } from '@renderer/store/setting'
 import { addListMusics } from '@renderer/store/list/action'
 import { loveList } from '@renderer/store/list/state'
@@ -177,6 +177,16 @@ export default {
       isShowSource,
       excludeListIds,
     } = useListInfo({ props, onLoadedList })
+
+    // 列表切换入场动画：双动画类交替重放（A/B 同款 keyframes，切换类名即重新触发，
+    // 无需重挂载虚拟列表；动画起始 opacity 0 恰好遮蔽新旧内容的替换帧，消除硬切感）
+    const switchFlip = ref(false)
+    watch(() => props.listId, () => {
+      switchFlip.value = !switchFlip.value
+    })
+    watch(() => props.musicList, () => {
+      switchFlip.value = !switchFlip.value
+    })
 
     const {
       selectedList,
@@ -397,6 +407,7 @@ export default {
       handleRestoreScroll,
 
       actionButtonsVisible,
+      switchFlip,
 
       isShowMusicToggleModal,
       selectedToggleMusicInfo,
@@ -459,6 +470,20 @@ export default {
   display: flex;
   flex-flow: column nowrap;
   flex: auto;
+}
+@keyframes listSwitchEnterA {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes listSwitchEnterB {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+.enterA { animation: listSwitchEnterA .22s ease-out both; }
+.enterB { animation: listSwitchEnterB .22s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .enterA,
+  .enterB { animation: none; }
 }
 
 .noItem {
