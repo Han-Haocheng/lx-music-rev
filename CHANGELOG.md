@@ -8,6 +8,8 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.3.0-beta.2] - 2026-09-04
+
 ### 新增
 
 - 列表：搜索页未输入关键词、排行榜未选择榜单时显示联网加载引导提示
@@ -21,6 +23,7 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 - 更新：更新提示弹窗与用户协议中的发布地址改为本项目仓库（Han-Haocheng/lx-music-rev）
 - 列表/下载：修复拖拽排序完全不生效的问题（排序实例创建后始终处于禁用状态——初始启用在实例创建前被吞掉；并加固行索引读取与插入位高亮定位，兼容虚拟列表行包装层结构）
 - 本地音乐：未配置扫描文件夹的引导提示改为简短文案并移至列表空态展示（侧栏头部仅保留列表名）
+
 
 ## [1.3.0-beta.1] - 2026-09-04
 
