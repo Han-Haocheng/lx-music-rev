@@ -57,7 +57,12 @@ export default ({ props, onLoadedList }) => {
 
   const handleMyListUpdate = (ids) => {
     if (!ids.includes(props.listId)) return
+    // music-list 模式（收藏分组视图）：列表内容由外部数据驱动，
+    // 直接读 store 会用整份列表覆盖分组视图渲染
+    if (props.musicList) return
     getListMusics(props.listId).then(l => {
+      // 等待期间已切到 music-list 模式则丢弃
+      if (props.musicList) return
       list.value = [...l]
     })
   }

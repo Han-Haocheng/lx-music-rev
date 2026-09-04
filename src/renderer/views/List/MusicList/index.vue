@@ -144,6 +144,11 @@ export default {
       type: Array,
       default: null,
     },
+    // 滚动位置存储键：不传按 listId 存取；收藏分组视图按视图切换传入，避免各视图滚动位置互相污染
+    scrollKey: {
+      type: String,
+      default: null,
+    },
     groupActionsVisible: {
       type: Boolean,
       default: false,

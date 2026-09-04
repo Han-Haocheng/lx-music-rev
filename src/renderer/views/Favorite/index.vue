@@ -30,7 +30,7 @@
           >
             <span :class="$style.groupLabel">{{ group.name }}</span>
             <span :class="$style.count">{{ groupCounts[group.id] ?? '' }}</span>
-            <base-input v-model="editingGroupName" :class="$style.groupEditInput" @keyup.enter="handleRenameGroup(group)" @blur="handleRenameGroup(group)" />
+            <base-input :ref="el => setEditInputRef(group, el)" v-model="editingGroupName" :class="$style.groupEditInput" @keyup.enter="handleRenameGroup(group)" @blur="handleRenameGroup(group)" />
           </li>
         </ul>
         <p v-if="!favoriteGroups.length" :class="$style.emptyTip">{{ $t('favorite_group_empty') }}</p>
@@ -45,6 +45,7 @@
         <MusicList
           :list-id="LOVE_ID"
           :music-list="currentGroupId == null ? null : groupMusicList"
+          :scroll-key="currentGroupId ?? LOVE_ID"
           :group-actions-visible="true"
           @group-modal="handleGroupModal"
         />
@@ -201,6 +202,15 @@ export default {
       this.editingGroupName = ''
       if (!name || name == group.name) return
       await updateFavoriteGroup(group.id, name)
+    },
+    // 进入重命名编辑态时自动聚焦该组输入框（此前输入框可见但不聚焦，无法直接键入，
+    // 且未聚焦时点击空白处不触发 blur 提交，行会停留在编辑态）
+    setEditInputRef(group, el) {
+      if (!el || this.editingGroupId != group.id) return
+      void nextTick(() => {
+        if (this.editingGroupId != group.id) return
+        el.focus?.()
+      })
     },
     handleGroupModal(musicList) {
       this.groupModalMusicList = musicList

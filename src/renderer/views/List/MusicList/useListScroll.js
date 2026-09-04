@@ -7,8 +7,12 @@ export default ({ props, listRef, list, handleRestoreScroll }) => {
   const route = useRoute()
   const router = useRouter()
 
+  // 滚动位置存储键：默认按 listId；收藏分组视图通过 scroll-key 区分视图，
+  // 避免"全部"与各分组互相覆盖/错误恢复对方的滚动位置（如带着"全部"的深滚动进入短分组被压到底部）
+  const getPositionKey = () => props.scrollKey ?? props.listId
+
   const saveListPosition = () => {
-    setListPosition(props.listId, listRef.value?.getScrollTop() || 0)
+    setListPosition(getPositionKey(), listRef.value?.getScrollTop() || 0)
   }
 
   const handleScrollList = (index, isAnimation, callback = () => {}) => {
@@ -19,7 +23,10 @@ export default ({ props, listRef, list, handleRestoreScroll }) => {
     // console.log(index, isAnimation)
     if (!list.value.length) return
     if (index == null) {
-      let location = await getListPosition(props.listId) || 0
+      const key = getPositionKey()
+      let location = await getListPosition(key) || 0
+      // 等待期间已切换视图则丢弃过期恢复
+      if (getPositionKey() != key) return
       if (appSetting['list.isSaveScrollLocation'] && location != null) {
         listRef.value?.scrollTo(location)
       }
