@@ -7,25 +7,25 @@
           <thead>
             <tr v-if="actionButtonsVisible">
               <th class="num" style="width: 5%;">#</th>
-              <th class="nobreak">{{ $t('music_name') }}</th>
-              <th class="nobreak" style="width: 22%;">{{ $t('music_singer') }}</th>
-              <th class="nobreak" style="width: 22%;">{{ $t('music_album') }}</th>
-              <th class="nobreak" style="width: 9%;">{{ $t('music_time') }}</th>
+              <th class="nobreak" :class="onlineSortCls('name')" @click="handleHeaderSortClick('name')">{{ $t('music_name') }}{{ onlineSortArrow('name') }}</th>
+              <th class="nobreak" style="width: 22%;" :class="onlineSortCls('singer')" @click="handleHeaderSortClick('singer')">{{ $t('music_singer') }}{{ onlineSortArrow('singer') }}</th>
+              <th class="nobreak" style="width: 22%;" :class="onlineSortCls('albumName')" @click="handleHeaderSortClick('albumName')">{{ $t('music_album') }}{{ onlineSortArrow('albumName') }}</th>
+              <th class="nobreak" style="width: 9%;" :class="onlineSortCls('interval')" @click="handleHeaderSortClick('interval')">{{ $t('music_time') }}{{ onlineSortArrow('interval') }}</th>
               <th class="nobreak" style="width: 16%;">{{ $t('action') }}</th>
             </tr>
             <tr v-else>
               <th class="num" style="width: 5%;">#</th>
-              <th class="nobreak">{{ $t('music_name') }}</th>
-              <th class="nobreak" style="width: 24%;">{{ $t('music_singer') }}</th>
-              <th class="nobreak" style="width: 27%;">{{ $t('music_album') }}</th>
-              <th class="nobreak" style="width: 10%;">{{ $t('music_time') }}</th>
+              <th class="nobreak" :class="onlineSortCls('name')" @click="handleHeaderSortClick('name')">{{ $t('music_name') }}{{ onlineSortArrow('name') }}</th>
+              <th class="nobreak" style="width: 24%;" :class="onlineSortCls('singer')" @click="handleHeaderSortClick('singer')">{{ $t('music_singer') }}{{ onlineSortArrow('singer') }}</th>
+              <th class="nobreak" style="width: 27%;" :class="onlineSortCls('albumName')" @click="handleHeaderSortClick('albumName')">{{ $t('music_album') }}{{ onlineSortArrow('albumName') }}</th>
+              <th class="nobreak" style="width: 10%;" :class="onlineSortCls('interval')" @click="handleHeaderSortClick('interval')">{{ $t('music_time') }}{{ onlineSortArrow('interval') }}</th>
             </tr>
           </thead>
         </table>
       </div>
       <div :class="$style.content">
         <div v-show="!noItem" ref="dom_listContent" :class="$style.content">
-          <base-virtualized-list v-if="actionButtonsVisible" ref="listRef" :list="list" key-name="id" :item-height="listItemHeight" container-class="scroll" content-class="list" @contextmenu.capture="handleListRightClick">
+          <base-virtualized-list v-if="actionButtonsVisible" ref="listRef" :list="displayList" key-name="id" :item-height="listItemHeight" container-class="scroll" content-class="list" @contextmenu.capture="handleListRightClick">
             <template #default="{ item, index }">
               <div
                 class="list-item" :class="[{ selected: rightClickSelectedIndex == index }, { active: selectedSet.has(item) }]"
@@ -53,7 +53,7 @@
               </div>
             </template>
           </base-virtualized-list>
-          <base-virtualized-list v-else ref="listRef" :list="list" key-name="id" :item-height="listItemHeight" container-class="scroll" content-class="list" @contextmenu.capture="handleListRightClick">
+          <base-virtualized-list v-else ref="listRef" :list="displayList" key-name="id" :item-height="listItemHeight" container-class="scroll" content-class="list" @contextmenu.capture="handleListRightClick">
             <template #default="{ item, index }">
               <div
                 class="list-item" :class="[{ selected: rightClickSelectedIndex == index }, { active: selectedSet.has(item) }]"
@@ -101,7 +101,7 @@
 <script>
 import { clipboardWriteText } from '@common/utils/electron'
 import { assertApiSupport } from '@renderer/store/utils'
-import { ref } from '@common/utils/vueTools'
+import { ref, computed, watch } from '@common/utils/vueTools'
 import useList from './useList'
 import useMenu from './useMenu'
 import usePlay from './usePlay'
@@ -151,6 +151,41 @@ export default {
     const rightClickSelectedIndex = ref(-1)
     const dom_listContent = ref(null)
     const listRef = ref(null)
+
+    // 表头临时排序（仅内存，不落库；三态：升序 → 降序 → 还原）
+    const sortState = ref(null)
+    const sortedList = ref(null)
+    const displayList = computed(() => sortedList.value ?? props.list)
+    watch(() => props.list, () => {
+      // 换页/刷新后还原自然顺序
+      sortState.value = null
+      sortedList.value = null
+    })
+    const onlineSortCls = (field) => {
+      return [sortState.value?.field == field ? $style.activeTh : null, $style.sortableTh]
+    }
+    const onlineSortArrow = (field) => {
+      if (sortState.value?.field != field) return ''
+      return sortState.value.order == 'desc' ? ' ▼' : ' ▲'
+    }
+    const handleHeaderSortClick = async(field) => {
+      const cur = sortState.value
+      if (cur && cur.field == field) {
+        if (cur.order == 'asc') sortState.value = { field, order: 'desc' }
+        else {
+          sortState.value = null
+          sortedList.value = null
+          return
+        }
+      } else {
+        sortState.value = { field, order: 'asc' }
+      }
+      const s = sortState.value
+      const sorted = await window.lx.worker.main.sortListMusicInfo([...props.list], s.order == 'asc' ? 'up' : 'down', field, window.i18n.locale)
+      // 等待期间已还原或切列则丢弃
+      if (!sortState.value || sortState.value.field != field) return
+      sortedList.value = sorted
+    }
 
     const {
       selectedList,
@@ -291,6 +326,10 @@ export default {
 
       scrollToTop,
       actionButtonsVisible,
+      displayList,
+      onlineSortCls,
+      onlineSortArrow,
+      handleHeaderSortClick,
     }
   },
 }
@@ -299,6 +338,16 @@ export default {
 
 <style lang="less" module>
 @import '@renderer/assets/styles/layout.less';
+.sortableTh {
+  cursor: pointer;
+  user-select: none;
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+.activeTh {
+  color: var(--color-primary);
+}
 .songList {
   overflow: hidden;
   height: 100%;
