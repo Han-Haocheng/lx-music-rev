@@ -75,3 +75,18 @@ export const createInsertGroupMusicStatement = () => {
     VALUES (@groupId, @musicInfoId)
   `)
 }
+
+export const createDeleteMusicGroupRowsByMusicInfoIdStatement = () => {
+  const db = getDB()
+  return db.prepare<[string]>(`
+    DELETE FROM "main"."favorite_group_musics"
+    WHERE "musicInfoId"=?
+  `)
+}
+
+export const createClearMusicGroupRowsStatement = () => {
+  const db = getDB()
+  return db.prepare<[]>(`
+    DELETE FROM "main"."favorite_group_musics"
+  `)
+}

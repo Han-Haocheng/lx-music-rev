@@ -6,6 +6,8 @@ import {
   queryGroupMusics,
   queryMusicGroupIds,
   updateMusicGroups,
+  deleteMusicGroupRowsByMusicInfoIds,
+  clearAllMusicGroupRows,
 } from './dbHelper'
 
 /** 获取全部收藏分组 */
@@ -44,4 +46,14 @@ export const favoriteGroupMusicSet = (musicInfoId: string, groupIds: string[]) =
 /** 获取某分组的歌曲 id 列表 */
 export const favoriteGroupMusicListGet = (groupId: string): string[] => {
   return queryGroupMusics(groupId)
+}
+
+/** 批量删除歌曲的收藏分组映射（歌曲离开 LOVE 列表时由列表模块调用，防止孤儿映射） */
+export const favoriteGroupMusicRowsRemove = (musicInfoIds: string[]) => {
+  deleteMusicGroupRowsByMusicInfoIds(musicInfoIds)
+}
+
+/** 清空全部收藏分组映射（LOVE 列表被整表清空时由列表模块调用） */
+export const favoriteGroupMusicRowsClearAll = () => {
+  clearAllMusicGroupRows()
 }

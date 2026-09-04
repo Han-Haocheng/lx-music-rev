@@ -9,6 +9,8 @@ import {
   createQueryMusicGroupIdsStatement,
   createDeleteMusicGroupStatement,
   createInsertGroupMusicStatement,
+  createDeleteMusicGroupRowsByMusicInfoIdStatement,
+  createClearMusicGroupRowsStatement,
 } from './statements'
 
 export const queryFavoriteGroups = (): LX.DBService.FavoriteGroupInfo[] => {
@@ -59,4 +61,18 @@ export const updateMusicGroups = (musicInfoId: string, groupIds: string[]) => {
       insertStatement.run({ groupId, musicInfoId })
     }
   })({ musicInfoId, groupIds })
+}
+
+/** 批量删除多首歌曲的收藏分组映射行（歌曲离开 LOVE 列表时清理，防止孤儿映射） */
+export const deleteMusicGroupRowsByMusicInfoIds = (ids: string[]) => {
+  const db = getDB()
+  const deleteStatement = createDeleteMusicGroupRowsByMusicInfoIdStatement()
+  db.transaction((ids: string[]) => {
+    for (const id of ids) deleteStatement.run(id)
+  })(ids)
+}
+
+/** 清空全部收藏分组映射行（LOVE 列表被整表清空时调用，此时所有映射失效） */
+export const clearAllMusicGroupRows = () => {
+  createClearMusicGroupRowsStatement().run()
 }

@@ -1,5 +1,6 @@
 import { LIST_IDS } from '@common/constants'
 import { arrPush, arrPushByPosition, arrUnshift } from '@common/utils/common'
+import { clearAllMusicGroupRows, deleteMusicGroupRowsByMusicInfoIds } from '../favorite_group/dbHelper'
 import {
   deleteUserLists,
   insertUserLists,
@@ -182,7 +183,21 @@ export const getListMusics = (listId: string): LX.Music.MusicInfo[] => {
  */
 export const musicOverwrite = (listId: string, musicInfos: LX.Music.MusicInfo[]) => {
   let targetList = getListMusics(listId)
+
+  // 覆盖 LOVE 列表时，先捕获旧列表歌曲 id 集合，计算被覆盖移除（旧列表有、新列表没有）的歌曲
+  const removedLoveMusicIds: string[] = []
+  if (listId == LIST_IDS.LOVE) {
+    const newIds = new Set(musicInfos.map(musicInfo => musicInfo.id))
+    for (const musicInfo of targetList) {
+      if (!newIds.has(musicInfo.id)) removedLoveMusicIds.push(musicInfo.id)
+    }
+  }
+
   overwriteMusicInfo(listId, toDBMusicInfo(musicInfos, listId))
+
+  // 清理已离开 LOVE 的歌曲的收藏分组映射，防止孤儿映射（仍在新列表中的歌曲保留映射）
+  if (removedLoveMusicIds.length) deleteMusicGroupRowsByMusicInfoIds(removedLoveMusicIds)
+
   if (targetList) {
     targetList.splice(0, targetList.length)
     arrPush(targetList, musicInfos)
@@ -228,6 +243,10 @@ export const musicsRemove = (listId: string, ids: string[]) => {
   let targetList = getListMusics(listId)
   if (!targetList.length) return
   removeMusicInfos(listId, ids)
+
+  // 歌曲离开 LOVE 列表，清理其收藏分组映射，防止孤儿映射
+  if (listId == LIST_IDS.LOVE && ids.length) deleteMusicGroupRowsByMusicInfoIds(ids)
+
   const idsSet = new Set<string>(ids)
   musicLists.set(listId, targetList.filter(mInfo => !idsSet.has(mInfo.id)))
 }
@@ -269,6 +288,9 @@ export const musicsMove = (fromId: string, toId: string, musicInfos: LX.Music.Mu
     }
   }
 
+  // 歌曲离开 LOVE 列表（移出到其他列表）时清理其收藏分组映射；移入 LOVE 或同列表内移动不影响映射
+  if (fromId == LIST_IDS.LOVE && fromId != toId && ids.length) deleteMusicGroupRowsByMusicInfoIds(ids)
+
   listSet = new Set<string>(ids)
   musicLists.set(fromId, fromList.filter(mInfo => !listSet.has(mInfo.id)))
 }
@@ -305,6 +327,10 @@ export const musicsUpdate = (musicInfos: LX.List.ListActionMusicUpdate) => {
  */
 export const musicsClear = (ids: string[]) => {
   removeMusicInfoByListId(ids)
+
+  // 清空 LOVE 列表 = 全部收藏歌曲被移除，所有收藏分组映射失效，整表清空
+  if (ids.includes(LIST_IDS.LOVE)) clearAllMusicGroupRows()
+
   for (const id of ids) {
     const targetList = musicLists.get(id)
     if (!targetList) continue
@@ -364,7 +390,17 @@ export const listDataOverwrite = (myListData: MakeOptional<LX.List.ListDataFull,
     dbLists.push({ ...listInfo, position: index })
     arrPush(dbMusicInfos, toDBMusicInfo(list, listInfo.id))
   })
+
+  // 整库覆盖（备份恢复/同步快照）会整体替换 LOVE 列表，先捕获旧歌曲 id，覆盖后清理已离开 LOVE 的歌曲的收藏分组映射
+  const oldLoveMusicIds = new Set(getListMusics(LIST_IDS.LOVE).map(musicInfo => musicInfo.id))
+
   overwriteListData(dbLists, dbMusicInfos)
+
+  if (oldLoveMusicIds.size) {
+    const newLoveMusicIds = new Set(listData.loveList.map(musicInfo => musicInfo.id))
+    const removedLoveMusicIds = [...oldLoveMusicIds].filter(id => !newLoveMusicIds.has(id))
+    if (removedLoveMusicIds.length) deleteMusicGroupRowsByMusicInfoIds(removedLoveMusicIds)
+  }
 
   if (userLists) userLists.splice(0, userLists.length, ...dbLists)
   else userLists = dbLists
