@@ -1,7 +1,11 @@
 {
-  "version": "1.2.0-beta.6",
-  "desc": "LX Music rev 1.2.0-beta.6 测试版。\n\n## [1.2.0-beta.5] - 2026-09-03",
+  "version": "1.2.0-beta.7",
+  "desc": "LX Music rev 1.2.0-beta.7 测试版。\n\n## [1.2.0-beta.6] - 2026-09-04",
   "history": [
+    {
+      "version": "1.2.0-beta.6",
+      "desc": "LX Music rev 1.2.0-beta.6 测试版。\n\n## [1.2.0-beta.5] - 2026-09-03"
+    },
     {
       "version": "1.2.0-beta.5",
       "desc": "LX Music rev 1.2.0-beta.5 测试版。\n\n## [1.2.0-beta.4] - 2026-09-03"
