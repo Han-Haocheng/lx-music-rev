@@ -487,7 +487,10 @@ export default {
   .list-item .drag-handle {
     cursor: grab;
   }
-  // 拖拽中的行（SortableJS 源码确认 ghostClass 加在被拖行 dragEl 自身，native 模式无克隆幽灵）
+  // 拖拽中的行：ghostClass 由 SortableJS 加在被拖项 dragEl 自身（native 模式无克隆幽灵）。
+  // 本列表结构下 dragEl 为虚拟列表的行包裹层（.list 的直接子元素），行内插槽根才是 .list-item，
+  // 因此包裹层与行自身两种落点都要覆盖
+  .row-drag-source .list-item,
   .list-item.row-drag-source {
     opacity: .35;
   }

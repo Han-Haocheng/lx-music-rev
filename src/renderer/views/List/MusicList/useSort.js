@@ -59,8 +59,17 @@ export const useRowDragSort = ({ listRef, list, selectedList, selectedSet, enabl
     targetEl = null
   }
 
+  // 行节点解析：data-index 携带在插槽行根（.list-item）上；SortableJS 的项
+  // （_prepareDragStart 要求 target.parentNode===el）是 .list 的直接子元素，
+  // 即虚拟列表的行包裹层——此时须下钻到 firstElementChild 才能取到 data-index；
+  // 兼容项节点自身即行的结构（优先读自身）
+  const getRowEl = (itemEl) => {
+    return itemEl ? (itemEl.dataset.index != null ? itemEl : itemEl.firstElementChild) : null
+  }
+
   const getItemIndex = (itemEl) => {
-    return itemEl ? Number.parseInt(itemEl.dataset.index, 10) : Number.NaN
+    const rowEl = getRowEl(itemEl)
+    return rowEl ? Number.parseInt(rowEl.dataset.index, 10) : Number.NaN
   }
 
   const handleDragStart = (evt) => {
@@ -82,9 +91,10 @@ export const useRowDragSort = ({ listRef, list, selectedList, selectedSet, enabl
     const related = evt.related
     const targetIndex = getItemIndex(related)
     if (Number.isNaN(targetIndex)) return false
-    if (targetEl !== related) {
+    const markEl = getRowEl(related)
+    if (targetEl !== markEl) {
       clearTargetMark()
-      targetEl = related
+      targetEl = markEl
     }
     dragState.targetIndex = targetIndex
     dragState.insertAfter = !!evt.willInsertAfter
@@ -109,7 +119,9 @@ export const useRowDragSort = ({ listRef, list, selectedList, selectedSet, enabl
     if (!dom_list) return
     sortable = Sortable.create(dom_list, {
       animation: 0,
-      disabled: true,
+      // 创建时即应用启用状态：watch immediate 在 setup 期触发时实例尚不存在，
+      // 初始启用必须在此处落地，否则实例将永久保持 disabled
+      disabled: !enabled.value,
       handle: '.drag-handle',
       ghostClass: 'row-drag-source',
       scrollSensitivity: 60,
@@ -120,9 +132,10 @@ export const useRowDragSort = ({ listRef, list, selectedList, selectedSet, enabl
     })
   })
 
+  // 后续启用状态变化（页签切换/表头排序进行中）实时生效
   watch(enabled, (val) => {
     sortable?.option('disabled', !val)
-  }, { immediate: true })
+  })
 
   onBeforeUnmount(() => {
     sortable?.destroy()

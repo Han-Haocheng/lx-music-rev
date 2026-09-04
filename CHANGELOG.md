@@ -8,6 +8,10 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### 修复
+
+- 列表：修复拖拽排序不生效与插入位高亮不显示的问题（排序实例创建后始终处于禁用状态，初始启用在实例创建前被吞掉；同时加固行索引读取与插入位高亮的节点定位）
+
 ## [1.3.0-beta.1] - 2026-09-04
 
 ### 新增
