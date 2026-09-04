@@ -29,9 +29,10 @@
       >
         <div
           class="list-item" :class="[{ [$style.active]: playerInfo.isPlayList && playerInfo.playIndex === index }, { selected: selectedIndex == index || rightClickSelectedIndex == index }, { active: selectedSet.has(item) }, { disabled: !assertApiSupport(item.source) }]"
+          :data-index="index"
           @click="handleListItemClick($event, index)" @contextmenu="handleListItemRightClick($event, index)"
         >
-          <div class="list-item-cell no-select" :class="$style.num" style="flex: 0 0 5%;">
+          <div class="list-item-cell no-select" :class="[$style.num, { 'drag-handle': allowCustomSort }]" style="flex: 0 0 5%;">
             <transition name="play-active">
               <div v-if="playerInfo.isPlayList && playerInfo.playIndex === index" :class="$style.playIcon">
                 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="50%" viewBox="0 0 512 512" space="preserve">
@@ -61,9 +62,10 @@
         <div
           class="list-item"
           :class="[{ [$style.active]: playerInfo.isPlayList && playerInfo.playIndex === index }, { selected: selectedIndex == index || rightClickSelectedIndex == index }, { active: selectedSet.has(item) }, { disabled: !assertApiSupport(item.source) }]"
+          :data-index="index"
           @click="handleListItemClick($event, index)" @contextmenu="handleListItemRightClick($event, index)"
         >
-          <div class="list-item-cell no-select" :class="$style.num" style="flex: 0 0 5%;">
+          <div class="list-item-cell no-select" :class="[$style.num, { 'drag-handle': allowCustomSort }]" style="flex: 0 0 5%;">
             <transition name="play-active">
               <div v-if="playerInfo.isPlayList && playerInfo.playIndex === index" :class="$style.playIcon">
                 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="50%" viewBox="0 0 512 512" space="preserve">
@@ -117,7 +119,7 @@ import useMenu from './useMenu'
 import usePlay from './usePlay'
 import useMusicDownload from './useMusicDownload'
 import useMusicAdd from './useMusicAdd'
-import useSort from './useSort'
+import useSort, { useRowDragSort } from './useSort'
 import useMusicActions from './useMusicActions'
 import useSearch from './useSearch'
 import useListScroll from './useListScroll'
@@ -241,13 +243,25 @@ export default {
       handleShowDownloadModal,
     } = useMusicDownload({ selectedList, list })
 
-    const { handleHeaderSort } = useSort({ props, list })
+    const { handleHeaderSort, commitDragOrder, isSorting } = useSort({ props, list })
+
+    // 行拖拽排序：仅在允许自定义排序且表头排序空闲时启用（与表头排序共用互斥锁）
+    const dragEnabled = computed(() => props.allowCustomSort && !isSorting.value)
+    useRowDragSort({
+      listRef,
+      list,
+      selectedList,
+      selectedSet,
+      enabled: dragEnabled,
+      onCommit: commitDragOrder,
+    })
 
     // 表头排序状态（活动列与方向指示）
+    // 注：样式走 :global 类（setup 作用域拿不到 $style，模板同理需 props.xxx 显式取值）
     const sortSchemeInfo = computed(() => getSortScheme(props.listId))
     const sortThCls = (field) => {
-      const base = allowCustomSort ? $style.sortableTh : null
-      return [base, sortSchemeInfo.value.sortType == field ? $style.activeTh : null]
+      const base = props.allowCustomSort ? 'th-sortable' : null
+      return [base, sortSchemeInfo.value.sortType == field ? 'th-sort-active' : null]
     }
     const sortThArrow = (field) => {
       if (sortSchemeInfo.value.sortType != field) return ''
@@ -454,15 +468,34 @@ export default {
     }
   }
 }
-.sortableTh {
-  cursor: pointer;
-  user-select: none;
-  &:hover {
+// 表头可排序/激活指示与拖拽预览类由 JS 动态拼到 th/行上，需全局可见
+:global {
+  .th-sortable {
+    cursor: pointer;
+    user-select: none;
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+  .th-sort-active {
     color: var(--color-primary);
   }
-}
-.activeTh {
-  color: var(--color-primary);
+  .list-item .drag-handle {
+    cursor: grab;
+  }
+  // 拖拽中的行（SortableJS ghostClass 加在行包裹层上）
+  .row-drag-source .list-item {
+    opacity: .35;
+  }
+  // 目标插入位高亮：插入到目标行之前（上边缘）/之后（下边缘）
+  .row-drag-target .list-item {
+    background-color: var(--color-primary-background-hover);
+    box-shadow: inset 0 2px 0 var(--color-primary);
+  }
+  .row-drag-target-after .list-item {
+    background-color: var(--color-primary-background-hover);
+    box-shadow: inset 0 -2px 0 var(--color-primary);
+  }
 }
 .num {
   height: 100%;
