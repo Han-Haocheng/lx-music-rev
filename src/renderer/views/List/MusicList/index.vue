@@ -127,6 +127,7 @@ import useMusicToggle from './useMusicToggle'
 import { nextTick, ref, watch, computed } from '@common/utils/vueTools'
 import { appSetting } from '@renderer/store/setting'
 import { addListMusics } from '@renderer/store/list/action'
+import { openLocalMusicFile } from '@renderer/store/localList'
 import { loveList } from '@renderer/store/list/state'
 import { getSortScheme } from '@renderer/store/list/sortScheme'
 export default {
@@ -304,6 +305,9 @@ export default {
       handleSearch,
       handleShowMusicAddModal,
       handleOpenMusicDetail,
+      handleOpenFile: (index) => {
+        void openLocalMusicFile(list.value[index])
+      },
       handleCopyName,
       handleDislikeMusic,
       handleRemoveMusic,

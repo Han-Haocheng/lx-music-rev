@@ -15,6 +15,7 @@ export default ({
   handleShowMusicToggleModal,
   handleShowMusicAddModal,
   handleOpenMusicDetail,
+  handleOpenFile,
   handleCopyName,
   handleDislikeMusic,
   handleRemoveMusic,
@@ -31,6 +32,7 @@ export default ({
     dislike: true,
     remove: true,
     sourceDetail: true,
+    openFile: true,
   })
   const t = useI18n()
   const menuLocation = shallowReactive({ x: 0, y: 0 })
@@ -79,6 +81,11 @@ export default ({
         disabled: !itemMenuControl.sourceDetail,
       },
       {
+        name: t('list__open_file'),
+        action: 'openFile',
+        disabled: !itemMenuControl.openFile,
+      },
+      {
         name: t('list__search'),
         action: 'search',
         disabled: !itemMenuControl.search,
@@ -101,6 +108,7 @@ export default ({
     // itemMenuControl.play =
     //   itemMenuControl.playLater =
     itemMenuControl.download = assertApiSupport(musicInfo.source) && musicInfo.source != 'local'
+    itemMenuControl.openFile = musicInfo.source == 'local' && !!musicInfo.meta?.filePath
 
     itemMenuControl.dislike = !hasDislike(musicInfo)
 
@@ -153,6 +161,9 @@ export default ({
         break
       case 'sourceDetail':
         handleOpenMusicDetail(index)
+        break
+      case 'openFile':
+        handleOpenFile(index)
         break
       case 'group':
         handleGroupAction(index)
