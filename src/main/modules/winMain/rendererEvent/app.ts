@@ -1,4 +1,5 @@
-// const path = require('path')
+import path from 'node:path'
+import { shell } from 'electron'
 import { mainHandle, mainOn } from '@common/mainIpc'
 import { WIN_MAIN_RENDERER_EVENT_NAME } from '@common/ipcNames'
 // import { name as defaultName } from '../../../../../package.json'
@@ -83,6 +84,13 @@ export default () => {
   // 在资源管理器中定位文件
   mainOn<string>(WIN_MAIN_RENDERER_EVENT_NAME.open_dir_in_explorer, async({ params }) => {
     return openDirInExplorer(params)
+  })
+  // 用系统默认方式打开文件（返回文件所在目录供自动加入扫描清单）
+  mainHandle<string, { ok: boolean, dir: string, error?: string }>(WIN_MAIN_RENDERER_EVENT_NAME.open_path, async({ params: filePath }) => {
+    if (!filePath) return { ok: false, dir: '', error: 'empty path' }
+    const errorMessage = await shell.openPath(filePath)
+    if (errorMessage) return { ok: false, dir: '', error: errorMessage }
+    return { ok: true, dir: path.dirname(filePath), error: undefined }
   })
 
 

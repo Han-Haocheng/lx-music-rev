@@ -527,6 +527,13 @@ export const openDirInExplorer = async(path: string) => {
 }
 
 /**
+ * 用系统默认方式打开文件，返回 { ok, dir（文件所在目录）, error? }
+ */
+export const openPath = async(filePath: string): Promise<{ ok: boolean, dir: string, error?: string }> => {
+  return rendererInvoke<string, { ok: boolean, dir: string, error?: string }>(WIN_MAIN_RENDERER_EVENT_NAME.open_path, filePath)
+}
+
+/**
  * 获取缓存大小
  */
 export const getCacheSize = async() => {
