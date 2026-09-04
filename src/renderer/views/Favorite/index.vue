@@ -46,6 +46,7 @@
           :list-id="LOVE_ID"
           :music-list="currentGroupId == null ? null : groupMusicList"
           :scroll-key="currentGroupId ?? LOVE_ID"
+          :allow-custom-sort="currentGroupId == null"
           :group-actions-visible="true"
           @group-modal="handleGroupModal"
         />

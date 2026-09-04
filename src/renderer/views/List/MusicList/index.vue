@@ -5,18 +5,18 @@
         <thead>
           <tr v-if="actionButtonsVisible">
             <th class="num" style="width: 5%;">#</th>
-            <th class="nobreak">{{ $t('music_name') }}</th>
-            <th class="nobreak" style="width: 22%;">{{ $t('music_singer') }}</th>
-            <th class="nobreak" style="width: 22%;">{{ $t('music_album') }}</th>
-            <th class="nobreak" style="width: 9%;">{{ $t('music_time') }}</th>
+            <th class="nobreak" :class="sortThCls('name')" @click="handleHeaderSortClick('name')">{{ $t('music_name') }}{{ sortThArrow('name') }}</th>
+            <th class="nobreak" style="width: 22%;" :class="sortThCls('singer')" @click="handleHeaderSortClick('singer')">{{ $t('music_singer') }}{{ sortThArrow('singer') }}</th>
+            <th class="nobreak" style="width: 22%;" :class="sortThCls('albumName')" @click="handleHeaderSortClick('albumName')">{{ $t('music_album') }}{{ sortThArrow('albumName') }}</th>
+            <th class="nobreak" style="width: 9%;" :class="sortThCls('interval')" @click="handleHeaderSortClick('interval')">{{ $t('music_time') }}{{ sortThArrow('interval') }}</th>
             <th class="nobreak" style="width: 16%;">{{ $t('action') }}</th>
           </tr>
           <tr v-else>
             <th class="num" style="width: 5%;">#</th>
-            <th class="nobreak">{{ $t('music_name') }}</th>
-            <th class="nobreak" style="width: 25%;">{{ $t('music_singer') }}</th>
-            <th class="nobreak" style="width: 28%;">{{ $t('music_album') }}</th>
-            <th class="nobreak" style="width: 10%;">{{ $t('music_time') }}</th>
+            <th class="nobreak" :class="sortThCls('name')" @click="handleHeaderSortClick('name')">{{ $t('music_name') }}{{ sortThArrow('name') }}</th>
+            <th class="nobreak" style="width: 25%;" :class="sortThCls('singer')" @click="handleHeaderSortClick('singer')">{{ $t('music_singer') }}{{ sortThArrow('singer') }}</th>
+            <th class="nobreak" style="width: 28%;" :class="sortThCls('albumName')" @click="handleHeaderSortClick('albumName')">{{ $t('music_album') }}{{ sortThArrow('albumName') }}</th>
+            <th class="nobreak" style="width: 10%;" :class="sortThCls('interval')" @click="handleHeaderSortClick('interval')">{{ $t('music_time') }}{{ sortThArrow('interval') }}</th>
           </tr>
         </thead>
       </table>
@@ -87,7 +87,7 @@
       <p v-text="$t('no_item')" />
     </div>
     <common-list-add-modal
-      v-model:show="isShowListAdd" :is-move="isMove" :from-list-id="listId"
+      v-model:show="isShowListAdd" :from-list-id="listId"
       :music-info="selectedAddMusicInfo" :exclude-list-id="excludeListIds" teleport="#view"
     />
     <material-favorite-group-select-modal
@@ -96,12 +96,11 @@
     />
     <common-list-add-multiple-modal
       v-model:show="isShowListAddMultiple" :from-list-id="listId"
-      :is-move="isMoveMultiple" :music-list="selectedList" :exclude-list-id="excludeListIds" teleport="#view" @confirm="removeAllSelect"
+      :music-list="selectedList" :exclude-list-id="excludeListIds" teleport="#view" @confirm="removeAllSelect"
     />
     <common-download-modal v-model:show="isShowDownload" :music-info="selectedDownloadMusicInfo" teleport="#view" :list-id="listId" />
     <common-download-multiple-modal v-model:show="isShowDownloadMultiple" :list="selectedList" teleport="#view" :list-id="listId" @confirm="removeAllSelect" />
     <search-list :list="list" :visible="isShowSearchBar" @action="handleMusicSearchAction" />
-    <music-sort-modal v-model:show="isShowMusicSortModal" :music-info="selectedSortMusicInfo" :selected-num="selectedNum" @confirm="sortMusic" />
     <music-toggle-modal v-model:show="isShowMusicToggleModal" :music-info="selectedToggleMusicInfo" @toggle="toggleSource" />
     <base-menu v-model="isShowItemMenu" :menus="menus" :xy="menuLocation" item-name="name" @menu-click="handleMenuClick" />
   </div>
@@ -111,7 +110,6 @@
 import { clipboardWriteText } from '@common/utils/electron'
 import { assertApiSupport } from '@renderer/store/utils'
 import SearchList from './components/SearchList.vue'
-import MusicSortModal from './components/MusicSortModal.vue'
 import MusicToggleModal from './components/MusicToggleModal.vue'
 import useListInfo from './useListInfo'
 import useList from './useList'
@@ -124,15 +122,15 @@ import useMusicActions from './useMusicActions'
 import useSearch from './useSearch'
 import useListScroll from './useListScroll'
 import useMusicToggle from './useMusicToggle'
-import { nextTick, ref, watch } from '@common/utils/vueTools'
+import { nextTick, ref, watch, computed } from '@common/utils/vueTools'
 import { appSetting } from '@renderer/store/setting'
 import { addListMusics } from '@renderer/store/list/action'
 import { loveList } from '@renderer/store/list/state'
+import { getSortScheme } from '@renderer/store/list/sortScheme'
 export default {
   name: 'MusicList',
   components: {
     SearchList,
-    MusicSortModal,
     MusicToggleModal,
   },
   props: {
@@ -148,6 +146,14 @@ export default {
     scrollKey: {
       type: String,
       default: null,
+    },
+    /**
+     * 是否允许自定义排序（表头持久排序/拖拽）：我的列表/收藏等为 true；
+     * 收藏分组视图（music-list 模式）为 false，防排序错写 LOVE 整表
+     */
+    allowCustomSort: {
+      type: Boolean,
+      default: true,
     },
     groupActionsVisible: {
       type: Boolean,
@@ -209,17 +215,13 @@ export default {
 
     const {
       isShowListAdd,
-      isMove,
       isShowListAddMultiple,
-      isMoveMultiple,
       selectedAddMusicInfo,
       handleShowMusicAddModal,
-      handleShowMusicMoveModal,
     } = useMusicAdd({ selectedList, list })
 
     const isShowFavoriteGroupAdd = ref(false)
     const handleShowMusicFavoriteGroupModal = (index) => {
-      isMove.value = false
       selectedAddMusicInfo.value = list.value[index]
       void nextTick(() => {
         isShowFavoriteGroupAdd.value = true
@@ -239,13 +241,21 @@ export default {
       handleShowDownloadModal,
     } = useMusicDownload({ selectedList, list })
 
-    const {
-      isShowMusicSortModal,
-      selectedNum,
-      selectedSortMusicInfo,
-      handleShowSortModal,
-      sortMusic,
-    } = useSort({ props, list, selectedList, removeAllSelect })
+    const { handleHeaderSort } = useSort({ props, list })
+
+    // 表头排序状态（活动列与方向指示）
+    const sortSchemeInfo = computed(() => getSortScheme(props.listId))
+    const sortThCls = (field) => {
+      const base = allowCustomSort ? $style.sortableTh : null
+      return [base, sortSchemeInfo.value.sortType == field ? $style.activeTh : null]
+    }
+    const sortThArrow = (field) => {
+      if (sortSchemeInfo.value.sortType != field) return ''
+      return sortSchemeInfo.value.sortOrder == 'desc' ? ' ▼' : ' ▲'
+    }
+    const handleHeaderSortClick = (field) => {
+      void handleHeaderSort(field)
+    }
 
     const {
       handleShowMusicToggleModal,
@@ -279,8 +289,6 @@ export default {
       handleShowMusicToggleModal,
       handleSearch,
       handleShowMusicAddModal,
-      handleShowMusicMoveModal,
-      handleShowSortModal,
       handleOpenMusicDetail,
       handleCopyName,
       handleDislikeMusic,
@@ -382,17 +390,14 @@ export default {
       assertApiSupport,
 
       isShowListAdd,
-      isMove,
       isShowListAddMultiple,
-      isMoveMultiple,
       selectedAddMusicInfo,
       isShowFavoriteGroupAdd,
       handleFavoriteGroupModalAddToList,
 
-      isShowMusicSortModal,
-      selectedNum,
-      selectedSortMusicInfo,
-      sortMusic,
+      sortThCls,
+      sortThArrow,
+      handleHeaderSortClick,
 
       isShowDownload,
       isShowDownloadMultiple,
@@ -448,6 +453,16 @@ export default {
       display: inline-block;
     }
   }
+}
+.sortableTh {
+  cursor: pointer;
+  user-select: none;
+  &:hover {
+    color: var(--color-primary);
+  }
+}
+.activeTh {
+  color: var(--color-primary);
 }
 .num {
   height: 100%;

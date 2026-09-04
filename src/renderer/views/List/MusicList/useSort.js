@@ -1,39 +1,39 @@
 import { updateListMusicsPosition } from '@renderer/store/list/action'
-import { ref, nextTick } from '@common/utils/vueTools'
+import { getSortScheme, setSortScheme } from '@renderer/store/list/sortScheme'
+import { dialog } from '@renderer/plugins/Dialog'
 
-export default ({ props, list, selectedList, removeAllSelect }) => {
-  const isShowMusicSortModal = ref(false)
-  const selectedNum = ref(0)
-  const musicInfo = ref(null)
+export default ({ props, list }) => {
+  let sortingTask = null
 
-  const handleShowSortModal = (index, single) => {
-    if (selectedList.value.length && !single) {
-      selectedNum.value = selectedList.value.length
-    } else {
-      selectedNum.value = 0
-      musicInfo.value = list.value[index]
+  /**
+   * 表头点击排序：持久化到该列表的排序方案 + 物理顺序（order 表全量置换，orderPlanner 已最小化写入）。
+   * 若列表当前为"自定义且曾手动排列"，先弹确认。
+   */
+  const handleHeaderSort = async(column) => {
+    if (!column || !props.allowCustomSort || sortingTask) return
+    const task = (async() => {
+      const scheme = getSortScheme(props.listId)
+      const sortOrder = scheme.sortType == column
+        ? (scheme.sortOrder == 'asc' ? 'desc' : 'asc')
+        : 'asc'
+      if (scheme.sortType == 'custom' && scheme.customTouched) {
+        const isConfirm = await dialog.confirm(window.i18n.t('music_sort_custom_confirm'))
+        if (!isConfirm) return
+      }
+      const sorted = await window.lx.worker.main.sortListMusicInfo([...list.value], sortOrder == 'asc' ? 'up' : 'down', column, window.i18n.locale)
+      if (!sorted.length) return
+      await updateListMusicsPosition({ listId: props.listId, position: 0, ids: sorted.map(m => m.id) })
+      setSortScheme(props.listId, { sortType: column, sortOrder })
+    })()
+    sortingTask = task
+    try {
+      await task
+    } finally {
+      if (sortingTask === task) sortingTask = null
     }
-    nextTick(() => {
-      isShowMusicSortModal.value = true
-    })
-  }
-
-  const sortMusic = num => {
-    num = Math.min(num, list.value.length)
-    updateListMusicsPosition({
-      listId: props.listId,
-      position: num - 1,
-      ids: (selectedNum.value ? [...selectedList.value] : [musicInfo.value]).map(m => m.id),
-    })
-    removeAllSelect()
-    isShowMusicSortModal.value = false
   }
 
   return {
-    isShowMusicSortModal,
-    selectedNum,
-    selectedSortMusicInfo: musicInfo,
-    handleShowSortModal,
-    sortMusic,
+    handleHeaderSort,
   }
 }

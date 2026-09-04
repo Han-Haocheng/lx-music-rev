@@ -74,6 +74,7 @@
 import { ref, computed } from '@common/utils/vueTools'
 // import { dialog } from '@renderer/plugins/Dialog'
 import { getListMusics, updateListMusicsPosition } from '@renderer/store/list/action'
+import { setSortScheme } from '@renderer/store/list/sortScheme'
 import { useI18n } from '@root/lang'
 import { LIST_IDS } from '@common/constants'
 
@@ -117,6 +118,16 @@ export default {
 
       closeModal()
       void updateListMusicsPosition({ listId: props.listInfo.id, position: 0, ids: list.map(m => m.id) })
+      // 记录排序方案：字段排序写入对应 sortType/sortOrder；随机排序视作自定义顺序
+      if (sortType.value == 'random') {
+        setSortScheme(props.listInfo.id, { sortType: 'custom', sortOrder: null, customTouched: false })
+      } else {
+        setSortScheme(props.listInfo.id, {
+          sortType: sortField.value,
+          sortOrder: sortType.value == 'down' ? 'desc' : 'asc',
+          customTouched: false,
+        })
+      }
     }
 
     const listName = computed(() => {
