@@ -52,19 +52,89 @@ LX Music rev 1.2.0 正式版：本地音乐闭环与播放详情增强，渲染/
 
 ## [1.2.0-beta.7] - 2026-09-04
 
+LX Music rev 1.2.0-beta.7 测试版：列表切换平滑过渡。
+
+### 优化
+
+- 列表切换平滑过渡：内容区淡入+上移入场动画，双动画类交替重放触发，无重挂载开销，尊重系统「减少动态效果」设置
+
+
 ## [1.2.0-beta.6] - 2026-09-04
+
+LX Music rev 1.2.0-beta.6 测试版：内置列表切换性能探针。
+
+### 其他
+
+- 新增列表切换性能探针（控制台 localStorage.setItem('lx-perf','1') 开启）：输出路由→数据就绪→列表赋值→虚拟列表构建→DOM 提交各阶段耗时
+- 实测确认千行列表切换总耗时 <100ms，此前卡顿感为无过渡动画的视觉硬切所致（据此在 beta.7 加入过渡动画）
+
 
 
 ## [1.2.0-beta.5] - 2026-09-03
 
+LX Music rev 1.2.0-beta.5 测试版：崩溃自愈、IPC 安全加固与构建发布链清理。
+
+### 新增
+
+- 渲染进程崩溃自动恢复：自动 reload 带退避（60s 内多次崩溃改为弹窗提示重启），GPU/工具子进程崩溃记录日志
+- 数据库健壮性：打开/迁移失败自动备份重建；dbService worker 崩溃自动重建并重开库（连续崩溃弹窗提示）
+- 安全：IPC 全通道发送方校验（主/歌词窗口登记 + userApi 白名单，防任意 webContents 调用危险通道）
+
+### 清理与工程
+
+- 打包配置：files/externals 死条目清理、原生模块显式 asarUnpack、win7 打包脚本移除
+- browserslist 同步 Electron 43.4.1；dev 歌词窗口 HMR 中间件笔误修复；渲染生产构建 IS_CI 脏树 fail-fast
+- CI：Electron/electron-builder 二进制缓存（三平台）、dev push 构建门禁恢复、beta 打包 CheckCode（lint/typecheck）前置校验恢复
+- 构建/开发 CLI 脚本声明 no-console 例外
+
+
 
 ## [1.2.0-beta.4] - 2026-09-03
+
+LX Music rev 1.2.0-beta.4 测试版：渲染与数据流结构优化。
+
+### 优化
+
+- 播放详情弹层常驻化：反复开合不再重建歌词/评论子树，同曲评论数据复用
+- 虚拟列表滚动改增量边缘渲染 + 行级组件隔离（行插槽闭包不再每帧整窗重求值）
+- 列表排序数据库更新最小化：大列表拖拽/置顶由全表重写（5000 首 5001 条语句）降为约 2 条区间更新，异常态自动回退旧路径
+- dbService 热路径语句预编译缓存（切歌/歌词/列表查询，连接重建自动失效）
+- 歌单/榜单 store 缓存加容量上限（FIFO 40 条，防长会话内存增长）；leaderboard 缓存 key 与 getListDetail 统一
+- 播放器收藏状态改本地列表缓存判断（LOVE 未加载时回退 IPC），消除列表变更时的 IPC 回查
+
 
 
 ## [1.2.0-beta.3] - 2026-09-03
 
+LX Music rev 1.2.0-beta.3 测试版：bug 修复、死代码清理与日志门禁。
+
+### 修复
+
+- 修复歌单全量播放守卫恒为 false 导致的非预期行为（usePlaySonglist 的 tempListMeta 判断）
+- 修复 sync.server.port 设置键拼写并自动迁移旧值（sync.erver.port 回填后移除）
+- 修复事件监听捕获阶段移除不配平的问题
+
+### 清理与工程
+
+- 删除死代码与遗留资产 14 个文件（base/MusicList.vue、useVirtualizedList.ts、material/SongList.vue、xm 虾米源及 api-test/temp 文件等）
+- console 清理 83 文件（删 183 处、降级 73 处），落地 no-console/no-debugger 规则（全仓活跃残留 0）
+- 恢复 eslint 的 vendors 目录忽略（musicSdk/kg/vendors 压缩文件曾被误扫出 2195 个错误）
+
+
 
 ## [1.2.0-beta.2] - 2026-09-03
+
+LX Music rev 1.2.0-beta.2 测试版：渲染性能与数据流优化。
+
+### 优化
+
+- 播放进度 IPC 500ms 尾随节流（异常跳帧立即刷新 + 过期帧丢弃），渲染主线程显著减负
+- 行选中判断 Set 化（selectedSet.has 替代 includes）
+- 切歌与歌单播放数据流瘦身：filterMusicList 精简跨进程载荷，克隆开销约降 15×
+- 下载列表行预计算缓存（WeakMap 按行缓存格式化结果）
+- 播放队列面板虚拟化（并修复面板高度链断裂导致的显示异常）
+- Linux 支持以 -ehw 参数启用硬件加速（默认仍禁用以规避 GPU 崩溃）
+
 
 
 ## [1.2.0-beta.1] - 2026-09-03
