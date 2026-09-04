@@ -35,14 +35,15 @@ const options = {
     'dist/**/*',
   ],
   asar: {
+    // 保持 smartUnpack:false 精确可控，仅解包下方显式列出的两个原生模块包
     smartUnpack: false,
-    // bufferutil / utf-8-validate 的 .node 原生模块无法在 asar 内 dlopen，
-    // 必须解包到 app.asar.unpacked；保持 smartUnpack:false 精确可控，仅显式解包这两个包
-    asarUnpack: [
-      '**/node_modules/bufferutil/**',
-      '**/node_modules/utf-8-validate/**',
-    ],
   },
+  // asarUnpack 是根级选项：electron-builder 26 的 AsarOptions 不含它，
+  // 嵌进 asar 对象会触发 schema 校验失败（CI 三平台打包报 Invalid configuration object）
+  asarUnpack: [
+    '**/node_modules/bufferutil/**',
+    '**/node_modules/utf-8-validate/**',
+  ],
   extraResources: [
     './licenses',
   ],
