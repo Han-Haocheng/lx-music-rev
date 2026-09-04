@@ -162,7 +162,8 @@ export default {
       sortedList.value = null
     })
     const onlineSortCls = (field) => {
-      return [sortState.value?.field == field ? $style.activeTh : null, $style.sortableTh]
+      // 注：setup 作用域拿不到 $style，样式类走 :global 字符串（与 MusicList 同款）
+      return [sortState.value?.field == field ? 'ol-sort-active' : null, 'ol-sortable']
     }
     const onlineSortArrow = (field) => {
       if (sortState.value?.field != field) return ''
@@ -338,15 +339,18 @@ export default {
 
 <style lang="less" module>
 @import '@renderer/assets/styles/layout.less';
-.sortableTh {
-  cursor: pointer;
-  user-select: none;
-  &:hover {
+// 表头排序指示类由 setup 字符串拼接（:global，模板/局部作用域不可及）
+:global {
+  .ol-sortable {
+    cursor: pointer;
+    user-select: none;
+    &:hover {
+      color: var(--color-primary);
+    }
+  }
+  .ol-sort-active {
     color: var(--color-primary);
   }
-}
-.activeTh {
-  color: var(--color-primary);
 }
 .songList {
   overflow: hidden;
