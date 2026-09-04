@@ -26,9 +26,10 @@
           <div
             class="list-item"
             :class="[{[$style.active]: playTaskId == item.id }, { selected: rightClickSelectedIndex == index }, { active: selectedSet.has(item) }]"
+            :data-index="index"
             @click="handleListItemClick($event, index)" @contextmenu="handleListItemRightClick($event, index)"
           >
-            <div class="list-item-cell no-select" :class="$style.num" style="flex: 0 0 5%;">
+            <div class="list-item-cell no-select" :class="[$style.num, { 'drag-handle': activeTab === 'all' }]" style="flex: 0 0 5%;">
               <transition name="play-active">
                 <div v-if="playTaskId == item.id" :class="$style.playIcon">
                   <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="50%" viewBox="0 0 512 512" space="preserve">
@@ -70,7 +71,7 @@
 <script>
 // import { checkPath, openDirInExplorer, openUrl } from '@common/utils/electron'
 
-import { ref } from '@common/utils/vueTools'
+import { ref, computed } from '@common/utils/vueTools'
 import useListInfo from './useListInfo'
 import useList from './useList'
 import useTab from './useTab'
@@ -79,6 +80,8 @@ import usePlay from './usePlay'
 import useTaskActions from './useTaskActions'
 import useMusicAdd from './useMusicAdd'
 import { downloadStatus } from '@renderer/store/download/state'
+import { saveDownloadListPositions } from '@renderer/store/download/action'
+import { useRowDragSort } from '@renderer/views/List/MusicList/useSort'
 import { appSetting } from '@renderer/store/setting'
 import { formatMusicName } from '@renderer/utils'
 
@@ -103,6 +106,19 @@ export default {
       removeAllSelect,
       handleSelectData,
     } = useList({ listRef, list, listAll })
+
+    // 任务拖拽排序：仅"全部"页签（列表与存储顺序一致）；其它页签是过滤视图，拖拽无明确语义
+    const dragEnabled = computed(() => activeTab.value === 'all')
+    useRowDragSort({
+      listRef,
+      list,
+      selectedList,
+      selectedSet,
+      enabled: dragEnabled,
+      onCommit: (ids) => {
+        void saveDownloadListPositions(ids)
+      },
+    })
 
     const {
       handlePlayMusic,
@@ -292,6 +308,26 @@ export default {
 
   color: var(--color-button-font);
   opacity: .7;
+}
+
+// 拖拽把手与预览类由 JS 动态拼到行上，需全局可见（与 MusicList 同款）
+:global {
+  .list-item .drag-handle {
+    cursor: grab;
+  }
+  // 拖拽中的行（SortableJS ghostClass 加在行包裹层上）
+  .row-drag-source .list-item {
+    opacity: .35;
+  }
+  // 目标插入位高亮：插入到目标行之前（上边缘）/之后（下边缘）
+  .row-drag-target .list-item {
+    background-color: var(--color-primary-background-hover);
+    box-shadow: inset 0 2px 0 var(--color-primary);
+  }
+  .row-drag-target-after .list-item {
+    background-color: var(--color-primary-background-hover);
+    box-shadow: inset 0 -2px 0 var(--color-primary);
+  }
 }
 
 .content {

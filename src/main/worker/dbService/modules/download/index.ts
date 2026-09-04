@@ -3,6 +3,7 @@ import {
   queryDownloadList,
   insertDownloadList,
   updateDownloadList,
+  updateDownloadListPositions,
   deleteDownloadList,
   clearDownloadList,
 } from './dbHelper'
@@ -108,6 +109,24 @@ export const downloadInfoUpdate = (lists: LX.Download.ListItem[]) => {
   }
 }
 
+
+/**
+ * 任务拖拽重排：按全量 id 顺序整表置换 position，并同步内存列表顺序
+ * @param ids 重排后的全量任务 id 顺序（必须覆盖全部任务，否则忽略本次重排）
+ */
+export const downloadInfoSavePositions = (ids: string[]) => {
+  if (!list) initDownloadList()
+  if (ids.length !== list.length) return
+  const infoMap = new Map(list.map(item => [item.id, item] as [string, LX.Download.ListItem]))
+  const newList: LX.Download.ListItem[] = []
+  for (const id of ids) {
+    const item = infoMap.get(id)
+    if (!item) return
+    newList.push(item)
+  }
+  updateDownloadListPositions(ids.map((id, position) => ({ id, position })))
+  list = newList
+}
 
 /**
  * 删除下载列表

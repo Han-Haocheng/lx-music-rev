@@ -161,6 +161,7 @@ const modules = {
     download_list_get: 'download_list_get',
     download_list_add: 'download_list_add',
     download_list_update: 'download_list_update',
+    download_list_position_update: 'download_list_position_update',
     download_list_remove: 'download_list_remove',
     download_list_clear: 'download_list_clear',
   },

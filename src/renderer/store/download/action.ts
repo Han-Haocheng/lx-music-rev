@@ -5,6 +5,8 @@ import {
   downloadTasksRemove,
   downloadTasksUpdate,
 } from '@renderer/utils/ipc'
+import { rendererInvoke } from '@common/rendererIpc'
+import { WIN_MAIN_RENDERER_EVENT_NAME } from '@common/ipcNames'
 import {
   downloadList,
 } from './state'
@@ -418,6 +420,26 @@ export const pauseDownloadTasks = async(list: LX.Download.ListItem[]) => {
     }
   }
   void checkStartTask()
+}
+
+/**
+ * 任务拖拽重排：按全量 id 顺序更新任务位置（先落库，成功后同步内存顺序）
+ * @param ids 重排后的全量任务 id 顺序
+ */
+export const saveDownloadListPositions = async(ids: string[]) => {
+  if (ids.length !== downloadList.length) return
+  const taskMap = new Map<string, LX.Download.ListItem>()
+  for (const task of downloadList) taskMap.set(task.id, task)
+  const newList: LX.Download.ListItem[] = []
+  for (const id of ids) {
+    const task = taskMap.get(id)
+    if (!task) return // 含未知 id：放弃本次重排，防脏写
+    newList.push(task)
+  }
+  await rendererInvoke<string[]>(WIN_MAIN_RENDERER_EVENT_NAME.download_list_position_update, ids)
+  downloadList.splice(0, downloadList.length)
+  arrPush(downloadList, newList)
+  window.app_event.downloadListUpdate()
 }
 
 /**

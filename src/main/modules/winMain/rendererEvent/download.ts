@@ -12,6 +12,9 @@ export default () => {
   mainHandle<LX.Download.ListItem[]>(WIN_MAIN_RENDERER_EVENT_NAME.download_list_update, async({ params: list }) => {
     await global.lx.worker.dbService.downloadInfoUpdate(list)
   })
+  mainHandle<string[]>(WIN_MAIN_RENDERER_EVENT_NAME.download_list_position_update, async({ params: ids }) => {
+    await global.lx.worker.dbService.downloadInfoSavePositions(ids)
+  })
   mainHandle<string[]>(WIN_MAIN_RENDERER_EVENT_NAME.download_list_remove, async({ params: ids }) => {
     await global.lx.worker.dbService.downloadInfoRemove(ids)
   })

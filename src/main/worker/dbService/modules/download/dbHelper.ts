@@ -43,6 +43,18 @@ export const deleteDownloadList = (ids: string[]) => {
 }
 
 /**
+ * 批量更新下载任务位置（拖拽重排全量置换）
+ * @param listPositions 位置信息
+ */
+export const updateDownloadListPositions = (listPositions: Array<{ id: string, position: number }>) => {
+  const db = getDB()
+  const updatePositionStatement = createUpdatePositionStatement()
+  db.transaction((listPositions: Array<{ id: string, position: number }>) => {
+    for (const info of listPositions) updatePositionStatement.run(info)
+  })(listPositions)
+}
+
+/**
  * 批量更新下载歌曲
  * @param urlInfo 列表
  */
