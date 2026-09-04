@@ -1,6 +1,5 @@
 <script>
 import { h, nextTick } from 'vue'
-import { perfMark, perfMeasure } from '@common/utils/common'
 
 /**
  * 生成防抖函数
@@ -309,12 +308,6 @@ export default {
         this.applyWindow(start, end)
       } else {
         this.views = this.buildRows(start, end)
-        perfMeasure('4. vl reset→整窗行构建', 'vl:reset')
-        perfMeasure('5. 列表赋值→整窗行构建', 'switch:assigned')
-        window.requestAnimationFrame(() => {
-          perfMeasure('6. 列表赋值→DOM提交帧', 'switch:assigned')
-          perfMeasure('7. 路由→DOM提交 总耗时', 'switch:route')
-        })
       }
       this.startIndex = start
       this.endIndex = end
@@ -335,7 +328,6 @@ export default {
     },
     // 列表/行高变化：清缓存与窗口状态，重新整窗渲染（不依赖下一次滚动事件）
     handleReset(list) {
-      perfMark('vl:reset')
       this.rowCache = []
       this.startIndex = -1
       this.endIndex = -1

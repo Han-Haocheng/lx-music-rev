@@ -234,27 +234,4 @@ export const arrShuffle = <T>(array: T[]) => {
   return array
 }
 
-// ---- 性能诊断探针（列表切换等卡顿定位） ----
-// 开关：渲染层控制台执行 localStorage.setItem('lx-perf', '1') 后操作即输出，removeItem('lx-perf') 关闭。
-// 未开启时仅每次调用读一次 localStorage，零渲染开销；开启后在埋点输出 [PERF] 各阶段耗时。
-const perfMarks: Record<string, number> = {}
-const perfEnabled = (): boolean => {
-  try {
-    return localStorage.getItem('lx-perf') === '1'
-  } catch {
-    return false
-  }
-}
-const perfLog = (...args: any[]) => {
-  // eslint-disable-next-line no-console -- 诊断探针输出通道（同冒烟探针定位）
-  console.warn('[PERF]', ...args)
-}
-export const perfMark = (name: string): void => {
-  if (perfEnabled()) perfMarks[name] = performance.now()
-}
-export const perfMeasure = (label: string, fromMark: string): void => {
-  if (!perfEnabled()) return
-  const t0 = perfMarks[fromMark]
-  if (t0 == null) return
-  perfLog(label, (performance.now() - t0).toFixed(1) + 'ms')
-}
+
