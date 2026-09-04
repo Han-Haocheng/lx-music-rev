@@ -178,6 +178,8 @@ export default {
       const group = this.targetGroup
       this.targetGroup = null
       if (action.action == 'rename') {
+        // 进入编辑前预填当前组名（输入框为 v-model 绑定，不会自动带出）
+        this.editingGroupName = group.name
         this.editingGroupId = group.id
       } else if (action.action == 'remove') {
         void dialog.confirm({
