@@ -9,7 +9,7 @@
           </svg>
         </button>
       </template>
-      <base-input v-else ref="newGroupInput" :class="$style.newGroupInput" :value="newGroupName" :placeholder="$t('favorite_group_new_input')" @keyup.enter="handleSaveNewGroup" @blur="handleSaveNewGroup" />
+      <base-input v-else ref="newGroupInput" v-model="newGroupName" :class="$style.newGroupInput" :placeholder="$t('favorite_group_new_input')" @keyup.enter="handleSaveNewGroup" @blur="handleSaveNewGroup" />
     </header>
     <div :class="$style.main">
       <div :class="$style.groupsWrap">
@@ -30,7 +30,7 @@
           >
             <span :class="$style.groupLabel">{{ group.name }}</span>
             <span :class="$style.count">{{ groupCounts[group.id] ?? '' }}</span>
-            <base-input :class="$style.groupEditInput" :value="group.name" @keyup.enter="handleRenameGroup(group, $event)" @blur="handleRenameGroup(group, $event)" />
+            <base-input v-model="editingGroupName" :class="$style.groupEditInput" @keyup.enter="handleRenameGroup(group)" @blur="handleRenameGroup(group)" />
           </li>
         </ul>
         <p v-if="!favoriteGroups.length" :class="$style.emptyTip">{{ $t('favorite_group_empty') }}</p>
@@ -81,6 +81,7 @@ export default {
       isShowNewGroup: false,
       newGroupName: '',
       editingGroupId: null,
+      editingGroupName: '',
       isShowGroupModal: false,
       groupModalMusicList: [],
       isShowGroupMenu: false,
@@ -98,6 +99,11 @@ export default {
         { name: this.$t('favorite_group_rename'), action: 'rename' },
         { name: this.$t('favorite_group_remove'), action: 'remove' },
       ]
+    },
+  },
+  watch: {
+    currentGroupId() {
+      void this.refreshGroupMusics()
     },
   },
   created() {
@@ -124,7 +130,17 @@ export default {
         counts[group.id] = ids.length
       }
       this.groupCounts = counts
-      this.groupMusics = this.currentGroupId ? await getGroupMusics(this.currentGroupId) : []
+      await this.loadCurrentGroupMusics()
+    },
+    async loadCurrentGroupMusics() {
+      const groupId = this.currentGroupId
+      if (groupId == null) {
+        this.groupMusics = []
+        return
+      }
+      const ids = await getGroupMusics(groupId)
+      // 快速切换分组时丢弃过期结果
+      if (this.currentGroupId == groupId) this.groupMusics = ids
     },
     handleMyListUpdate(ids) {
       if (!ids.includes(LIST_IDS.LOVE)) return
@@ -144,8 +160,9 @@ export default {
       const name = this.newGroupName.trim()
       this.newGroupName = ''
       if (!name) return
-      await addFavoriteGroup(name)
-      await this.refreshGroupMusics()
+      const id = await addFavoriteGroup(name)
+      // 自动选中新分组，watcher 随即刷新计数与组内内容
+      this.currentGroupId = id
     },
     handleGroupRightClick(group, event) {
       this.targetGroup = group
@@ -172,10 +189,11 @@ export default {
         })
       }
     },
-    async handleRenameGroup(group, event) {
+    async handleRenameGroup(group) {
       if (this.editingGroupId != group.id) return
       this.editingGroupId = null
-      const name = event.target.value.trim()
+      const name = this.editingGroupName.trim()
+      this.editingGroupName = ''
       if (!name || name == group.name) return
       await updateFavoriteGroup(group.id, name)
     },
