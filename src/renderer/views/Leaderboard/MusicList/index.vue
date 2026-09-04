@@ -34,7 +34,11 @@ const {
 } = useList()
 
 watch(() => props.boardId, (boardId) => {
-  if (!boardId) return
+  if (!boardId) {
+    // 尚未选择榜单：需要联网加载而未加载，显示引导提示
+    listDetailInfo.noItemLabel = window.i18n.t('load_hint__leaderboard')
+    return
+  }
   getList(boardId, 1)
 }, {
   immediate: true,

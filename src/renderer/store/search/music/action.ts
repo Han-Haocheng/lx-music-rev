@@ -86,7 +86,12 @@ export const resetListInfo = (sourceId: LX.OnlineSource | 'all'): [] => {
 
 export const search = async(text: string, page: number, sourceId: LX.OnlineSource | 'all'): Promise<LX.Music.MusicInfo[]> => {
   const listInfo = listInfos[sourceId]
-  if (!text) return resetListInfo(sourceId)
+  if (!text) {
+    // 尚未输入关键词：不发起网络请求，显示引导提示
+    resetListInfo(sourceId)
+    listInfo!.noItemLabel = window.i18n.t('load_hint__search')
+    return []
+  }
   const key = `${page}__${text}`
   if (sourceId == 'all') {
     listInfo!.noItemLabel = window.i18n.t('list__loading')

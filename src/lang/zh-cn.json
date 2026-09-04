@@ -218,6 +218,8 @@
   "music_toggle_duplicate_tip": "列表中已存在相同的歌曲，是否将其移除并继续？",
   "my_list": "我的列表",
   "no_item": "列表竟然是空的...",
+  "load_hint__search": "输入关键词搜索歌曲",
+  "load_hint__leaderboard": "选择左侧榜单开始加载歌曲",
   "not_agree": "不接受",
   "ok": "我知道了",
   "pagination__next": "下一页",
