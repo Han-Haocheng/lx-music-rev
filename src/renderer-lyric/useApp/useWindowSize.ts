@@ -121,7 +121,7 @@ export default () => {
   onMounted(() => {
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
-    document.addEventListener('touchmove', handleTouchMove)
+    document.addEventListener('touchmove', handleTouchMove, { passive: true })
     document.addEventListener('touchend', handleMouseUp)
   })
   onBeforeUnmount(() => {

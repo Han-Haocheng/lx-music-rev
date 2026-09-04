@@ -5,7 +5,7 @@
         v-show="!isShowLrcSelectContent"
         ref="dom_lyric"
         :class="['lyric', $style.lyric, { [$style.draging]: isMsDown }, { [$style.lrcActiveZoom]: isZoomActiveLrc }]" :style="lrcStyles"
-        @wheel="handleWheel" @mousedown="handleLyricMouseDown" @touchstart="handleLyricTouchStart"
+        @wheel.passive="handleWheel" @mousedown="handleLyricMouseDown" @touchstart.passive="handleLyricTouchStart"
         @contextmenu.stop="handleShowLyricMenu"
       >
         <div :class="['pre', $style.lyricSpace]" />

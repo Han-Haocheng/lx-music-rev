@@ -8,6 +8,10 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### 变更
+
+- 性能：滚动阻塞事件监听器全部标记为 passive（wheel / touchstart / touchmove 共 19 处），消除控制台 Violation 警告，提升列表与歌词区域滚动响应
+
 ## [1.3.0-beta.2] - 2026-09-04
 
 ### 新增

@@ -219,7 +219,7 @@ export default ({ isPlay, lyric, playProgress, isShowLyricProgressSetting, offse
   onMounted(() => {
     document.addEventListener('mousemove', handleMouseMsMove)
     document.addEventListener('mouseup', handleMouseMsUp)
-    document.addEventListener('touchmove', handleTouchMove)
+    document.addEventListener('touchmove', handleTouchMove, { passive: true })
     document.addEventListener('touchend', handleMouseMsUp)
 
     initLrc(lyric.lines, null)

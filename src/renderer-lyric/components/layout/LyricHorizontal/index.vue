@@ -2,7 +2,7 @@
   <div
     ref="dom_lyric"
     :class="classNames"
-    :style="lrcStyles" @wheel="handleWheel" @mousedown="handleLyricMouseDown" @touchstart="handleLyricTouchStart"
+    :style="lrcStyles" @wheel.passive="handleWheel" @mousedown="handleLyricMouseDown" @touchstart.passive="handleLyricTouchStart"
   >
     <div :class="$style.lyricSpace" />
     <div ref="dom_lyric_text" />

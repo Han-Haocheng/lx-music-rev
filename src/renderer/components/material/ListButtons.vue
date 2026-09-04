@@ -9,7 +9,7 @@
       v-if="listAddBtn" type="button" :aria-label="$t('list__add_to')"
       @contextmenu.capture.stop
       @mousedown="handleAddDown" @mouseup="handleAddUp" @mouseleave="handleAddCancel"
-      @touchstart="handleAddDown" @touchend="handleAddUp" @touchcancel="handleAddCancel"
+      @touchstart.passive="handleAddDown" @touchend="handleAddUp" @touchcancel="handleAddCancel"
       @click.stop="handleAddClick"
     >
       <svg v-once version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="100%" viewBox="0 0 42 42" space="preserve">
