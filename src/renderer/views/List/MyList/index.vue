@@ -3,9 +3,7 @@
     <div :class="$style.listHeader">
       <h2 :class="$style.listsTitle">{{ listId == LOCAL_LIST_ID ? $t('local_music') : $t('my_list') }}</h2>
       <div :class="$style.headerBtns">
-        <template v-if="listId == LOCAL_LIST_ID">
-          <span v-if="!appSetting['local.scanFolders'].length" :class="$style.listsHint">{{ $t('local_music__scan_hint') }}</span>
-        </template>
+        <template v-if="listId == LOCAL_LIST_ID"></template>
         <template v-else>
           <button :class="$style.listsAdd" :aria-label="$t('lists__new_list_btn')" @click="isShowNewList = true">
             <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="70%" viewBox="0 0 24 24" space="preserve">
@@ -96,7 +94,6 @@ import { defaultList, userLists, fetchingListStatus } from '@renderer/store/list
 import { getListMusics, removeUserList } from '@renderer/store/list/action'
 import { playList } from '@renderer/core/player'
 import { LOCAL_LIST_ID } from '@renderer/store/localList'
-import { appSetting } from '@renderer/store/setting'
 
 import { ref, watch } from '@common/utils/vueTools'
 import { useRouter } from '@common/utils/vueRouter'
@@ -260,7 +257,6 @@ export default {
       userLists,
       fetchingListStatus,
       dom_lists_list,
-      appSetting,
       isShowListUpdateModal,
       isShowListSortModal,
       sortListInfo,
@@ -361,20 +357,6 @@ export default {
   &:hover:not(:disabled) {
     opacity: .8;
   }
-}
-.listsHint {
-  flex: auto;
-  min-width: 0;
-  margin-top: 6px;
-  height: 30px;
-  padding: 0 8px;
-  line-height: 30px;
-  color: var(--color-font-label);
-  font-size: 11px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  .mixin-ellipsis-1();
 }
 .listsContent {
   flex: auto;

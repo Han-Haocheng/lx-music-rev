@@ -86,7 +86,8 @@
       </base-virtualized-list>
     </div>
     <div v-show="!list.length" :class="$style.noItem">
-      <p v-text="$t('no_item')" />
+      <p v-if="isLocalNoScanFolder" :class="$style.localHint">{{ $t('local_music__scan_hint') }}</p>
+      <p v-else v-text="$t('no_item')" />
     </div>
     <common-list-add-modal
       v-model:show="isShowListAdd" :from-list-id="listId"
@@ -127,7 +128,7 @@ import useMusicToggle from './useMusicToggle'
 import { nextTick, ref, watch, computed } from '@common/utils/vueTools'
 import { appSetting } from '@renderer/store/setting'
 import { addListMusics } from '@renderer/store/list/action'
-import { openLocalMusicFile } from '@renderer/store/localList'
+import { LOCAL_LIST_ID, openLocalMusicFile } from '@renderer/store/localList'
 import { loveList } from '@renderer/store/list/state'
 import { getSortScheme } from '@renderer/store/list/sortScheme'
 export default {
@@ -256,6 +257,9 @@ export default {
       enabled: dragEnabled,
       onCommit: commitDragOrder,
     })
+
+    // 本地音乐且未配置扫描文件夹：列表空态显示引导提示
+    const isLocalNoScanFolder = computed(() => props.listId == LOCAL_LIST_ID && !appSetting['local.scanFolders'].length)
 
     // 表头排序状态（活动列与方向指示）
     // 注：样式走 :global 类（setup 作用域拿不到 $style，模板同理需 props.xxx 显式取值）
@@ -416,6 +420,7 @@ export default {
       sortThCls,
       sortThArrow,
       handleHeaderSortClick,
+      isLocalNoScanFolder,
 
       isShowDownload,
       isShowDownloadMultiple,
@@ -558,6 +563,12 @@ export default {
     font-size: 24px;
     color: var(--color-font-label);
   }
+}
+.localHint {
+  font-size: 14px !important;
+  line-height: 1.8;
+  padding: 0 32px;
+  text-align: center;
 }
 
 </style>
