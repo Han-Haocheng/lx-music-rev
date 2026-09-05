@@ -11,7 +11,7 @@
       <div :class="$style.status">{{ statusText }}</div>
     </div>
     <!-- <div :class="$style.timeContainer">
-  
+
     <div :class="$style.timeContent">
         <span>{{ nowPlayTimeStr }}</span>
         <span style="margin: 0 1px;">/</span>
