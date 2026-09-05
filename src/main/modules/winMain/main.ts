@@ -1,7 +1,7 @@
 import { BrowserWindow, dialog, session } from 'electron'
 import path from 'node:path'
 import { createTaskBarButtons, getWindowSizeInfo } from './utils'
-import { getPlatform, isLinux, isWin } from '@common/utils'
+import { getPlatform, isLinux, isWin, log } from '@common/utils'
 import { getProxy, openDevTools as handleOpenDevTools } from '@main/utils'
 import { mainSend, registerBrowserWindowIpcSender } from '@common/mainIpc'
 import { sendFocus, sendTaskbarButtonClick } from './rendererEvent'
@@ -121,6 +121,33 @@ export const createWindow = () => {
   browserWindow = new BrowserWindow(options)
   // 登记主窗口为合法 IPC 发送方（main-security #2：拒绝非应用窗口调用 IPC）
   registerBrowserWindowIpcSender(browserWindow)
+
+  // 渲染主线程无响应自愈（Linux 软渲染/长任务场景易挂起）：30 秒窗口内首次挂起自动 reload 恢复；
+  // 短时间再次挂起则停止自动恢复并提示重启，避免 reload 循环
+  let unresponsiveReloadAt = 0
+  browserWindow.webContents.on('unresponsive', () => {
+    const win = browserWindow
+    if (!win || win.isDestroyed()) return
+    const now = Date.now()
+    if (now - unresponsiveReloadAt < 30_000) {
+      win.webContents.forcefullyCrashRenderer()
+      setTimeout(() => {
+        if (win.isDestroyed()) return
+        dialog.showErrorBox(
+          '播放器界面无响应 / Player UI unresponsive',
+          '播放器界面连续无响应，已停止自动恢复。\n请重启应用（重新打开即可，播放记录会自动恢复）。\n\nThe player UI stopped responding repeatedly. Please restart the app.',
+        )
+        win.close()
+      }, 500)
+      return
+    }
+    unresponsiveReloadAt = now
+    log.warn('[winMain] 渲染进程无响应（unresponsive），3 秒后自动 reload 恢复')
+    setTimeout(() => {
+      if (win.isDestroyed()) return
+      win.webContents.reload()
+    }, 3000)
+  })
 
   const winURL = process.env.NODE_ENV !== 'production' ? 'http://localhost:9080' : `file://${path.join(encodePath(__dirname), 'index.html')}`
   void browserWindow.loadURL(winURL + `?os=${getPlatform()}&dt=${global.envParams.cmdParams.dt}&dark=${shouldUseDarkColors}&theme=${encodeURIComponent(JSON.stringify(theme))}`)
