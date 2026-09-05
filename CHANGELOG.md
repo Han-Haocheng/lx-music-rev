@@ -8,6 +8,10 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### 变更
+
+- 列表：版本号复位为 1.3.1（内部准备：发布脚本将产出首个预发布 1.3.1-beta.1）
+
 ## [1.3.0] - 2026-09-05
 
 ### 新增
