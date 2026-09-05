@@ -29,6 +29,8 @@ export const LIST_IDS = {
   TEMP: 'temp',
   DOWNLOAD: 'download',
   PLAY_LATER: null,
+  /** 独立会话队列：在线列表/歌单等「非持久列表来源」播放时的队列归属（仅本次会话，重启不恢复） */
+  PLAY_SESSION: 'session',
 } as const
 
 export const DATA_KEYS = {

@@ -258,11 +258,13 @@ export const playListById = (listId: string, id: string) => {
  */
 export const playList = (listId: string, index: number, list?: Array<LX.Music.MusicInfo | LX.Download.ListItem>) => {
   const prevListId = playInfo.playerListId
-  // 传入 list 时固化为播放队列快照（收藏分组等子集视图的切歌隔离）；未传则回到按列表实时取整表
-  setPlayListSnapshot(list ?? null)
+  // 会话队列：播放时始终把播放范围固化为独立队列（显式传 list 用之；否则取该列表当前内容），
+  // 播放列表（控制栏面板/上下曲）只基于此队列，与收藏/试听等持久列表解耦；重启后队列不恢复
+  const queue = list ?? getList(listId)
+  setPlayListSnapshot(queue)
   setPlayListId(listId)
   // pause()
-  setPlayMusicInfo(listId, (list ?? getList(listId))[index])
+  setPlayMusicInfo(listId, queue[index] ?? null)
   if (appSetting['player.isAutoCleanPlayedList'] || prevListId != listId) clearPlayedList()
   clearTempPlayeList()
   handlePlay()
