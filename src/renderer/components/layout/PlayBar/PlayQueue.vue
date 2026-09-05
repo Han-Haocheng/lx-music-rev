@@ -57,13 +57,9 @@
 
 <script>
 import { computed, ref, watch, nextTick } from '@common/utils/vueTools'
-import { useI18n } from '@renderer/plugins/i18n'
 import { playInfo, playMusicInfo } from '@renderer/store/player/state'
-import { getPlayList, clearPlayedList } from '@renderer/store/player/action'
+import { getPlayList, clearPlayedList, setPlayListSnapshot } from '@renderer/store/player/action'
 import { playList, playNext } from '@renderer/core/player'
-import { removeListMusics } from '@renderer/store/list/action'
-import { LIST_IDS } from '@common/constants'
-import { dialog } from '@renderer/plugins/Dialog'
 
 export default {
   name: 'PlayQueue',
@@ -75,7 +71,6 @@ export default {
   },
   emits: ['close'],
   setup(props, { emit }) {
-    const t = useI18n()
     const listRef = ref(null)
     // 播放队列：快照优先（收藏分组等子集视图播放时显示分组内歌曲），否则按列表实时取整表
     const list = computed(() => (playInfo.playerListId ? getPlayList(playInfo.playerListId) : []))
@@ -94,7 +89,6 @@ export default {
     const isActiveIndex = (index) => !playMusicInfo.isTempPlay && playInfo.playIndex === index
 
     const getRealMusicInfo = (item) => ('progress' in item ? item.metadata.musicInfo : item)
-    const displayName = (item) => getRealMusicInfo(item).name
 
     const handleClose = () => {
       emit('close')
@@ -103,48 +97,29 @@ export default {
     const handlePlay = (index) => {
       const listId = playInfo.playerListId
       if (!listId) return
-      playList(listId, index)
+      // 在队列内点播：以当前队列恢复播放（避免重新固化导致队列内容丢失）
+      playList(listId, index, list.value)
       handleClose()
     }
 
-    const handleRemove = async(index) => {
+    // 播放列表是独立会话队列：移除（或清空）只影响队列本身，不读写收藏/试听等任何持久列表
+    const handleRemove = (index) => {
       const listId = playInfo.playerListId
-      const item = list.value[index]
-      if (!listId || !item) return
-      // 对持久列表（我的收藏/用户列表/试听）删除前二次确认，避免误删源列表歌曲
-      const isPersistent = listId != LIST_IDS.TEMP && listId != LIST_IDS.DOWNLOAD
-      if (isPersistent) {
-        const isConfirm = await dialog.confirm({
-          message: t('playlist_remove_confirm', { name: displayName(item) }),
-          cancelButtonText: t('cancel_button_text'),
-          confirmButtonText: t('confirm_button_text'),
-        })
-        if (!isConfirm) return
-      }
-      void removeListMusics({ listId, ids: [getRealMusicInfo(item).id] })
-      if (!playMusicInfo.isTempPlay && index === playInfo.playIndex) void playNext(true)
+      if (!listId || !list.value.length) return
+      const isCurrent = !playMusicInfo.isTempPlay && index === playInfo.playIndex
+      const newList = list.value.filter((_, i) => i != index)
+      setPlayListSnapshot(newList)
+      if (isCurrent) void playNext(true)
     }
 
     const handleClearPlayed = () => {
       clearPlayedList()
     }
 
-    // 清空整个当前播放列表（区别于仅清空已播记录）：
-    // 持久列表（我的收藏/试听/分组等）二次确认后清除列表内全部歌曲；临时列表直接清空，随后停止播放
-    const handleClearPlaylist = async() => {
-      const listId = playInfo.playerListId
-      if (!listId || !list.value.length) return
-      const isPersistent = listId != LIST_IDS.TEMP && listId != LIST_IDS.DOWNLOAD
-      if (isPersistent) {
-        const isConfirm = await dialog.confirm({
-          message: t('playlist_clear_confirm'),
-          cancelButtonText: t('cancel_button_text'),
-          confirmButtonText: t('confirm_button_text'),
-        })
-        if (!isConfirm) return
-      }
-      void removeListMusics({ listId, ids: list.value.map(m => getRealMusicInfo(m).id) })
-      if (!playMusicInfo.isTempPlay && playInfo.playIndex > -1) void playNext(true)
+    // 清空当前会话队列（区别于仅清空已播记录）：纯队列操作，不影响收藏/试听等任何持久列表
+    const handleClearPlaylist = () => {
+      if (!playInfo.playerListId) return
+      setPlayListSnapshot([])
       handleClose()
     }
 
@@ -168,7 +143,6 @@ export default {
       displayList,
       isActiveIndex,
       getRealMusicInfo,
-      displayName,
       handleClose,
       handlePlay,
       handleRemove,
