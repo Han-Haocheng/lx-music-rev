@@ -56,15 +56,6 @@ export default {
           enable: true,
         },
         {
-          to: '/list',
-          tips: t('my_list'),
-          icon: '#icon-list',
-          iconSize: '0 0 24 24',
-          size,
-          name: 'List',
-          enable: true,
-        },
-        {
           to: '/favorite',
           tips: t('favorite'),
           icon: '#icon-love',

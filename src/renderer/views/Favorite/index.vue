@@ -2,6 +2,9 @@
   <div id="favorite" :class="$style.container">
     <header :class="$style.header">
       <h2 :class="$style.title">{{ $t('favorite') }}</h2>
+      <button :class="$style.headerBtn" :aria-label="$t('local_music')" @click="handleOpenLocalMusic">
+        <svg-icon name="audio-wave" />
+      </button>
       <template v-if="!isShowNewGroup">
         <button :class="$style.headerBtn" :aria-label="$t('favorite_group_new')" @click="handleNewGroup">
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 24 24" space="preserve">
@@ -116,6 +119,9 @@ export default {
     window.app_event.off('myListUpdate', this.handleMyListUpdate)
   },
   methods: {
+    handleOpenLocalMusic() {
+      this.$router.push({ path: '/local' })
+    },
     async initData() {
       clearGroupMusicsCache()
       await initFavoriteGroups()

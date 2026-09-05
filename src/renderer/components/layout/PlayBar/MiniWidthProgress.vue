@@ -67,6 +67,7 @@ import {
 } from '@renderer/store/player/action'
 import { togglePlay, playNext, playPrev } from '@renderer/core/player'
 import { LIST_IDS } from '@common/constants'
+import { LOCAL_LIST_ID } from '@renderer/store/localList'
 import { formatMusicName } from '@renderer/utils'
 
 export default {
@@ -107,13 +108,15 @@ export default {
         void router.push({ path: '/favorite' })
         return
       }
-      void router.push({
-        path: '/list',
-        query: {
-          id: listId,
-          scrollIndex: playInfo.playIndex,
-        },
-      })
+      if (listId == LOCAL_LIST_ID) {
+        void router.push({
+          path: '/local',
+          query: {
+            scrollIndex: playInfo.playIndex,
+          },
+        })
+      }
+      // 试听/临时等其余列表：通过控制栏播放列表面板查看，不再跳转
     }
 
     const title = computed(() => {

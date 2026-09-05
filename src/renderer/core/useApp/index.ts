@@ -11,10 +11,10 @@ import useDataInit from './useDataInit'
 import useHandleEnvParams from './useHandleEnvParams'
 import useEventListener from './useEventListener'
 import useDeeplink from './useDeeplink'
+import useOpenFiles from './useOpenFiles'
 import usePlayer from './usePlayer'
 import useSettingSync from './useSettingSync'
 import { useRouter } from '@common/utils/vueRouter'
-import handleListAutoUpdate from './listAutoUpdate'
 
 
 export default () => {
@@ -34,7 +34,7 @@ export default () => {
   const handleEnvParams = useHandleEnvParams()
   const initData = useDataInit()
   const initDeeplink = useDeeplink()
-  // const handleListAutoUpdate = useListAutoUpdate()
+  const initOpenFiles = useOpenFiles()
 
   useUpdate()
   useSettingSync()
@@ -65,12 +65,12 @@ export default () => {
       initPlayer()
       handleEnvParams(envParams) // 处理传入的启动参数
       void initDeeplink(envParams)
+      void initOpenFiles(envParams)
       void initSyncService()
       void initOpenAPI()
       void initStatusbarLyric()
       sendInited()
 
-      handleListAutoUpdate()
       if (window.lx.isProd && appSetting['common.isAgreePact']) checkUpdate()
     })
   })

@@ -40,7 +40,7 @@ import useImportTip from '@renderer/utils/compositions/useImportTip'
 import { useI18n } from '@renderer/plugins/i18n'
 import { getListMusics, overwriteListFull, overwriteListMusics } from '@renderer/store/list/action'
 import { LIST_IDS } from '@common/constants'
-import { defaultList, loveList, userLists } from '@renderer/store/list/state'
+import { defaultList, loveList } from '@renderer/store/list/state'
 import { appSetting, updateSetting } from '@renderer/store/setting'
 import migrateSetting from '@common/utils/migrateSetting'
 
@@ -59,11 +59,7 @@ export default {
       const lists = []
       lists.push(await getListMusics(defaultList.id).then(musics => ({ ...defaultList, list: toRaw(musics) })))
       lists.push(await getListMusics(loveList.id).then(musics => ({ ...loveList, list: toRaw(musics) })))
-
-      for await (const list of userLists) {
-        lists.push(await getListMusics(list.id).then(musics => ({ ...toRaw(list), list: toRaw(musics) })))
-      }
-
+      // 自建列表已退役：不再收集；旧备份中的 userList 数据恢复时仍会写回并交由数据迁移并入收藏分组
       return lists
     }
 

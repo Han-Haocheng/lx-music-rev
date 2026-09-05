@@ -39,13 +39,8 @@ export default ({ props, listRef, list, handleRestoreScroll }) => {
   onMounted(() => {
     handleRestoreScroll(route.query.scrollIndex, false)
     if (route.query.scrollIndex != null) {
-      router.replace({
-        path: '/list',
-        query: {
-          id: props.listId,
-          updated: true,
-        },
-      })
+      // 清掉定位参数，避免刷新重复恢复（当前页面即列表视图：收藏页 / 本地音乐页）
+      router.replace({ path: route.path })
     }
   })
   onBeforeUnmount(() => {

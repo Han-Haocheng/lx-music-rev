@@ -40,10 +40,14 @@ const router = createRouter({
     },
     {
       path: '/list',
-      name: 'List',
-      component: require('./views/List/index.vue').default,
+      redirect: '/favorite',
+    },
+    {
+      path: '/local',
+      name: 'LocalMusic',
+      component: require('./views/LocalMusic/index.vue').default,
       meta: {
-        name: 'List',
+        name: 'Favorite',
       },
     },
     {

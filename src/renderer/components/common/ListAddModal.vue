@@ -7,11 +7,11 @@
       </div>
       <div class="scroll" :class="$style.btnContent">
         <base-btn v-for="(item, index) in lists" :key="item.id" :class="$style.btn" :aria-label="$t('list_add__btn_title', { name: item.name })" :disabled="item.isExist" @click="handleClick(index)">{{ item.name }}</base-btn>
-        <base-btn :class="[$style.btn, $style.newList, isEditing ? $style.editing : null]" :aria-label="$t('lists__new_list_btn')" @click="handleEditing($event)">
+        <base-btn :class="[$style.btn, $style.newList, isEditing ? $style.editing : null]" :aria-label="$t('favorite_group_new')" @click="handleEditing($event)">
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" viewBox="0 0 42 42" space="preserve">
             <use xlink:href="#icon-addTo" />
           </svg>
-          <base-input :class="$style.newListInput" :value="newListName" :placeholder="$t('lists__new_list_input')" @keyup.enter="handleSaveList($event)" @blur="handleSaveList($event)" />
+          <base-input :class="$style.newListInput" :value="newListName" :placeholder="$t('favorite_group_new_input')" @keyup.enter="handleSaveList($event)" @blur="handleSaveList($event)" />
         </base-btn>
         <span v-for="i in spaceNum" :key="i" :class="$style.btn" />
       </div>
@@ -22,11 +22,12 @@
 <script>
 // import { mapMutations } from 'vuex'
 import { watch, ref, onBeforeUnmount } from '@common/utils/vueTools'
-import { defaultList, loveList, userLists } from '@renderer/store/list/state'
-import { addListMusics, moveListMusics, createUserList, getMusicExistListIds } from '@renderer/store/list/action'
+import { defaultList, loveList } from '@renderer/store/list/state'
+import { addListMusics, moveListMusics, getMusicExistListIds } from '@renderer/store/list/action'
 import useKeyDown from '@renderer/utils/compositions/useKeyDown'
 import { useI18n } from '@root/lang'
 import { dialog } from '@renderer/plugins/Dialog'
+import { favoriteGroups, addFavoriteGroup, setMusicGroupIds } from '@renderer/store/list/favoriteGroup'
 
 export default {
   props: {
@@ -78,27 +79,30 @@ export default {
       void getMusicExistListIds(mid).then(ids => {
         if (mid != musicInfo.id) return
         for (const list of lists.value) {
-          if (ids.includes(list.id)) list.isExist = true
+          // 收藏分组目标视同「我的收藏」（歌曲进入收藏后按组归属）
+          const checkId = list.isGroup ? loveList.id : list.id
+          if (ids.includes(checkId)) list.isExist = true
         }
       })
     }
 
-    let stopWatchUserList = null
+    let stopWatchFavoriteGroups = null
 
     const getList = () => {
+      // 收藏分组是「我的收藏」的归类视图：目标列表为 love，分组项按 love 参与排除过滤
       lists.value = [
         { ...defaultList, name: t(defaultList.name) },
         { ...loveList, name: t(loveList.name) },
-        ...userLists,
-      ].filter(l => !props.excludeListId.includes(l.id)).map(l => ({ ...l, isExist: false }))
+        ...favoriteGroups.map(g => ({ id: g.id, name: g.name, isGroup: true })),
+      ].filter(l => !props.excludeListId.includes(l.isGroup ? loveList.id : l.id)).map(l => ({ ...l, isExist: false }))
       checkMusicExist(currentMusicInfo.value)
     }
 
     watch(() => props.show, show => {
       if (!show) {
-        if (stopWatchUserList) {
-          stopWatchUserList()
-          stopWatchUserList = null
+        if (stopWatchFavoriteGroups) {
+          stopWatchFavoriteGroups()
+          stopWatchFavoriteGroups = null
         }
         return
       }
@@ -108,13 +112,13 @@ export default {
 
       getList()
 
-      stopWatchUserList = watch(userLists, getList)
+      stopWatchFavoriteGroups = watch(favoriteGroups, getList)
     })
 
     onBeforeUnmount(() => {
-      if (stopWatchUserList) {
-        stopWatchUserList()
-        stopWatchUserList = null
+      if (stopWatchFavoriteGroups) {
+        stopWatchFavoriteGroups()
+        stopWatchFavoriteGroups = null
       }
     })
 
@@ -159,11 +163,18 @@ export default {
           ? 4
           : width < 3840 ? 5 : 6
     },
-    handleClick(index) {
-      if (this.moveMode) void moveListMusics(this.fromListId, this.lists[index].id, [this.currentMusicInfo])
-      else void addListMusics(this.lists[index].id, [this.currentMusicInfo])
+    async handleClick(index) {
+      const target = this.lists[index]
+      const musicInfo = this.currentMusicInfo
+      // 收藏分组目标：歌曲进入「我的收藏」并按分组归属
+      const targetListId = target.isGroup ? loveList.id : target.id
+      try {
+        if (this.moveMode) await moveListMusics(this.fromListId, targetListId, [musicInfo])
+        else await addListMusics(targetListId, [musicInfo])
+        if (target.isGroup) await setMusicGroupIds(musicInfo.id, [target.id])
+        this.lists[index].isExist = true
+      } catch { /* 忽略写入失败（数据层问题由主进程日志暴露） */ }
 
-      this.lists[index].isExist = true
       if (this.keyModDown && !this.moveMode) return
       this.$nextTick(() => {
         this.handleClose()
@@ -185,10 +196,12 @@ export default {
       let name = event.target.value
       this.newListName = event.target.value = ''
       this.isEditing = false
-      if (!name || (
-        userLists.some(l => l.name == name) && !(await dialog.confirm(window.i18n.t('list_duplicate_tip'))))
-      ) return
-      void createUserList({ name })
+      if (!name) return
+      if (favoriteGroups.some(g => g.name == name) && !(await dialog.confirm(window.i18n.t('list_duplicate_tip')))) return
+      // 新建收藏分组并直接执行「添加到该分组」
+      const groupId = await addFavoriteGroup(name)
+      this.lists.push({ id: groupId, name, isGroup: true, isExist: false })
+      await this.handleClick(this.lists.length - 1)
     },
   },
 }
