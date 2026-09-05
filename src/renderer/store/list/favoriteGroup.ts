@@ -23,14 +23,19 @@ const groupSourcesCache = new Map<string, { source: string, sourceListId: string
 export const initFavoriteGroups = async() => {
   const groups = await rendererInvoke<FavoriteGroupInfo[]>(PLAYER_EVENT_NAME.favorite_group_get)
   favoriteGroups.splice(0, favoriteGroups.length, ...groups)
-  // 拉取分组来源标记（远端歌单收藏分组的「与源同步」依据）
+  // 拉取分组来源标记（远端歌单收藏分组的「与源同步」依据）；
+  // 单个分组查询失败（如主进程 handler 缺失的旧版本）仅跳过该组，不阻塞收藏页加载
   groupSourcesCache.clear()
   await Promise.all(favoriteGroups.map(async(group) => {
-    const info = await rendererInvoke<string, { source: string, sourceListId: string } | null>(PLAYER_EVENT_NAME.favorite_group_source_get, group.id)
-    if (info) {
-      group.source = info.source as LX.OnlineSource
-      group.sourceListId = info.sourceListId
-      groupSourcesCache.set(group.id, info)
+    try {
+      const info = await rendererInvoke<string, { source: string, sourceListId: string } | null>(PLAYER_EVENT_NAME.favorite_group_source_get, group.id)
+      if (info) {
+        group.source = info.source as LX.OnlineSource
+        group.sourceListId = info.sourceListId
+        groupSourcesCache.set(group.id, info)
+      }
+    } catch (err) {
+      console.warn('[favoriteGroup] 拉取分组来源失败，跳过:', err)
     }
   }))
 }
