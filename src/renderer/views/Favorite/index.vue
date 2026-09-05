@@ -2,21 +2,20 @@
   <div id="favorite" :class="$style.container">
     <header :class="$style.header">
       <h2 :class="$style.title">{{ $t('favorite') }}</h2>
-      <button :class="$style.headerBtn" :aria-label="$t('local_music')" @click="handleOpenLocalMusic">
-        <svg-icon name="audio-wave" />
-      </button>
-      <template v-if="!isShowNewGroup">
-        <button :class="$style.headerBtn" :aria-label="$t('favorite_group_new')" @click="handleNewGroup">
-          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 24 24" space="preserve">
-            <use xlink:href="#icon-list-add" />
-          </svg>
-        </button>
-      </template>
-      <base-input v-else ref="newGroupInput" v-model="newGroupName" :class="$style.newGroupInput" :placeholder="$t('favorite_group_new_input')" @keyup.enter="handleSaveNewGroup" @blur="handleSaveNewGroup" />
     </header>
     <div :class="$style.main">
       <div :class="$style.groupsWrap">
         <ul :class="['scroll', $style.groups]">
+          <li
+            :class="[$style.groupItem, { [$style.active]: isLocalMusic }]"
+            :aria-label="$t('local_music')"
+            @click="handleOpenLocalMusic"
+          >
+            <span :class="$style.groupLabel">
+              <svg-icon name="audio-wave" :class="$style.localMusicIcon" />
+              {{ $t('local_music') }}
+            </span>
+          </li>
           <li
             :class="[$style.groupItem, { [$style.active]: currentGroupId == null }]"
             :aria-label="$t('favorite_group_all')"
@@ -38,12 +37,15 @@
           </li>
         </ul>
         <p v-if="!favoriteGroups.length" :class="$style.emptyTip">{{ $t('favorite_group_empty') }}</p>
-        <button :class="$style.newGroupBtn" :aria-label="$t('favorite_group_new')" @click="handleNewGroup">
-          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 24 24" space="preserve">
-            <use xlink:href="#icon-list-add" />
-          </svg>
-          <span>{{ $t('favorite_group_new') }}</span>
-        </button>
+        <template v-if="!isShowNewGroup">
+          <button :class="$style.newGroupBtn" :aria-label="$t('favorite_group_new')" @click="handleNewGroup">
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 24 24" space="preserve">
+              <use xlink:href="#icon-list-add" />
+            </svg>
+            <span>{{ $t('favorite_group_new') }}</span>
+          </button>
+        </template>
+        <base-input v-else ref="newGroupInput" v-model="newGroupName" :class="$style.newGroupInput" :placeholder="$t('favorite_group_new_input')" @keyup.enter="handleSaveNewGroup" @blur="handleSaveNewGroup" />
       </div>
       <div :class="$style.listWrap">
         <MusicList
@@ -96,6 +98,9 @@ export default {
     }
   },
   computed: {
+    isLocalMusic() {
+      return this.$route.path == '/local'
+    },
     groupMusicList() {
       const set = new Set(this.groupMusics)
       return this.loveListMusics.filter(m => set.has(m.id))
@@ -351,6 +356,12 @@ export default {
   min-width: 0;
   font-size: 13px;
   .mixin-ellipsis-1();
+}
+.localMusicIcon {
+  flex: none;
+  height: 12px;
+  margin-right: 6px;
+  color: var(--color-font-label);
 }
 .groupSourceBadge {
   flex: none;
