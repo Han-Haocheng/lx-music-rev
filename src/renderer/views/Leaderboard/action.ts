@@ -24,10 +24,18 @@ export const addSongListDetail = async(id: string, name: string, source: LX.Onli
     // 已收藏过该网络列表，不重复收录
     return
   }
-  // 同名保护：远程列表与本地已有收藏分组同名时不得覆盖——中止收藏，保持本地收藏不变
+  // 同名分组：无来源的自建分组 → 绑定来源并并入歌曲（不覆盖歌曲，之后可「与源同步」）；已绑定其它来源 → 中止避免覆盖
   const sameNameGroup = favoriteGroups.find(g => g.name == name)
   if (sameNameGroup) {
-    void dialog({ message: window.i18n.t('favorite_group_dup_name_tip', { name: sameNameGroup.name }) })
+    if (sameNameGroup.source && sameNameGroup.sourceListId != getListId(id)) {
+      void dialog({ message: window.i18n.t('favorite_group_dup_name_tip', { name: sameNameGroup.name }) })
+      return
+    }
+    const list = await getListDetailAll(id)
+    if (!list.length) return
+    await addListMusics(LIST_IDS.LOVE, list)
+    for (const musicInfo of list) await setMusicGroupIds(musicInfo.id, [sameNameGroup.id])
+    if (!sameNameGroup.source) await setFavoriteGroupSource(sameNameGroup.id, source, getListId(id))
     return
   }
 
