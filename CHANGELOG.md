@@ -8,6 +8,10 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### 修复
+
+- 界面：修复菜单（右键菜单 / 歌词设置菜单）关闭后焦点仍滞留菜单内部导致的可访问性告警（aria-hidden 因内部持有焦点被浏览器拦截）；隐藏的菜单不再可被键盘聚焦
+
 ## [1.3.1-beta.4] - 2026-09-05
 
 ## [1.3.1-beta.3] - 2026-09-05

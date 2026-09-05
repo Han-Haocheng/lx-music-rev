@@ -22,6 +22,9 @@ export default ({ visible, location, onHide }) => {
     menuStyles.pointerEvents = 'auto'
   }
   const handleHide = () => {
+    // 隐藏时释放菜单内部焦点，避免 aria-hidden 因内部持有焦点被浏览器拦截（a11y）
+    const active = document.activeElement
+    if (active && dom_menu.value?.contains(active)) active.blur()
     menuStyles.opacity = 0
     menuStyles.transform = 'scale(.8, .7) translate(0, 0)'
     menuStyles.pointerEvents = 'none'

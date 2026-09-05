@@ -1,6 +1,6 @@
 <template>
   <teleport to="#root">
-    <ul ref="dom_menu" :class="$style.list" :style="menuStyles" role="toolbar" :aria-hidden="!modelValue">
+    <ul ref="dom_menu" :class="$style.list" :style="menuStyles" role="toolbar" :aria-hidden="!modelValue" :inert="!modelValue">
       <li
         v-for="item in menus"
         v-show="!item.hide && (item.action == 'download' ? appSetting['download.enable'] : true)"

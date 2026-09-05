@@ -1,6 +1,6 @@
 <template>
   <teleport to="#root">
-    <div ref="dom_menu" :class="$style.container" :style="menuStyles" :aria-hidden="!modelValue">
+    <div ref="dom_menu" :class="$style.container" :style="menuStyles" :aria-hidden="!modelValue" :inert="!modelValue">
       <!-- <div :class="$style.group">
       <div :class="$style.title">{{ $t('lyric_menu__align') }}</div>
       <div :class="$style.subGroup">
