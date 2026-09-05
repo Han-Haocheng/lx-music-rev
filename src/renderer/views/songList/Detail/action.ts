@@ -25,6 +25,12 @@ export const addSongListDetail = async(id: string, source: LX.OnlineSource, name
     // 已收藏过该网络列表，不重复收录
     return
   }
+  // 同名保护：远程列表与本地已有收藏分组同名时不得覆盖——中止收藏，保持本地收藏不变
+  const sameNameGroup = favoriteGroups.find(g => g.name == displayName)
+  if (sameNameGroup) {
+    void dialog({ message: window.i18n.t('favorite_group_dup_name_tip', { name: sameNameGroup.name }) })
+    return
+  }
 
   const list = await getListDetailAll(id, source)
   if (!list.length) return
