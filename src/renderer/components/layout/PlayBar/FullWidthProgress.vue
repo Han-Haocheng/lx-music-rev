@@ -13,6 +13,14 @@
       </div>
       <div :class="$style.status">{{ statusText }}</div>
     </div>
+
+    <div :class="$style.timeContent">
+      <span>{{ nowPlayTimeStr }}</span>
+      <span style="margin: 0 1px;">/</span>
+      <span>{{ maxPlayTimeStr }}</span>
+    </div>
+    <!-- <play-progress /> -->
+    <control-btns />
     <div :class="$style.playBtnContent">
       <div :class="$style.playBtn" :aria-label="$t('player__prev')" @click="playPrev()">
         <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="100%" viewBox="0 0 1024 1024" space="preserve">
@@ -33,13 +41,6 @@
         </svg>
       </div>
     </div>
-    <div :class="$style.timeContent">
-      <span>{{ nowPlayTimeStr }}</span>
-      <span style="margin: 0 1px;">/</span>
-      <span>{{ maxPlayTimeStr }}</span>
-    </div>
-    <!-- <play-progress /> -->
-    <control-btns />
 
   </div>
 </template>

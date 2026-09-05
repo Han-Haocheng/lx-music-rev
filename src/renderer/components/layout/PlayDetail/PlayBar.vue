@@ -108,8 +108,6 @@ const {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  /* 三区对称：移除左侧工具组后让播放控制在底栏居中 */
-  margin: 0 auto;
   padding: 0 25px;
   color: var(--color-button-font);
 }

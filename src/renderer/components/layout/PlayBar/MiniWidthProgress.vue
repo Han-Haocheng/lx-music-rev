@@ -11,7 +11,19 @@
       <div :class="$style.status">{{ statusText }}</div>
     </div>
     <!-- <div :class="$style.timeContainer">
-      <div :class="$style.playBtnContent">
+  
+    <div :class="$style.timeContent">
+        <span>{{ nowPlayTimeStr }}</span>
+        <span style="margin: 0 1px;">/</span>
+        <span>{{ maxPlayTimeStr }}</span>
+        <div :class="$style.progress">
+          <common-progress-bar v-if="!isShowPlayerDetail" :class-name="$style.progressBar" :progress="progress" :handle-transition-end="handleTransitionEnd" :is-active-transition="isActiveTransition" />
+        </div>
+      </div>
+    </div> -->
+    <play-progress />
+    <control-btns />
+    <div :class="$style.playBtnContent">
       <div :class="$style.playBtn" :aria-label="$t('player__prev')" @click="playPrev()">
         <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="100%" viewBox="0 0 1024 1024" space="preserve">
           <use xlink:href="#icon-prevMusic" />
@@ -31,17 +43,6 @@
         </svg>
       </div>
     </div>
-    <div :class="$style.timeContent">
-        <span>{{ nowPlayTimeStr }}</span>
-        <span style="margin: 0 1px;">/</span>
-        <span>{{ maxPlayTimeStr }}</span>
-        <div :class="$style.progress">
-          <common-progress-bar v-if="!isShowPlayerDetail" :class-name="$style.progressBar" :progress="progress" :handle-transition-end="handleTransitionEnd" :is-active-transition="isActiveTransition" />
-        </div>
-      </div>
-    </div> -->
-    <play-progress />
-    <control-btns />
 
   </div>
 </template>
