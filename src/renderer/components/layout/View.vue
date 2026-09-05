@@ -5,6 +5,7 @@
       <component :is="Component" class="view-container" />
       <!-- </transition> -->
     </router-view>
+    <layout-play-detail />
   </div>
 </template>
 

@@ -19,7 +19,6 @@ transition(enter-active-class="animated slideInRight" leave-active-class="animat
       //- 内容组件首次打开后常驻：反复开合只切换显隐/动画，不再整树卸载重建
       LyricPlayer(v-if="contentMounted" v-show="visibled" :visible="visibled" :class="{ 'animated fadeIn': visibled }")
       music-comment(v-if="contentMounted" :class="$style.comment" :show="isShowPlayComment" :music-info="playMusicInfo.musicInfo" @close="hideComment")
-    play-bar(v-if="contentMounted" v-show="visibled" :class="{ 'animated fadeIn': visibled }")
     transition(enter-active-class="animated-slow fadeIn" leave-active-class="animated-slow fadeOut")
       common-audio-visualizer(v-if="appSetting['player.audioVisualization'] && visibled")
 </template>
@@ -40,7 +39,6 @@ import {
   setShowPlayLrcSelectContentLrc,
 } from '@renderer/store/player/action'
 import LyricPlayer from './LyricPlayer.vue'
-import PlayBar from './PlayBar.vue'
 import MusicSourceQuality from './components/MusicSourceQuality.vue'
 import MusicComment from './components/MusicComment/index.vue'
 import ControlBtnsLeftHeader from './ControlBtnsLeftHeader.vue'
@@ -55,7 +53,6 @@ export default {
     ControlBtnsLeftHeader,
     ControlBtnsRightHeader,
     LyricPlayer,
-    PlayBar,
     MusicComment,
     MusicSourceQuality,
   },
@@ -150,6 +147,16 @@ export default {
   top: 0;
   left: 0;
   background-color: var(--color-content-background);
+  // 系统全屏时覆盖整个窗口（常态下仅覆盖主内容区，侧栏/顶栏/底栏保持可见）
+  &.fullscreen {
+    position: fixed;
+    z-index: 100;
+  }
+  // 系统全屏时覆盖整个窗口（常态下仅覆盖主内容区，侧栏/顶栏/底栏保持可见）
+  &.fullscreen {
+    position: fixed;
+    z-index: 100;
+  }
   z-index: 10;
   // -webkit-app-region: drag;
   overflow: hidden;
