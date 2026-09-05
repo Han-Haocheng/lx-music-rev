@@ -7,9 +7,9 @@
       <div :class="$style.groupsWrap">
         <ul :class="['scroll', $style.groups]">
           <li
-            :class="[$style.groupItem, { [$style.active]: isLocalMusic }]"
+            :class="[$style.groupItem, { [$style.active]: showLocalMusic }]"
             :aria-label="$t('local_music')"
-            @click="handleOpenLocalMusic"
+            @click="showLocalMusic = true"
           >
             <span :class="$style.groupLabel">
               <svg-icon name="audio-wave" :class="$style.localMusicIcon" />
@@ -17,18 +17,18 @@
             </span>
           </li>
           <li
-            :class="[$style.groupItem, { [$style.active]: currentGroupId == null }]"
+            :class="[$style.groupItem, { [$style.active]: !showLocalMusic && currentGroupId == null }]"
             :aria-label="$t('favorite_group_all')"
-            @click="currentGroupId = null"
+            @click="showLocalMusic = false; currentGroupId = null"
           >
             <span :class="$style.groupLabel">{{ $t('favorite_group_all') }}</span>
             <span :class="$style.count">{{ loveListMusics.length }}</span>
           </li>
           <li
             v-for="group in favoriteGroups" :key="group.id"
-            :class="[$style.groupItem, { [$style.active]: currentGroupId == group.id, [$style.editing]: editingGroupId == group.id }]"
+            :class="[$style.groupItem, { [$style.active]: !showLocalMusic && currentGroupId == group.id, [$style.editing]: editingGroupId == group.id }]"
             :aria-label="group.name"
-            @click="currentGroupId = group.id" @contextmenu.prevent="handleGroupRightClick(group, $event)"
+            @click="handleGroupClick(group)" @contextmenu.prevent="handleGroupRightClick(group, $event)"
           >
             <span :class="$style.groupLabel">{{ group.name }}</span>
             <span v-if="group.source" :class="$style.groupSourceBadge" :title="$t('favorite_group_from_source', { name: group.sourceListId })">{{ $t('favorite_group_from_source_badge') }}</span>
@@ -49,11 +49,11 @@
       </div>
       <div :class="$style.listWrap">
         <MusicList
-          :list-id="LOVE_ID"
-          :music-list="currentGroupId == null ? null : groupMusicList"
-          :scroll-key="currentGroupId ?? LOVE_ID"
-          :allow-custom-sort="currentGroupId == null"
-          :group-actions-visible="true"
+          :list-id="showLocalMusic ? LOCAL_LIST_ID : LOVE_ID"
+          :music-list="showLocalMusic || currentGroupId == null ? null : groupMusicList"
+          :scroll-key="showLocalMusic ? LOCAL_LIST_ID : (currentGroupId ?? LOVE_ID)"
+          :allow-custom-sort="showLocalMusic || currentGroupId == null"
+          :group-actions-visible="!showLocalMusic"
           @group-modal="handleGroupModal"
         />
       </div>
@@ -66,6 +66,7 @@
 <script>
 import { nextTick } from '@common/utils/vueTools'
 import { LIST_IDS } from '@common/constants'
+import { LOCAL_LIST_ID } from '@renderer/store/localList'
 import MusicList from '../List/MusicList/index.vue'
 import MusicGroupModal from './components/MusicGroupModal.vue'
 import { favoriteGroups, initFavoriteGroups, getGroupMusics, removeFavoriteGroup, updateFavoriteGroup, addFavoriteGroup, clearGroupMusicsCache, syncFavoriteGroup } from '@renderer/store/list/favoriteGroup'
@@ -81,8 +82,10 @@ export default {
   data() {
     return {
       LOVE_ID: LIST_IDS.LOVE,
+      LOCAL_LIST_ID,
       favoriteGroups,
       currentGroupId: null,
+      showLocalMusic: false,
       loveListMusics: [],
       groupMusics: [],
       groupCounts: {},
@@ -99,7 +102,7 @@ export default {
   },
   computed: {
     isLocalMusic() {
-      return this.$route.path == '/local'
+      return this.showLocalMusic
     },
     groupMusicList() {
       const set = new Set(this.groupMusics)
@@ -128,7 +131,13 @@ export default {
   },
   methods: {
     handleOpenLocalMusic() {
-      this.$router.push({ path: '/local' })
+      // 本地音乐与收藏同页切换（不再打开新页面）
+      this.showLocalMusic = true
+      this.currentGroupId = null
+    },
+    handleGroupClick(group) {
+      this.showLocalMusic = false
+      this.currentGroupId = group.id
     },
     async handleSyncGroup(group) {
       const isConfirm = await dialog.confirm({

@@ -76,7 +76,6 @@
   "duplicate_list_tip": "你之前已收藏過清單「{name}」，是否需要更新裡面的歌曲？",
   "export": "匯出",
   "favorite": "我的收藏",
-  "back_to_favorite": "返回我的收藏",
   "favorite_group_all": "全部收藏",
   "favorite_group_assign": "歸入群組…",
   "favorite_group_empty": "還沒有群組，點擊 + 新建群組",

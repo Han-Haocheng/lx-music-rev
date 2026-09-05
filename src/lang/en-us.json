@@ -76,7 +76,6 @@
   "duplicate_list_tip": "You have collected this list \"{name}\" before. Do you need to update the songs in it?",
   "export": "Export",
   "favorite": "Favorites",
-  "back_to_favorite": "Back to favorites",
   "favorite_group_all": "All favorites",
   "favorite_group_assign": "Assign to group...",
   "favorite_group_empty": "No groups yet — click + to create one",
