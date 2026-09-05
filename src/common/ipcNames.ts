@@ -45,6 +45,9 @@ const modules = {
     favorite_group_music_get: 'favorite_group_music_get',
     favorite_group_music_set: 'favorite_group_music_set',
     favorite_group_music_list_get: 'favorite_group_music_list_get',
+    favorite_group_source_get: 'favorite_group_source_get',
+    favorite_group_source_set: 'favorite_group_source_set',
+    favorite_group_sync_musics: 'favorite_group_sync_musics',
   },
   dislike: {
     get_dislike_music_infos: 'get_dislike_music_infos',
