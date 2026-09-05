@@ -81,4 +81,7 @@ export default () => {
   mainHandle<{ groupId: string, musicInfos: LX.Music.MusicInfo[] }>(PLAYER_EVENT_NAME.favorite_group_sync_musics, async({ params: { groupId, musicInfos } }) => {
     await global.lx.worker.dbService.favoriteGroupSyncMusics(groupId, musicInfos)
   })
+  mainHandle<string, number>(PLAYER_EVENT_NAME.favorite_group_orphan_migrate, async({ params: name }) => {
+    return global.lx.worker.dbService.favoriteGroupOrphanMigrate(name)
+  })
 }

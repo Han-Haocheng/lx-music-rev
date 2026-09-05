@@ -10,7 +10,7 @@ import {
   clearAllMusicGroupRows,
   queryGroupSource,
   upsertGroupSource,
-  deleteGroupSource,
+  migrateLoveOrphans,
   syncGroupMusics,
 } from './dbHelper'
 
@@ -32,10 +32,14 @@ export const favoriteGroupUpdate = (id: string, name: string) => {
   updateFavoriteGroup({ ...group, name })
 }
 
-/** 删除收藏分组（连带清空组内歌曲映射与来源标记） */
+/** 删除收藏分组（清空组内映射与来源标记；组内歌曲不再属于任何分组时从 LOVE 一并移出） */
 export const favoriteGroupRemove = (id: string) => {
   deleteFavoriteGroup(id)
-  deleteGroupSource(id)
+}
+
+/** LOVE 孤儿歌曲迁移：归入默认兜底收藏夹；返回归组歌曲数（0 = 无孤儿） */
+export const favoriteGroupOrphanMigrate = (name: string): number => {
+  return migrateLoveOrphans(name)
 }
 
 /** 获取某首歌归属的分组 id 列表 */

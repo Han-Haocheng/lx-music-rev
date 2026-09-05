@@ -1,6 +1,7 @@
 import { reactive } from '@common/utils/vueTools'
 import { rendererInvoke } from '@common/rendererIpc'
 import { PLAYER_EVENT_NAME } from '@common/ipcNames'
+import { FAVORITE_GROUP_DEFAULT_ID } from '@common/constants'
 import { getListDetailAll as getSongListDetail } from '@renderer/store/songList/action'
 import { getListDetailAll as getBoardListDetail } from '@renderer/store/leaderboard/action'
 
@@ -93,6 +94,14 @@ export const syncFavoriteGroup = async(groupId: string): Promise<number> => {
   clearGroupMusicsCache(groupId)
   if (group) group.locationUpdateTime = Date.now()
   return list.length
+}
+
+/** 默认兜底收藏夹 id：LOVE 孤儿歌曲自动归入（用户可改名/删除，删除后若再出现孤儿会按此 id 重建） */
+export { FAVORITE_GROUP_DEFAULT_ID }
+
+/** LOVE 孤儿歌曲迁移：归入默认兜底收藏夹（返回归组歌曲数，0 = 无孤儿） */
+export const migrateOrphanMusics = async(name: string): Promise<number> => {
+  return rendererInvoke<string, number>(PLAYER_EVENT_NAME.favorite_group_orphan_migrate, name)
 }
 
 /** 获取某首歌归属的分组 id 列表 */

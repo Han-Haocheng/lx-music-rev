@@ -33,6 +33,9 @@ export const LIST_IDS = {
   PLAY_SESSION: 'session',
 } as const
 
+/** 默认兜底收藏夹 id（LOVE 孤儿歌曲迁移归入；用户可改名/删除） */
+export const FAVORITE_GROUP_DEFAULT_ID = 'favgroup_default'
+
 export const DATA_KEYS = {
   viewPrevState: 'viewPrevState',
   playInfo: 'playInfo',

@@ -151,3 +151,6 @@ export const createLoveMusicInfoOrderDeleteStatement = () => {
   const db = getDB()
   return db.prepare<[string]>('DELETE FROM "main"."my_list_music_info_order" WHERE "listId"=\'love\' AND "musicInfoId"=?')
 }
+export const createQueryLoveOrphanIdsStatement = () => {
+  return cachedStatement('SELECT "id" AS "musicInfoId" FROM "main"."my_list_music_info" WHERE "listId"=\'love\' AND "id" NOT IN (SELECT "musicInfoId" FROM "main"."favorite_group_musics")')
+}

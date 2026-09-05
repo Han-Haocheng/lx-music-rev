@@ -16,14 +16,7 @@
               {{ $t('local_music') }}
             </span>
           </li>
-          <li
-            :class="[$style.groupItem, { [$style.active]: !showLocalMusic && currentGroupId == null }]"
-            :aria-label="$t('favorite_group_all')"
-            @click="showLocalMusic = false; currentGroupId = null"
-          >
-            <span :class="$style.groupLabel">{{ $t('favorite_group_all') }}</span>
-            <span :class="$style.count">{{ loveListMusics.length }}</span>
-          </li>
+          <!-- 全部收藏（LOVE 聚合视图）已移除：收藏以收藏夹为唯一容器，见 CHANGELOG -->
           <li
             v-for="group in favoriteGroups" :key="group.id"
             :class="[$style.groupItem, { [$style.active]: !showLocalMusic && currentGroupId == group.id, [$style.editing]: editingGroupId == group.id }]"
@@ -50,9 +43,9 @@
       <div :class="$style.listWrap">
         <MusicList
           :list-id="showLocalMusic ? LOCAL_LIST_ID : LOVE_ID"
-          :music-list="showLocalMusic || currentGroupId == null ? null : groupMusicList"
-          :scroll-key="showLocalMusic ? LOCAL_LIST_ID : (currentGroupId ?? LOVE_ID)"
-          :allow-custom-sort="showLocalMusic || currentGroupId == null"
+          :music-list="showLocalMusic ? null : (currentGroupId == null ? [] : groupMusicList)"
+          :scroll-key="showLocalMusic ? LOCAL_LIST_ID : (currentGroupId ?? 'favorite')"
+          :allow-custom-sort="showLocalMusic"
           :group-actions-visible="!showLocalMusic"
           @group-modal="handleGroupModal"
         />
@@ -69,7 +62,8 @@ import { LIST_IDS } from '@common/constants'
 import { LOCAL_LIST_ID } from '@renderer/store/localList'
 import MusicList from '../List/MusicList/index.vue'
 import MusicGroupModal from './components/MusicGroupModal.vue'
-import { favoriteGroups, initFavoriteGroups, getGroupMusics, removeFavoriteGroup, updateFavoriteGroup, addFavoriteGroup, clearGroupMusicsCache, syncFavoriteGroup } from '@renderer/store/list/favoriteGroup'
+import { favoriteGroups, initFavoriteGroups, getGroupMusics, removeFavoriteGroup, updateFavoriteGroup, addFavoriteGroup, clearGroupMusicsCache, syncFavoriteGroup, getMusicGroupIds, migrateOrphanMusics, FAVORITE_GROUP_DEFAULT_ID } from '@renderer/store/list/favoriteGroup'
+import { playMusicInfo } from '@renderer/store/player/state'
 import { appSetting } from '@renderer/store/setting'
 import { getListMusics, getListMusicsFromCache } from '@renderer/store/list/action'
 import { dialog } from '@renderer/plugins/Dialog'
@@ -164,8 +158,34 @@ export default {
     async initData() {
       clearGroupMusicsCache()
       await initFavoriteGroups()
+      // 无容器孤儿歌曲（历史存量/整库恢复残留）自动归入默认兜底收藏夹「我的收藏」
+      try {
+        const migrated = await migrateOrphanMusics(this.$t('favorite_group_default'))
+        if (migrated) await initFavoriteGroups()
+      } catch (err) {
+        console.warn('[favorite] 孤儿迁移失败，跳过:', err)
+      }
       await this.refreshLoveList()
       await this.refreshGroupMusics()
+      await this.selectInitialGroup()
+    },
+    // 首次进入/无选中时：播放中的收藏歌曲所属收藏夹优先，其次默认兜底收藏夹，最后第一个收藏夹
+    async selectInitialGroup() {
+      if (this.showLocalMusic || this.currentGroupId != null) return
+      const playing = playMusicInfo
+      if (playing.listId == LIST_IDS.LOVE && playing.musicInfo) {
+        try {
+          const groupIds = await getMusicGroupIds(playing.musicInfo.id)
+          if (groupIds.length) {
+            this.currentGroupId = groupIds[0]
+            return
+          }
+        } catch (err) {
+          console.warn('[favorite] 播放歌曲归属查询失败，跳过:', err)
+        }
+      }
+      const defaultGroup = favoriteGroups.find(g => g.id == FAVORITE_GROUP_DEFAULT_ID)
+      this.currentGroupId = (defaultGroup ?? favoriteGroups[0])?.id ?? null
     },
     async refreshLoveList() {
       await getListMusics(LIST_IDS.LOVE)
@@ -240,9 +260,15 @@ export default {
           confirmButtonText: this.$t('confirm_button_text'),
         }).then(async isConfirm => {
           if (!isConfirm) return
+          const groupIndex = this.favoriteGroups.findIndex(g => g.id == group.id)
           await removeFavoriteGroup(group.id)
-          if (this.currentGroupId == group.id) this.currentGroupId = null
+          clearGroupMusicsCache()
+          // 删除收藏夹会把不再属于任何收藏夹的歌曲一并移出收藏，LOVE 快照同步刷新
+          await this.refreshLoveList()
           await this.refreshGroupMusics()
+          if (!this.favoriteGroups.some(g => g.id == this.currentGroupId)) {
+            this.currentGroupId = this.favoriteGroups[Math.min(groupIndex, this.favoriteGroups.length - 1)]?.id ?? null
+          }
         })
       }
     },
@@ -269,6 +295,8 @@ export default {
     },
     handleGroupModalChanged() {
       clearGroupMusicsCache()
+      // 归组若全不勾选会把歌曲移出收藏（LOVE 同步删除），刷新 LOVE 快照与分组内容
+      void this.refreshLoveList()
       void this.refreshGroupMusics()
     },
   },

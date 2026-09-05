@@ -48,6 +48,7 @@ const modules = {
     favorite_group_source_get: 'favorite_group_source_get',
     favorite_group_source_set: 'favorite_group_source_set',
     favorite_group_sync_musics: 'favorite_group_sync_musics',
+    favorite_group_orphan_migrate: 'favorite_group_orphan_migrate',
   },
   dislike: {
     get_dislike_music_infos: 'get_dislike_music_infos',
