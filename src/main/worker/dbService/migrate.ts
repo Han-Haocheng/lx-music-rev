@@ -46,37 +46,42 @@ export const migrateUserListsToFavoriteGroups = (db: DB) => {
   const maxOrderQuery = db.prepare<[]>('SELECT MAX("order") AS m FROM "main"."my_list_music_info_order" WHERE "listId"=\'love\'')
   const maxGroupPositionQuery = db.prepare<[]>('SELECT MAX("position") AS m FROM "main"."favorite_groups"')
 
-  db.transaction(() => {
-    let maxOrder = (maxOrderQuery.get() as { m: number | null }).m ?? -1
-    let groupPosition = (maxGroupPositionQuery.get() as { m: number | null }).m ?? -1
+  try {
+    db.transaction(() => {
+      let maxOrder = (maxOrderQuery.get() as { m: number | null }).m ?? -1
+      let groupPosition = (maxGroupPositionQuery.get() as { m: number | null }).m ?? -1
 
-    for (const list of userLists) {
-      // 同名分组复用，否则创建
-      const existed = groupQuery.get(list.name) as { id: string } | undefined
-      let groupId = existed?.id
-      if (!groupId) {
-        groupId = 'favgroup_mig_' + list.id
-        groupPosition += 1
-        groupInsert.run({ id: groupId, name: list.name, position: groupPosition })
-      }
-      // 歌曲：去重写入 love 并归入分组
-      const musics = musicQuery.all(list.id, list.id) as MusicInfoRow[]
-      for (const music of musics) {
-        if (!loveMusicQuery.get(music.id)) {
-          musicInsert.run(music)
-          maxOrder += 1
-          orderInsert.run({ listId: 'love', musicInfoId: music.id, order: maxOrder })
+      for (const list of userLists) {
+        // 同名分组复用，否则创建
+        const existed = groupQuery.get(list.name) as { id: string } | undefined
+        let groupId = existed?.id
+        if (!groupId) {
+          groupId = 'favgroup_mig_' + list.id
+          groupPosition += 1
+          groupInsert.run({ id: groupId, name: list.name, position: groupPosition })
         }
-        groupMusicInsert.run({ groupId, musicInfoId: music.id })
+        // 歌曲：去重写入 love 并归入分组
+        const musics = musicQuery.all(list.id, list.id) as MusicInfoRow[]
+        for (const music of musics) {
+          if (!loveMusicQuery.get(music.id)) {
+            musicInsert.run(music)
+            maxOrder += 1
+            orderInsert.run({ listId: 'love', musicInfoId: music.id, order: maxOrder })
+          }
+          groupMusicInsert.run({ groupId, musicInfoId: music.id })
+        }
       }
-    }
-    // 清理自建列表数据
-    const listIds = userLists.map(l => l.id)
-    const listIdsLiteral = listIds.map(id => JSON.stringify(id)).join(',')
-    db.exec('DELETE FROM "main"."my_list"')
-    db.exec('DELETE FROM "main"."my_list_music_info" WHERE "listId" IN (' + listIdsLiteral + ')')
-    db.exec('DELETE FROM "main"."my_list_music_info" WHERE "listId" IN (' + listIdsLiteral + ')')
-  })()
+      // 清理自建列表数据
+      const listIds = userLists.map(l => l.id)
+      const listIdsLiteral = listIds.map(id => "'" + id.replace(/'/g, "''") + "'").join(',')
+      db.exec('DELETE FROM "main"."my_list"')
+      db.exec('DELETE FROM "main"."my_list_music_info_order" WHERE "listId" IN (' + listIdsLiteral + ')')
+      db.exec('DELETE FROM "main"."my_list_music_info" WHERE "listId" IN (' + listIdsLiteral + ')')
+    })()
+  } catch (err) {
+    // 迁移失败不抛出：避免上层误判整库损坏触发备份重建，保留数据下次启动重试
+    console.warn('[dbService] 自建列表并入收藏分组迁移失败（保留数据，下次启动重试）:', err)
+  }
 }
 
 export default (db: DB) => {
