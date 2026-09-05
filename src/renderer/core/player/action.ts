@@ -271,10 +271,10 @@ export const playList = (listId: string, index: number, list?: Array<LX.Music.Mu
 }
 
 const handleToggleStop = () => {
+  // 先清空播放信息再广播 stop：主进程“stoped”广播仅在播放信息为空时发出（usePlayStatus.handleStop 判断），
+  // 原顺序先 stop 后清空会导致该广播被跳过，托盘/任务栏残留“播放中”状态
+  setPlayMusicInfo(null, null)
   stop()
-  setTimeout(() => {
-    setPlayMusicInfo(null, null)
-  })
 }
 
 const randomNextMusicInfo = {
@@ -475,9 +475,11 @@ export const playNext = async(isAutoToggle = false): Promise<void> => {
       break
     default:
       nextIndex = -1
-      return
   }
   if (nextIndex < 0) {
+    // 队列末尾自动切歌无下一曲（顺序播放末曲/单曲播放/none 等）：音频已播完，
+    // 这里必须走 handleToggleStop 停止播放态并清空，否则 isPlay/进度/托盘仍呈“播放中”
+    handleToggleStop()
     return
   }
 

@@ -1,11 +1,10 @@
 import { isLinux } from '@common/utils'
-import { closeWindow, createWindow, getBounds, isExistWindow, alwaysOnTopTools, setBounds, setIgnoreMouseEvents, setSkipTaskbar } from './main'
+import { getBounds, isExistWindow, alwaysOnTopTools, setBounds, setIgnoreMouseEvents, setSkipTaskbar } from './main'
 import { sendConfigChange, sendMouseLeave } from './rendererEvent'
 import { buildLyricConfig, getLyricWindowBounds, initWindowSize, watchConfigKeys } from './utils'
 import { mouseCheckTools } from './mouseCheckTools'
 
 let isLock: boolean
-let isEnable: boolean
 let isAlwaysOnTop: boolean
 let isAlwaysOnTopLoop: boolean
 let isShowTaskbar: boolean
@@ -79,14 +78,6 @@ export const setLrcConfig = (keys: Array<keyof LX.AppSetting>, setting: Partial<
       ))
     }
   }
-  if (keys.includes('desktopLyric.enable') && isEnable != global.lx.appSetting['desktopLyric.enable']) {
-    isEnable = global.lx.appSetting['desktopLyric.enable']
-    if (global.lx.appSetting['desktopLyric.enable']) {
-      createWindow()
-    } else {
-      alwaysOnTopTools.clearLoop()
-      mouseCheckTools.cacnelCheck()
-      closeWindow()
-    }
-  }
+  // 注意：desktopLyric.enable 的开启/关闭（创建/关闭歌词窗口）由 winLyric/index.ts 的
+  // updated_config 统一处理——那里需要结合主窗口全屏状态判断 fullscreenHide，故不在此处理
 }

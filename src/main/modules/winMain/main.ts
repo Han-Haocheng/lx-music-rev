@@ -189,11 +189,16 @@ export const closeWindow = () => {
   browserWindow.close()
 }
 
+// 剥离 host 上可能残留的 http(s):// 前缀（旧配置或命令行代理等来源），
+// 避免拼出 "http://http://…" 的无效 proxyRules（与渲染层设置页写入时的剥离互为双保险）
+const hostSchemeRxp = /^https?:\/\//i
+
 const setSesProxy = (ses: Electron.Session, host?: string, port?: string | number) => {
-  if (host) {
+  const hostName = host?.trim().replace(hostSchemeRxp, '')
+  if (hostName) {
     void ses.setProxy({
       mode: 'fixed_servers',
-      proxyRules: `http://${host}:${port}`,
+      proxyRules: `http://${hostName}:${port}`,
     })
   } else {
     void ses.setProxy({

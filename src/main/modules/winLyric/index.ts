@@ -2,7 +2,8 @@ import { APP_EVENT_NAMES } from '@common/constants'
 import initRendererEvent, { sendMainWindowInitedEvent } from './rendererEvent'
 import { setLrcConfig } from './config'
 import { HOTKEY_DESKTOP_LYRIC } from '@common/hotKey'
-import { closeWindow, createWindow, isExistWindow } from './main'
+import { alwaysOnTopTools, closeWindow, createWindow, isExistWindow } from './main'
+import { mouseCheckTools } from './mouseCheckTools'
 // import main from './main'
 // import { Event, EVENT_NAMES } from './event'
 
@@ -27,6 +28,21 @@ export default () => {
   })
   global.lx.event_app.on('updated_config', (keys, setting) => {
     setLrcConfig(keys, setting)
+    if (keys.includes('desktopLyric.enable')) {
+      if (global.lx.appSetting['desktopLyric.enable']) {
+        if (global.lx.appSetting['desktopLyric.fullscreenHide'] && isMainWidnowFullscreen) {
+          // 主窗口全屏且开启全屏隐藏：开启桌面歌词也不创建窗口（已存在则关闭，防止残留）
+          if (isExistWindow()) closeWindow()
+        } else {
+          createWindow()
+        }
+      } else {
+        // 关闭桌面歌词：与 config.ts 原关闭逻辑一致（先停用循环再关窗）
+        alwaysOnTopTools.clearLoop()
+        mouseCheckTools.cacnelCheck()
+        closeWindow()
+      }
+    }
     if (keys.includes('desktopLyric.fullscreenHide') && global.lx.appSetting['desktopLyric.enable'] && isMainWidnowFullscreen) {
       if (global.lx.appSetting['desktopLyric.fullscreenHide']) closeWindow()
       else if (!isExistWindow()) createWindow()
