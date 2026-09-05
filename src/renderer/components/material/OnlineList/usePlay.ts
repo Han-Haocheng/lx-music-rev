@@ -19,15 +19,17 @@ export default ({ selectedList, props, removeAllSelect, emit }: {
   let clickIndex = -1
 
   const handlePlayMusic = async(index: number, single: boolean) => {
-    let targetSong = props.list[index]
-    const defaultListMusics = await getListMusics(defaultList.id)
+    const targetSong = props.list[index]
     if (selectedList.value.length && !single) {
       await addListMusics(defaultList.id, [...selectedList.value])
       removeAllSelect()
     } else {
       await addListMusics(defaultList.id, [targetSong])
     }
-    let targetIndex = defaultListMusics.findIndex(s => s.id === targetSong.id)
+    // 用添加完成后的最新列表定位目标歌：
+    // 此前用播放前拉取的旧缓存找索引，刚点击的新歌（试听列表原本没有）会得到 -1 而静默不播放，播放列表因此不更新
+    const targetList = await getListMusics(defaultList.id)
+    const targetIndex = targetList.findIndex(s => s.id === targetSong.id)
     if (targetIndex > -1) {
       playList(defaultList.id, targetIndex)
     }
