@@ -160,7 +160,7 @@ const icon = computed(() => {
   flex-flow: column nowrap;
   padding: 2px 3px;
   gap: 8px;
-  width: 140px;
+  width: 340px;
 }
 
 .info {
