@@ -214,6 +214,17 @@ export const getPlayInfo = async() => {
   return rendererInvoke<string, LX.Player.SavedPlayInfo | null>(WIN_MAIN_RENDERER_EVENT_NAME.get_data, DATA_KEYS.playInfo)
 }
 
+export const savePlayQueueBundle = (bundle: LX.Player.SavedPlayQueue) => {
+  rendererSend(WIN_MAIN_RENDERER_EVENT_NAME.save_data, {
+    path: DATA_KEYS.playQueue,
+    data: bundle,
+  })
+}
+// 获取上次关闭时的会话播放队列（歌曲清单；跨重启恢复用）
+export const getPlayQueueBundle = async() => {
+  return rendererInvoke<string, LX.Player.SavedPlayQueue | null>(WIN_MAIN_RENDERER_EVENT_NAME.get_data, DATA_KEYS.playQueue)
+}
+
 export const saveSearchHistoryList = (list: LX.List.SearchHistoryList) => {
   rendererSend(WIN_MAIN_RENDERER_EVENT_NAME.save_data, {
     path: DATA_KEYS.searchHistoryList,

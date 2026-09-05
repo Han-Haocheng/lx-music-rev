@@ -53,7 +53,7 @@
 <script>
 import { computed, ref, watch, nextTick } from '@common/utils/vueTools'
 import { playInfo, playMusicInfo } from '@renderer/store/player/state'
-import { getPlayList, setPlayListSnapshot } from '@renderer/store/player/action'
+import { getPlayList, setPlayListSnapshot, persistPlayQueue } from '@renderer/store/player/action'
 import { playList, playNext } from '@renderer/core/player'
 import { dialog } from '@renderer/plugins/Dialog'
 
@@ -105,6 +105,7 @@ export default {
       const isCurrent = !playMusicInfo.isTempPlay && index === playInfo.playIndex
       const newList = list.value.filter((_, i) => i != index)
       setPlayListSnapshot(newList)
+      persistPlayQueue()
       if (isCurrent) void playNext(true)
     }
 
@@ -119,6 +120,7 @@ export default {
       })
       if (!isConfirm) return
       setPlayListSnapshot([])
+      persistPlayQueue()
     }
 
     const handleLocate = () => {
