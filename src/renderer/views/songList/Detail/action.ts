@@ -13,7 +13,8 @@ export const addSongListDetail = async(id: string, source: LX.OnlineSource, name
   // console.log(this.listDetail.info)
   // if (!this.listDetail.info.name) return
   const displayName = name ?? id
-  const targetGroup = favoriteGroups.find(g => g.name == displayName)
+  // 按来源标识判重（同一网络列表不可重复收藏；此前按名称判重会在歌单改名后重复收藏）
+  const targetGroup = favoriteGroups.find(g => g.sourceListId == getListId(id, source))
   if (targetGroup) {
     const confirm = await dialog.confirm({
       message: window.i18n.t('duplicate_list_tip', { name: targetGroup.name }),
@@ -21,7 +22,7 @@ export const addSongListDetail = async(id: string, source: LX.OnlineSource, name
       confirmButtonText: window.i18n.t('confirm_button_text'),
     })
     if (!confirm) return
-    // 已收藏过同名歌单，不重复收录
+    // 已收藏过该网络列表，不重复收录
     return
   }
 

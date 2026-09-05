@@ -12,7 +12,8 @@ export const addSongListDetail = async(id: string, name: string, source: LX.Onli
   // 自建列表已退役：收藏歌单 = 歌曲收藏进「我的收藏」并归入同名收藏分组
   // console.log(this.listDetail.info)
   // if (!this.listDetail.info.name) return
-  const targetGroup = favoriteGroups.find(g => g.name == name)
+  // 按来源标识判重（同一网络列表不可重复收藏；此前按名称判重会在歌单改名后重复收藏）
+  const targetGroup = favoriteGroups.find(g => g.sourceListId == getListId(id))
   if (targetGroup) {
     const confirm = await dialog.confirm({
       message: window.i18n.t('duplicate_list_tip', { name: targetGroup.name }),
@@ -20,7 +21,7 @@ export const addSongListDetail = async(id: string, name: string, source: LX.Onli
       confirmButtonText: window.i18n.t('confirm_button_text'),
     })
     if (!confirm) return
-    // 已收藏过同名歌单，不重复收录
+    // 已收藏过该网络列表，不重复收录
     return
   }
 
