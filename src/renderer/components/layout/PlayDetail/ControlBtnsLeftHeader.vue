@@ -1,7 +1,7 @@
 <template lang="pug">
 div(:class="$style.header")
   div(ref="dom_btns" :class="$style.controBtn")
-    header-actions
+    header-actions(:class="$style.headerActions")
     button(type="button" :class="$style.hide" :aria-label="$t('player__hide_detail_tip')" ignore-tip :title="$t('player__hide_detail_tip')" @click="hide")
       svg(:class="$style.controBtnIcon" version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" width="80%" viewBox="0 0 30.727 30.727" space="preserve")
         use(xlink:href="#icon-window-hide")
@@ -70,6 +70,11 @@ const fullscreenExit = () => {
 
 
 <style lang="less" module>
+.headerActions {
+  flex: none;
+  margin-right: 12px;
+}
+
 @import '@renderer/assets/styles/layout.less';
 
 @control-btn-width: @height-toolbar * .26;

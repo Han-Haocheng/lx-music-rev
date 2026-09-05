@@ -1,7 +1,6 @@
 <template>
   <div :class="$style.footer">
     <div :class="$style.footerLeft">
-      <control-btns />
       <div :class="$style.progressContainer">
         <div :class="$style.progressContent">
           <common-progress-bar
@@ -42,7 +41,6 @@ import { playNext, playPrev, togglePlay } from '@renderer/core/player'
 import { status, isPlay } from '@renderer/store/player/state'
 import usePlayProgress from '@renderer/utils/compositions/usePlayProgress'
 
-import ControlBtns from './components/ControlBtns.vue'
 
 const {
   nowPlayTimeStr,
@@ -110,6 +108,8 @@ const {
   display: flex;
   justify-content: flex-end;
   align-items: center;
+  /* 三区对称：移除左侧工具组后让播放控制在底栏居中 */
+  margin: 0 auto;
   padding: 0 25px;
   color: var(--color-button-font);
 }
