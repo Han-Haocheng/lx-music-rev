@@ -14,6 +14,10 @@ export default ({ props, onLoadedList }) => {
 
 
   const list = ref([])
+  // setup 同步阶段的 immediate 触发时，onLoadedList 依赖的后续 setup 声明（restoreScroll）尚未初始化，
+  // 直接同步调用会 TDZ 崩溃（挂载即传入非空 musicList 时命中）；延后到微任务（setup 完成）执行，
+  // 挂载后的列表切换仍保持同步调用语义
+  let isSetupPhase = true
   const handleListIdChange = id => {
     if (props.musicList) return
     getListMusics(id).then(l => {
@@ -26,11 +30,15 @@ export default ({ props, onLoadedList }) => {
   watch(() => props.musicList, l => {
     if (l) {
       list.value = [...l]
-      onLoadedList()
+      if (isSetupPhase) queueMicrotask(onLoadedList)
+      else onLoadedList()
       return
     }
     handleListIdChange(props.listId)
   }, { immediate: true })
+  queueMicrotask(() => {
+    isSetupPhase = false
+  })
   // list-id 模式（主列表页/收藏全部）
   watch(() => props.listId, id => {
     if (props.musicList) return

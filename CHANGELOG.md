@@ -16,6 +16,7 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 - 界面：修复菜单（右键菜单 / 歌词设置菜单）关闭后焦点仍滞留菜单内部导致的可访问性告警（aria-hidden 因内部持有焦点被浏览器拦截）；隐藏的菜单不再可被键盘聚焦
 - 界面：移除播放详情页右上角常显的「退出全屏」按钮（进入/退出全屏保留 F11 切换与 Esc 退出）
+- 收藏：修复进入收藏页时列表组件挂载期同步回调触发 TDZ（restoreScroll 未初始化）导致的 Vue 告警连锁崩溃——挂载即传入空列表时延后到 setup 完成后执行
 
 ## [1.3.1-beta.4] - 2026-09-05
 

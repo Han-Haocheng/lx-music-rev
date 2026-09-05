@@ -43,7 +43,7 @@
       <div :class="$style.listWrap">
         <MusicList
           :list-id="showLocalMusic ? LOCAL_LIST_ID : LOVE_ID"
-          :music-list="showLocalMusic ? null : (currentGroupId == null ? [] : groupMusicList)"
+          :music-list="showLocalMusic ? null : (currentGroupId == null ? emptyMusicList : groupMusicList)"
           :scroll-key="showLocalMusic ? LOCAL_LIST_ID : (currentGroupId ?? 'favorite')"
           :allow-custom-sort="showLocalMusic"
           :group-actions-visible="!showLocalMusic"
@@ -82,6 +82,7 @@ export default {
       currentGroupId: null,
       showLocalMusic: false,
       loveListMusics: [],
+      emptyMusicList: [],
       groupMusics: [],
       groupCounts: {},
       isShowNewGroup: false,
