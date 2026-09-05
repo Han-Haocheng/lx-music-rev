@@ -22,7 +22,7 @@
 <script>
 // import { mapMutations } from 'vuex'
 import { watch, ref, onBeforeUnmount } from '@common/utils/vueTools'
-import { defaultList, loveList } from '@renderer/store/list/state'
+import { loveList } from '@renderer/store/list/state'
 import { addListMusics, moveListMusics, getMusicExistListIds } from '@renderer/store/list/action'
 import useKeyDown from '@renderer/utils/compositions/useKeyDown'
 import { useI18n } from '@root/lang'
@@ -89,9 +89,8 @@ export default {
     let stopWatchFavoriteGroups = null
 
     const getList = () => {
-      // 收藏分组是「我的收藏」的归类视图：目标列表为 love，分组项按 love 参与排除过滤
+      // 目标仅「我的收藏」与收藏分组（试听列表已由独立会话播放列表取代，不再作为添加目标）
       lists.value = [
-        { ...defaultList, name: t(defaultList.name) },
         { ...loveList, name: t(loveList.name) },
         ...favoriteGroups.map(g => ({ id: g.id, name: g.name, isGroup: true })),
       ].filter(l => !props.excludeListId.includes(l.isGroup ? loveList.id : l.id)).map(l => ({ ...l, isExist: false }))
