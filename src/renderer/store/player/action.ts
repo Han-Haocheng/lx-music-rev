@@ -83,11 +83,19 @@ export const setPlayListSnapshot = (list: Array<LX.Music.MusicInfo | LX.Download
 
 /** 持久化当前会话播放队列（playerListId + 快照清单），供重启后完整恢复（见 useDataInit） */
 export const persistPlayQueue = () => {
-  const listId = playInfo.playerListId
-  // 无播放上下文时不写（避免用残留快照覆盖已清空/已停止的队列状态）
-  if (listId == null) return
-  const list = playListSnapshot.value
-  savePlayQueueBundle({ playerListId: listId, list: list ? [...list] : [] })
+  try {
+    const listId = playInfo.playerListId
+    // 无播放上下文时不写（避免用残留快照覆盖已清空/已停止的队列状态）
+    if (listId == null) return
+    const list = playListSnapshot.value
+    if (!list) return
+    // IPC 结构化克隆对队列中的非纯对象（SDK 返回的类实例/代理残留等）会抛
+    // "An object could not be cloned"；快照是纯数据语义（无函数/循环引用），先 JSON 净化再发送
+    savePlayQueueBundle({ playerListId: listId, list: JSON.parse(JSON.stringify(list)) as Array<LX.Music.MusicInfo | LX.Download.ListItem> })
+  } catch (err) {
+    // 持久化属尽力而为：任何失败只告警，不影响播放主链路
+    console.warn('[playQueue] 队列持久化失败（跳过）:', err)
+  }
 }
 
 /** 获取当前播放队列：快照优先（仅当与当前播放列表同 id），否则按 listId 实时取整表 */
