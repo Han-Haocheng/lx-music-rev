@@ -13,6 +13,7 @@ import {
   removeTempPlayList,
   setPlayListId,
   removePlayedList,
+  persistPlayQueue,
 } from '@renderer/store/player/action'
 import { appSetting } from '@renderer/store/setting'
 import { getMusicUrl, getPicPath, getLyricInfo } from '../music/index'
@@ -259,7 +260,8 @@ export const playListById = (listId: string, id: string) => {
 export const playList = (listId: string, index: number, list?: Array<LX.Music.MusicInfo | LX.Download.ListItem>) => {
   const prevListId = playInfo.playerListId
   // 会话队列：播放时始终把播放范围固化为独立队列（显式传 list 用之；否则取该列表当前内容），
-  // 播放列表（控制栏面板/上下曲）只基于此队列，与收藏/试听等持久列表解耦；重启后队列不恢复
+  // 播放列表（控制栏面板/上下曲）只基于此队列，与收藏/试听等持久列表解耦；
+  // 队列快照（playerListId+歌曲清单）随播放持久化，重启后完整恢复（见 useDataInit）
   const queue = list ?? getList(listId)
   setPlayListSnapshot(queue)
   setPlayListId(listId)
@@ -268,6 +270,7 @@ export const playList = (listId: string, index: number, list?: Array<LX.Music.Mu
   if (appSetting['player.isAutoCleanPlayedList'] || prevListId != listId) clearPlayedList()
   clearTempPlayeList()
   handlePlay()
+  persistPlayQueue()
 }
 
 const handleToggleStop = () => {

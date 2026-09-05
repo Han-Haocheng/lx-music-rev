@@ -39,6 +39,7 @@ export const FAVORITE_GROUP_DEFAULT_ID = 'favgroup_default'
 export const DATA_KEYS = {
   viewPrevState: 'viewPrevState',
   playInfo: 'playInfo',
+  playQueue: 'playQueue',
   searchHistoryList: 'searchHistoryList',
   listScrollPosition: 'listScrollPosition',
   listPrevSelectId: 'listPrevSelectId',

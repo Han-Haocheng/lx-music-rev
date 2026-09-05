@@ -20,6 +20,7 @@ import { playNext } from '@renderer/core/player'
 import { LIST_IDS } from '@common/constants'
 import { toRaw } from '@common/utils/vueTools'
 import { arrPush, arrUnshift } from '@common/utils/common'
+import { savePlayQueueBundle } from '@renderer/utils/ipc'
 
 
 type PlayerMusicInfoKeys = keyof typeof musicInfo
@@ -78,6 +79,15 @@ export const getList = (listId: string | null): Array<LX.Music.MusicInfo | LX.Do
 /** 设置播放队列快照（null 清除）；元素做 toRaw 拷贝，避免 reactive 引用残留 */
 export const setPlayListSnapshot = (list: Array<LX.Music.MusicInfo | LX.Download.ListItem> | null) => {
   playListSnapshot.value = list ? list.map(m => toRaw(m)) : null
+}
+
+/** 持久化当前会话播放队列（playerListId + 快照清单），供重启后完整恢复（见 useDataInit） */
+export const persistPlayQueue = () => {
+  const listId = playInfo.playerListId
+  // 无播放上下文时不写（避免用残留快照覆盖已清空/已停止的队列状态）
+  if (listId == null) return
+  const list = playListSnapshot.value
+  savePlayQueueBundle({ playerListId: listId, list: list ? [...list] : [] })
 }
 
 /** 获取当前播放队列：快照优先（仅当与当前播放列表同 id），否则按 listId 实时取整表 */

@@ -53,5 +53,11 @@ declare namespace LX {
       index: number
     }
 
+    /** 跨重启恢复的会话播放队列快照（playerListId 与队列歌曲清单） */
+    interface SavedPlayQueue {
+      playerListId: string | null
+      list: Array<LX.Music.MusicInfo | LX.Download.ListItem>
+    }
+
   }
 }
