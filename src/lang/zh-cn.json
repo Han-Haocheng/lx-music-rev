@@ -332,6 +332,8 @@
   "player__stop": "暂停播放",
   "player__volume": "当前音量：",
   "player__volume_mute_label": "静音",
+  "player__volume_advanced": "高级设置",
+  "player__volume_playback_rate": "倍速",
   "player__volume_output_device": "输出设备",
   "player__volume_muted": "已静音",
   "search": "搜索",

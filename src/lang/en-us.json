@@ -332,6 +332,8 @@
   "player__stop": "Paused",
   "player__volume": "Volume: ",
   "player__volume_mute_label": "Mute",
+  "player__volume_advanced": "Advanced",
+  "player__volume_playback_rate": "Playback speed",
   "player__volume_output_device": "Output device",
   "player__volume_muted": "Muted",
   "search": "Search",
