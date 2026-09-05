@@ -8,6 +8,8 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-05
+
 ### 新增
 
 - 系统：支持将 lx-music-rev 设为系统默认音频打开程序——在文件管理器中双击音乐文件（mp3 / flac / ogg / oga / wav / m4a）即打开应用并导入本地音乐列表播放该文件（安装包自动注册文件关联，Windows / macOS / Linux 均支持；应用已运行时自动切换并激活窗口）
@@ -23,6 +25,7 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### 修复
 
 - 列表：修复歌单分类标签按钮与"打开歌单"弹窗的模板 ref 绑定不一致问题（泛型 ref 声明被编译器判定为非 ref；script setup 中 $refs 无效导致输入框不自动聚焦），消除 "Template ref used on a non-ref value" 警告
+
 
 ## [1.3.0-beta.2] - 2026-09-04
 
