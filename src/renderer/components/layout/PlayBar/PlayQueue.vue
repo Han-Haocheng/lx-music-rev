@@ -118,7 +118,7 @@ export default {
     }
 
     // 清空当前会话队列（区别于仅清空已播记录）：纯队列操作，不影响收藏/试听等任何持久列表；
-    // 清空不可逆且曾误触全量删除，故二次确认
+    // 清空不可逆且曾误触全量删除，故二次确认；清空后保持面板打开，直接显示空态以便确认结果
     const handleClearPlaylist = async() => {
       if (!playInfo.playerListId) return
       const isConfirm = await dialog.confirm({
@@ -128,7 +128,6 @@ export default {
       })
       if (!isConfirm) return
       setPlayListSnapshot([])
-      handleClose()
     }
 
     const handleLocate = () => {
