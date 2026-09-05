@@ -30,8 +30,8 @@
             :aria-label="group.name"
             @click="handleGroupClick(group)" @contextmenu.prevent="handleGroupRightClick(group, $event)"
           >
+            <span v-if="group.source" :class="$style.groupSourceBadge" :title="$t('favorite_group_from_source', { name: getSourceName(group.source) })">{{ $t('favorite_group_from_source_badge') }}</span>
             <span :class="$style.groupLabel">{{ group.name }}</span>
-            <span v-if="group.source" :class="$style.groupSourceBadge" :title="$t('favorite_group_from_source', { name: group.sourceListId })">{{ $t('favorite_group_from_source_badge') }}</span>
             <span :class="$style.count">{{ groupCounts[group.id] ?? '' }}</span>
             <base-input :ref="el => setEditInputRef(group, el)" v-model="editingGroupName" :class="$style.groupEditInput" @keyup.enter="handleRenameGroup(group)" @blur="handleRenameGroup(group)" />
           </li>
@@ -70,6 +70,7 @@ import { LOCAL_LIST_ID } from '@renderer/store/localList'
 import MusicList from '../List/MusicList/index.vue'
 import MusicGroupModal from './components/MusicGroupModal.vue'
 import { favoriteGroups, initFavoriteGroups, getGroupMusics, removeFavoriteGroup, updateFavoriteGroup, addFavoriteGroup, clearGroupMusicsCache, syncFavoriteGroup } from '@renderer/store/list/favoriteGroup'
+import { appSetting } from '@renderer/store/setting'
 import { getListMusics, getListMusicsFromCache } from '@renderer/store/list/action'
 import { dialog } from '@renderer/plugins/Dialog'
 
@@ -130,6 +131,10 @@ export default {
     window.app_event.off('myListUpdate', this.handleMyListUpdate)
   },
   methods: {
+    getSourceName(source) {
+      const prefix = this.appSetting['common.sourceNameType'] == 'real' ? 'source_' : 'source_alias_'
+      return window.i18n.t(prefix + source)
+    },
     handleOpenLocalMusic() {
       // 本地音乐与收藏同页切换（不再打开新页面）
       this.showLocalMusic = true
@@ -378,7 +383,7 @@ export default {
   line-height: 1;
   padding: 2px 4px;
   border-radius: 3px;
-  margin-left: 4px;
+  margin-right: 4px;
   color: var(--color-primary);
   background: var(--color-primary-alpha-100);
   white-space: nowrap;

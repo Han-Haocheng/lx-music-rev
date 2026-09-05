@@ -87,7 +87,7 @@
   "favorite_group_sync_success": "已与源同步，共 {num} 首歌曲",
   "favorite_group_sync_failed": "与源同步失败",
   "favorite_group_from_source_badge": "源",
-  "favorite_group_from_source": "来自歌单：{name}",
+  "favorite_group_from_source": "来自 {name}",
   "favorite_group_dup_name_tip": "已存在同名收藏分组「{name}」，为避免覆盖本地收藏，未收录该网络歌单",
   "favorite_group_new_input": "新分组...",
   "favorite_group_remove": "删除分组",

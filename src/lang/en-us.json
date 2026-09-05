@@ -87,7 +87,7 @@
   "favorite_group_sync_success": "Synced with source: {num} songs",
   "favorite_group_sync_failed": "Sync failed",
   "favorite_group_from_source_badge": "SRC",
-  "favorite_group_from_source": "From playlist: {name}",
+  "favorite_group_from_source": "From {name}",
   "favorite_group_dup_name_tip": "A group with the same name \"{name}\" already exists. To avoid overwriting your favorites, this playlist was not collected.",
   "favorite_group_new_input": "New group name...",
   "favorite_group_remove": "Delete group",
