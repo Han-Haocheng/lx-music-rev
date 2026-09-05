@@ -132,7 +132,7 @@ export default {
   },
   methods: {
     getSourceName(source) {
-      const prefix = this.appSetting['common.sourceNameType'] == 'real' ? 'source_' : 'source_alias_'
+      const prefix = appSetting['common.sourceNameType'] == 'real' ? 'source_' : 'source_alias_'
       return window.i18n.t(prefix + source)
     },
     handleOpenLocalMusic() {
