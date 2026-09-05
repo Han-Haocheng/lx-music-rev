@@ -8,6 +8,8 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-09-05
+
 ### 变更
 
 - 设置：移除「双击列表里的歌曲自动切换到当前列表播放」选项（播放列表改为会话队列后该选项已无实际差别）；删除收藏夹时同步清理其记忆的滚动位置，并自动清理历史遗留滚动键（全部收藏/旧自建列表等）
@@ -21,6 +23,7 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 - 同步：WebDAV 请求改为复用主窗口所在代理会话，应用代理设置对 WebDAV 同步实时生效
 - 播放：切换「简繁转换」开关即时对当前歌词生效（此前需切歌或重取才生效）
 - 本地音乐：扫描/文件关联导入固定追加到列表底部（不再受"添加位置=顶部"设置影响、不打乱拖拽排序）
+
 
 ## [1.3.1-beta.5] - 2026-09-05
 
