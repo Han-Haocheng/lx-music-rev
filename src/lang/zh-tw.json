@@ -282,7 +282,7 @@
   "player__play_toggle_mode_random": "隨機播放",
   "playlist": "播放列表",
   "playlist_clear": "清空播放清單",
-  "playlist_clear_confirm": "確定要清空目前播放清單嗎？清空後將從清單中移除全部歌曲",
+  "playlist_clear_confirm": "確定要清空目前播放佇列嗎？僅清空佇列，不影響「我的收藏」等清單資料",
   "playlist_clear_played": "清空已播放",
   "playlist_empty_tip": "暫無播放內容，點擊歌曲列的播放按鈕加入播放列表",
   "playlist_remove_confirm": "確定從播放列表移除「{name}」嗎？該歌曲將從所屬列表一併刪除",

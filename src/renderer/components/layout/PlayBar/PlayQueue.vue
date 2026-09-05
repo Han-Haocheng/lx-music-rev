@@ -60,6 +60,7 @@ import { computed, ref, watch, nextTick } from '@common/utils/vueTools'
 import { playInfo, playMusicInfo } from '@renderer/store/player/state'
 import { getPlayList, clearPlayedList, setPlayListSnapshot } from '@renderer/store/player/action'
 import { playList, playNext } from '@renderer/core/player'
+import { dialog } from '@renderer/plugins/Dialog'
 
 export default {
   name: 'PlayQueue',
@@ -116,9 +117,16 @@ export default {
       clearPlayedList()
     }
 
-    // 清空当前会话队列（区别于仅清空已播记录）：纯队列操作，不影响收藏/试听等任何持久列表
-    const handleClearPlaylist = () => {
+    // 清空当前会话队列（区别于仅清空已播记录）：纯队列操作，不影响收藏/试听等任何持久列表；
+    // 清空不可逆且曾误触全量删除，故二次确认
+    const handleClearPlaylist = async() => {
       if (!playInfo.playerListId) return
+      const isConfirm = await dialog.confirm({
+        message: window.i18n.t('playlist_clear_confirm'),
+        cancelButtonText: window.i18n.t('cancel_button_text'),
+        confirmButtonText: window.i18n.t('confirm_button_text'),
+      })
+      if (!isConfirm) return
       setPlayListSnapshot([])
       handleClose()
     }

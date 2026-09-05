@@ -276,7 +276,7 @@
   "player__play_toggle_mode_random": "Shuffle",
   "playlist": "Play Queue",
   "playlist_clear": "Clear playlist",
-  "playlist_clear_confirm": "Clear the current playlist? All songs will be removed from it.",
+  "playlist_clear_confirm": "Clear the current playback queue? Only the queue is affected — favorites and other list data stay unchanged.",
   "playlist_clear_played": "Clear played",
   "playlist_empty_tip": "Nothing is playing yet — click the play button on a song row to add songs",
   "playlist_remove_confirm": "Remove \"{name}\" from the playlist? The song will also be deleted from its list",
