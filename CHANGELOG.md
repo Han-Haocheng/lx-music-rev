@@ -8,6 +8,10 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [Unreleased]
 
+### 修复
+
+- 播放列表：修复队列持久化偶发 "An object could not be cloned"——快照中的非纯数据对象触发 IPC 克隆失败并中断启动恢复（连带「启动时自动播放」失效）；持久化前做 JSON 净化并加失败兜底，持久化失败不再影响播放链路
+
 ## [1.3.2] - 2026-09-05
 
 ### 变更
