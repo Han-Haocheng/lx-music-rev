@@ -332,6 +332,7 @@
   "player__stop": "Paused",
   "player__volume": "Volume: ",
   "player__volume_mute_label": "Mute",
+  "player__volume_output_device": "Output device",
   "player__volume_muted": "Muted",
   "search": "Search",
   "search__hot_search": "Top Searches",

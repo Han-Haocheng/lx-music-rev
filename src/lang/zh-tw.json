@@ -332,6 +332,7 @@
   "player__stop": "暫停播放",
   "player__volume": "目前音量：",
   "player__volume_mute_label": "靜音",
+  "player__volume_output_device": "輸出裝置",
   "player__volume_muted": "已靜音",
   "search": "搜尋",
   "search__hot_search": "熱門搜尋",

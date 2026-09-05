@@ -17,17 +17,27 @@
           />
         </div>
         <base-slider-bar :class="$style.slider" :value="volume" :min="0" :max="1" :step="0.01" @change="handleUpdateVolume" />
+        <div :class="$style.advanced">
+          <div :class="$style.advancedLabel">{{ $t("player__volume_output_device") }}</div>
+          <base-selection
+            :class="$style.deviceSelection"
+            :list="outputDevices"
+            item-key="deviceId"
+            item-name="label"
+            :value="appSetting['player.mediaDeviceId']"
+            @change="handleOutputDeviceChange"
+          />
+        </div>
+
       </div>
     </template>
   </material-popup-btn>
 </template>
 
 <script setup>
-import { computed } from '@common/utils/vueTools'
-// import useNextTogglePlay from '@renderer/utils/compositions/useNextTogglePlay'
-// import useToggleDesktopLyric from '@renderer/utils/compositions/useToggleDesktopLyric'
-// import { musicInfo, playMusicInfo } from '@renderer/store/player/state'
-import { saveVolumeIsMute } from '@renderer/store/setting'
+import { computed, ref, onMounted } from '@common/utils/vueTools'
+import { saveVolumeIsMute, appSetting, saveMediaDeviceId } from '@renderer/store/setting'
+import { setMediaDeviceId } from '@renderer/plugins/player'
 import { volume, isMute } from '@renderer/store/player/volume'
 
 const handleWheel = (event) => {
@@ -36,6 +46,27 @@ const handleWheel = (event) => {
 
 const handleUpdateVolume = (val) => {
   window.app_event.setVolume(val)
+}
+
+// ===== 高级音量设置：音频输出设备切换 =====
+const outputDevices = ref<Array<{ deviceId: string, label: string }>>([])
+const refreshOutputDevices = async() => {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices()
+    outputDevices.value = devices
+      .filter(({ kind }) => kind == 'audiooutput')
+      .map(({ deviceId, label }, i) => ({ deviceId, label: label || `${window.i18n.t('player__volume_output_device')} ${i + 1}` }))
+  } catch {}
+}
+onMounted(() => {
+  void refreshOutputDevices()
+  navigator.mediaDevices?.addEventListener?.('devicechange', () => { void refreshOutputDevices() })
+})
+
+const handleOutputDeviceChange = (deviceId: string) => {
+  if (!deviceId) return
+  void saveMediaDeviceId(deviceId)
+  void setMediaDeviceId(deviceId)
 }
 
 const icon = computed(() => {
@@ -57,6 +88,38 @@ const icon = computed(() => {
 .btnContent {
   flex: none;
   height: 100%;
+}
+
+.advanced {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-primary-alpha-500);
+}
+
+.advancedLabel {
+  font-size: 12px;
+  color: var(--color-font-label);
+  margin-bottom: 6px;
+}
+
+.deviceSelection {
+  width: 100%;
+}
+
+.advanced {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-primary-alpha-500);
+}
+
+.advancedLabel {
+  font-size: 12px;
+  color: var(--color-font-label);
+  margin-bottom: 6px;
+}
+
+.deviceSelection {
+  width: 100%;
 }
 
 .btn {
