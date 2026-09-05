@@ -401,7 +401,12 @@ export const playNext = async(isAutoToggle = false): Promise<void> => {
   }
   const currentList = getPlayList(currentListId)
 
-  if (playedList.length) { // 移除已播放列表内不存在原列表的歌曲
+  // 随机模式下手动切歌：丢弃预取缓存与历史延续，重新随机
+  // （此前手动「下一首」会先沿 playedList 旧顺序、再吃预取缓存，表现为可预测的「伪随机固定流程」）
+  const isRandomManual = !isAutoToggle && appSetting['player.togglePlayMethod'] == 'random' && !playMusicInfo.isTempPlay
+  if (isRandomManual) resetRandomNextMusicInfo()
+
+  if (playedList.length && !isRandomManual) { // 移除已播放列表内不存在原列表的歌曲
     let currentId: string
     if (playMusicInfo.isTempPlay) {
       const musicInfo = currentList[playInfo.playerPlayIndex]
@@ -426,7 +431,7 @@ export const playNext = async(isAutoToggle = false): Promise<void> => {
       return
     }
   }
-  if (randomNextMusicInfo.info) {
+  if (randomNextMusicInfo.info && !isRandomManual) {
     handlePlayNext(randomNextMusicInfo.info)
     return
   }
