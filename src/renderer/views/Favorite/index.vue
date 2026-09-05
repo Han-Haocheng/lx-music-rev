@@ -32,6 +32,7 @@
             @click="currentGroupId = group.id" @contextmenu.prevent="handleGroupRightClick(group, $event)"
           >
             <span :class="$style.groupLabel">{{ group.name }}</span>
+            <span v-if="group.source" :class="$style.groupSourceBadge" :title="$t('favorite_group_from_source', { name: group.sourceListId })">{{ $t('favorite_group_from_source_badge') }}</span>
             <span :class="$style.count">{{ groupCounts[group.id] ?? '' }}</span>
             <base-input :ref="el => setEditInputRef(group, el)" v-model="editingGroupName" :class="$style.groupEditInput" @keyup.enter="handleRenameGroup(group)" @blur="handleRenameGroup(group)" />
           </li>
@@ -65,7 +66,7 @@ import { nextTick } from '@common/utils/vueTools'
 import { LIST_IDS } from '@common/constants'
 import MusicList from '../List/MusicList/index.vue'
 import MusicGroupModal from './components/MusicGroupModal.vue'
-import { favoriteGroups, initFavoriteGroups, getGroupMusics, removeFavoriteGroup, updateFavoriteGroup, addFavoriteGroup, clearGroupMusicsCache } from '@renderer/store/list/favoriteGroup'
+import { favoriteGroups, initFavoriteGroups, getGroupMusics, removeFavoriteGroup, updateFavoriteGroup, addFavoriteGroup, clearGroupMusicsCache, syncFavoriteGroup } from '@renderer/store/list/favoriteGroup'
 import { getListMusics, getListMusicsFromCache } from '@renderer/store/list/action'
 import { dialog } from '@renderer/plugins/Dialog'
 
@@ -100,10 +101,12 @@ export default {
       return this.loveListMusics.filter(m => set.has(m.id))
     },
     groupMenus() {
-      return [
+      const menus = [
         { name: this.$t('favorite_group_rename'), action: 'rename' },
-        { name: this.$t('favorite_group_remove'), action: 'remove' },
       ]
+      if (this.targetGroup?.source) menus.push({ name: this.$t('favorite_group_sync'), action: 'sync' })
+      menus.push({ name: this.$t('favorite_group_remove'), action: 'remove' })
+      return menus
     },
   },
   watch: {
@@ -121,6 +124,23 @@ export default {
   methods: {
     handleOpenLocalMusic() {
       this.$router.push({ path: '/local' })
+    },
+    async handleSyncGroup(group) {
+      const isConfirm = await dialog.confirm({
+        message: this.$t('favorite_group_sync_confirm'),
+        cancelButtonText: this.$t('cancel_button_text'),
+        confirmButtonText: this.$t('confirm_button_text'),
+      })
+      if (!isConfirm) return
+      try {
+        const count = await syncFavoriteGroup(group.id)
+        clearGroupMusicsCache(group.id)
+        await this.initData()
+        void dialog({ message: this.$t('favorite_group_sync_success', { num: count }) })
+      } catch (err) {
+        console.warn(err)
+        void dialog({ message: this.$t('favorite_group_sync_failed') })
+      }
     },
     async initData() {
       clearGroupMusicsCache()
@@ -185,6 +205,11 @@ export default {
       if (!action || !this.targetGroup) return
       const group = this.targetGroup
       this.targetGroup = null
+      if (action.action == 'sync') {
+        // 与远程源同步：拉取源歌单并覆盖组内歌曲（同步前确认覆盖语义）
+        void this.handleSyncGroup(group)
+        return
+      }
       if (action.action == 'rename') {
         // 进入编辑前预填当前组名（输入框为 v-model 绑定，不会自动带出）
         this.editingGroupName = group.name
@@ -326,6 +351,17 @@ export default {
   min-width: 0;
   font-size: 13px;
   .mixin-ellipsis-1();
+}
+.groupSourceBadge {
+  flex: none;
+  font-size: 10px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  margin-left: 4px;
+  color: var(--color-primary);
+  background: var(--color-primary-alpha-100);
+  white-space: nowrap;
 }
 .count {
   flex: none;
