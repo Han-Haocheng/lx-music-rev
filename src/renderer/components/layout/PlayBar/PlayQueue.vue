@@ -5,6 +5,11 @@
         <div :class="$style.panel">
           <div :class="$style.header">
             <span :class="$style.title">{{ $t('playlist') }}</span>
+            <button :class="$style.headerBtn" :aria-label="$t('playlist_clear')" @click="handleClearPlaylist">
+              <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 1024 1024" space="preserve">
+                <use xlink:href="#icon-delete" />
+              </svg>
+            </button>
             <button :class="$style.headerBtn" :aria-label="$t('playlist_clear_played')" @click="handleClearPlayed">
               <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="16" viewBox="0 0 512 512" space="preserve">
                 <use xlink:href="#icon-eraser" />
@@ -124,6 +129,25 @@ export default {
       clearPlayedList()
     }
 
+    // 清空整个当前播放列表（区别于仅清空已播记录）：
+    // 持久列表（我的收藏/试听/分组等）二次确认后清除列表内全部歌曲；临时列表直接清空，随后停止播放
+    const handleClearPlaylist = async() => {
+      const listId = playInfo.playerListId
+      if (!listId || !list.value.length) return
+      const isPersistent = listId != LIST_IDS.TEMP && listId != LIST_IDS.DOWNLOAD
+      if (isPersistent) {
+        const isConfirm = await dialog.confirm({
+          message: t('playlist_clear_confirm'),
+          cancelButtonText: t('cancel_button_text'),
+          confirmButtonText: t('confirm_button_text'),
+        })
+        if (!isConfirm) return
+      }
+      void removeListMusics({ listId, ids: list.value.map(m => getRealMusicInfo(m).id) })
+      if (!playMusicInfo.isTempPlay && playInfo.playIndex > -1) void playNext(true)
+      handleClose()
+    }
+
     const handleLocate = () => {
       if (!props.show || playMusicInfo.isTempPlay || playInfo.playIndex < 0) return
       if (!list.value.length) return
@@ -149,6 +173,7 @@ export default {
       handlePlay,
       handleRemove,
       handleClearPlayed,
+      handleClearPlaylist,
     }
   },
 }
