@@ -4,8 +4,14 @@ transition(enter-active-class="animated slideInRight" leave-active-class="animat
     div(:class="$style.bg")
     //- div(:class="$style.bg" :style="bgStyle")
     //- div(:class="$style.bg2")
-    ControlBtnsLeftHeader(v-if="appSetting['common.controlBtnPosition'] == 'left'")
-    ControlBtnsRightHeader(v-else)
+    div(:class="$style.headerLeft")
+      button(:class="$style.headerBtn" :aria-label="$t('player__hide_detail_tip')" :title="$t('player__hide_detail_tip')" @click="hide")
+        svg(:class="$style.headerBtnIcon" version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" width="60%" viewBox="0 0 30.727 30.727" space="preserve")
+          use(xlink:href="#icon-window-hide")
+    div(:class="$style.headerRight")
+      button(:class="$style.headerBtn" :aria-label="$t('fullscreen_exit')" :title="$t('fullscreen_exit')" @click="fullscreenExit")
+        svg(:class="$style.headerBtnIcon" version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="60%")
+          use(xlink:href="#icon-fullscreen-exit")
     div(:class="[$style.main, {[$style.showComment]: isShowPlayComment}]")
       div.left(:class="$style.left")
         //- div(:class="$style.info")
@@ -41,8 +47,6 @@ import {
 import LyricPlayer from './LyricPlayer.vue'
 import MusicSourceQuality from './components/MusicSourceQuality.vue'
 import MusicComment from './components/MusicComment/index.vue'
-import ControlBtnsLeftHeader from './ControlBtnsLeftHeader.vue'
-import ControlBtnsRightHeader from './ControlBtnsRightHeader.vue'
 import { registerAutoHideMounse, unregisterAutoHideMounse } from './autoHideMounse'
 import { appSetting } from '@renderer/store/setting'
 import { closeWindow, maxWindow, minWindow, setFullScreen } from '@renderer/utils/ipc'
@@ -50,8 +54,6 @@ import { closeWindow, maxWindow, minWindow, setFullScreen } from '@renderer/util
 export default {
   name: 'CorePlayDetail',
   components: {
-    ControlBtnsLeftHeader,
-    ControlBtnsRightHeader,
     LyricPlayer,
     MusicComment,
     MusicSourceQuality,
@@ -137,6 +139,46 @@ export default {
 @import '@renderer/assets/styles/layout.less';
 
 @control-btn-width: @height-toolbar * .26;
+
+.headerLeft {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+}
+
+.headerRight {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+}
+
+.headerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--color-button-font);
+  cursor: pointer;
+  opacity: 0.75;
+  &:hover {
+    opacity: 1;
+    color: var(--color-primary);
+  }
+}
+
+.headerBtnIcon {
+  display: block;
+}
 
 .container {
   position: absolute;
