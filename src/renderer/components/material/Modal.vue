@@ -69,12 +69,11 @@ export default {
   emits: ['after-enter', 'after-leave', 'close'],
   data() {
     return {
+      // 动画收敛为轻量集：3D 旋转/大位移动画（jackInTheBox/flip/rotate/slide 系）在 Electron 软渲染下开销大、明显卡顿
       animates: [
-        [['jackInTheBox', 'flipInX', 'flipInY', 'lightSpeedIn'], ['flipOutX', 'flipOutY', 'lightSpeedOut']],
-        // [['jackInTheBox', 'lightSpeedIn'], ['lightSpeedOut']],
-        [['rotateInDownLeft', 'rotateInDownRight', 'rotateInUpLeft', 'rotateInUpRight'], ['rotateOutDownLeft', 'rotateOutDownRight', 'rotateOutUpLeft', 'rotateOutUpRight']],
-        [['jackInTheBox', 'zoomInDown', 'zoomInUp'], ['zoomOutDown', 'zoomOutUp']],
-        [['slideInDown', 'slideInLeft', 'slideInRight', 'slideInUp'], ['slideOutDown', 'slideOutLeft', 'slideOutRight', 'slideOutUp']],
+        [['fadeIn', 'fadeInUp', 'fadeInDown', 'zoomIn'], ['fadeOut']],
+        [['fadeIn', 'zoomIn', 'fadeInUp'], ['fadeOut']],
+        [['fadeIn', 'fadeInDown', 'zoomIn'], ['fadeOut']],
 
         // ['flipInX', 'flipOutX'],
         // ['flipInY', 'flipOutY'],
@@ -139,8 +138,8 @@ export default {
       //   'slideOutUp',
       //   'hinge',
       // ],
-      inClass: 'animated jackInTheBox',
-      outClass: 'animated slideOutRight',
+      inClass: 'animated fadeIn',
+      outClass: 'animated fadeOut',
       showModal: false,
       showContent: false,
       modalCount: false,
