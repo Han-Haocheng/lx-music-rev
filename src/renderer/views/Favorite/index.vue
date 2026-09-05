@@ -158,7 +158,7 @@ export default {
         void dialog({ message: this.$t('favorite_group_sync_success', { num: count }) })
       } catch (err) {
         console.warn(err)
-        void dialog({ message: this.$t('favorite_group_sync_failed') })
+        void dialog({ message: this.$t('favorite_group_sync_failed') + (err?.message ? '\n' + err.message : '') })
       }
     },
     async initData() {
