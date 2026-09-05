@@ -8,10 +8,6 @@ transition(enter-active-class="animated slideInRight" leave-active-class="animat
       button(:class="$style.headerBtn" :aria-label="$t('player__hide_detail_tip')" :title="$t('player__hide_detail_tip')" @click="hide")
         svg(:class="$style.headerBtnIcon" version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" width="60%" viewBox="0 0 30.727 30.727" space="preserve")
           use(xlink:href="#icon-window-hide")
-    div(:class="$style.headerRight")
-      button(:class="$style.headerBtn" :aria-label="$t('fullscreen_exit')" :title="$t('fullscreen_exit')" @click="fullscreenExit")
-        svg(:class="$style.headerBtnIcon" version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="60%")
-          use(xlink:href="#icon-fullscreen-exit")
     div(:class="[$style.main, {[$style.showComment]: isShowPlayComment}]")
       div.left(:class="$style.left")
         //- div(:class="$style.info")
@@ -49,7 +45,7 @@ import MusicSourceQuality from './components/MusicSourceQuality.vue'
 import MusicComment from './components/MusicComment/index.vue'
 import { registerAutoHideMounse, unregisterAutoHideMounse } from './autoHideMounse'
 import { appSetting } from '@renderer/store/setting'
-import { closeWindow, maxWindow, minWindow, setFullScreen } from '@renderer/utils/ipc'
+import { closeWindow, maxWindow, minWindow } from '@renderer/utils/ipc'
 
 export default {
   name: 'CorePlayDetail',
@@ -115,11 +111,6 @@ export default {
       visibled,
       contentMounted,
       isFullscreen,
-      fullscreenExit() {
-        void setFullScreen(false).then((fullscreen) => {
-          isFullscreen.value = fullscreen
-        })
-      },
       min() {
         minWindow()
       },

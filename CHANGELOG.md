@@ -15,6 +15,7 @@ Change log format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### 修复
 
 - 界面：修复菜单（右键菜单 / 歌词设置菜单）关闭后焦点仍滞留菜单内部导致的可访问性告警（aria-hidden 因内部持有焦点被浏览器拦截）；隐藏的菜单不再可被键盘聚焦
+- 界面：移除播放详情页右上角常显的「退出全屏」按钮（进入/退出全屏保留 F11 切换与 Esc 退出）
 
 ## [1.3.1-beta.4] - 2026-09-05
 
