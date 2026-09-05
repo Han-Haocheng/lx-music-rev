@@ -44,24 +44,9 @@ export default ({
     return [
       ...groupItem,
       {
-        name: t('list__play'),
-        action: 'play',
-        disabled: !itemMenuControl.play,
-      },
-      {
-        name: t('list__download'),
-        action: 'download',
-        disabled: !itemMenuControl.download,
-      },
-      {
         name: t('list__play_later'),
         action: 'playLater',
         disabled: !itemMenuControl.playLater,
-      },
-      {
-        name: t('list__add_to'),
-        action: 'addTo',
-        disabled: !itemMenuControl.addTo,
       },
       {
         name: t('list__toggle_source'),
@@ -124,23 +109,14 @@ export default ({
     hideMenu()
     if (!action) return
     switch (action.action) {
-      case 'play':
-        handlePlayMusic(index)
-        break
       case 'playLater':
         handlePlayMusicLater(index)
         break
       case 'copyName':
         handleCopyName(index)
         break
-      case 'addTo':
-        handleShowMusicAddModal(index)
-        break
       case 'toggleSource':
         handleShowMusicToggleModal(index)
-        break
-      case 'download':
-        handleShowDownloadModal(index)
         break
       case 'search':
         handleSearch(index)
