@@ -40,7 +40,8 @@ export const playSongListDetail = async(id: string, source: LX.OnlineSource, lis
   if (!list?.length) list = (await getListDetail(id, source, 1)).list
   if (list?.length) {
     await setTempList(listId, [...list])
-    playList(LIST_IDS.TEMP, index)
+    // 播放列表是独立会话队列：歌单内容即队列（temp 表保留写入仅作兼容，队列不依赖它）
+    playList(LIST_IDS.PLAY_SESSION, index, list)
     isPlayingList = true
   }
   const fullList = await getListDetailAll(id, source)
@@ -51,6 +52,6 @@ export const playSongListDetail = async(id: string, source: LX.OnlineSource, lis
     }
   } else {
     await setTempList(listId, [...fullList])
-    playList(LIST_IDS.TEMP, index)
+    playList(LIST_IDS.PLAY_SESSION, index, fullList)
   }
 }

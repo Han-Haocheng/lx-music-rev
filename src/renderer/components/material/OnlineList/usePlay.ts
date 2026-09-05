@@ -1,6 +1,4 @@
 // import { useCommit } from '@common/utils/vueTools'
-import { defaultList } from '@renderer/store/list/state'
-import { getListMusics, addListMusics } from '@renderer/store/list/action'
 import { addTempPlayList } from '@renderer/store/player/action'
 import { appSetting } from '@renderer/store/setting'
 import { type Ref } from '@common/utils/vueTools'
@@ -18,21 +16,12 @@ export default ({ selectedList, props, removeAllSelect, emit }: {
   let clickTime = 0
   let clickIndex = -1
 
+  // 播放列表是独立会话队列：点歌即把当前在线列表固化为队列并播放（不再写入试听列表）；
+  // 上下曲/队列操作只作用于该会话队列，与试听/收藏等持久列表解耦
   const handlePlayMusic = async(index: number, single: boolean) => {
-    const targetSong = props.list[index]
-    if (selectedList.value.length && !single) {
-      await addListMusics(defaultList.id, [...selectedList.value])
-      removeAllSelect()
-    } else {
-      await addListMusics(defaultList.id, [targetSong])
-    }
-    // 用添加完成后的最新列表定位目标歌：
-    // 此前用播放前拉取的旧缓存找索引，刚点击的新歌（试听列表原本没有）会得到 -1 而静默不播放，播放列表因此不更新
-    const targetList = await getListMusics(defaultList.id)
-    const targetIndex = targetList.findIndex(s => s.id === targetSong.id)
-    if (targetIndex > -1) {
-      playList(defaultList.id, targetIndex)
-    }
+    if (!props.list.length) return
+    if (selectedList.value.length && !single) removeAllSelect()
+    playList(LIST_IDS.PLAY_SESSION, index, props.list)
   }
 
   const handlePlayMusicLater = (index: number, single: boolean) => {

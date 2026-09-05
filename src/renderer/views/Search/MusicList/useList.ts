@@ -1,7 +1,7 @@
 import { LIST_IDS } from '@common/constants'
 import { ref } from '@common/utils/vueTools'
 import { playList } from '@renderer/core/player/action'
-import { getListMusics, addListMusics } from '@renderer/store/list/action'
+
 import { addHistoryWord } from '@renderer/store/search/action'
 // import { useI18n } from '@renderer/plugins/i18n'
 // import { } from '@renderer/store/search/state'
@@ -36,16 +36,13 @@ export default () => {
   }
 
   const handlePlayList = async(index: number) => {
-    let targetSong = listInfo.value.list[index]
+    const list = listInfo.value.list
+    const targetSong = list[index]
 
     if (!assertApiSupport(targetSong.source)) return
 
-    const defaultListMusics = await getListMusics(LIST_IDS.DEFAULT)
-
-    await addListMusics(LIST_IDS.DEFAULT, [targetSong])
-
-    let targetIndex = defaultListMusics.findIndex(s => s.id === targetSong.id)
-    if (targetIndex > -1) playList(LIST_IDS.DEFAULT, targetIndex)
+    // 播放列表是独立会话队列：搜索结果列表即队列，不再写入试听列表
+    playList(LIST_IDS.PLAY_SESSION, index, list)
   }
 
   return {
