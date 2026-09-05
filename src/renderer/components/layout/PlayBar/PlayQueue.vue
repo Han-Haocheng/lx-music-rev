@@ -54,7 +54,7 @@
 import { computed, ref, watch, nextTick } from '@common/utils/vueTools'
 import { useI18n } from '@renderer/plugins/i18n'
 import { playInfo, playMusicInfo } from '@renderer/store/player/state'
-import { getList, clearPlayedList } from '@renderer/store/player/action'
+import { getPlayList, clearPlayedList } from '@renderer/store/player/action'
 import { playList, playNext } from '@renderer/core/player'
 import { removeListMusics } from '@renderer/store/list/action'
 import { LIST_IDS } from '@common/constants'
@@ -72,7 +72,8 @@ export default {
   setup(props, { emit }) {
     const t = useI18n()
     const listRef = ref(null)
-    const list = computed(() => (playInfo.playerListId ? getList(playInfo.playerListId) : []))
+    // 播放队列：快照优先（收藏分组等子集视图播放时显示分组内歌曲），否则按列表实时取整表
+    const list = computed(() => (playInfo.playerListId ? getPlayList(playInfo.playerListId) : []))
 
     // 虚拟列表的数据源：将原始列表扁平化为 [{ id, name, singer, raw }]，id 供 key 使用，raw 供操作回查
     const displayList = computed(() => list.value.map(item => {

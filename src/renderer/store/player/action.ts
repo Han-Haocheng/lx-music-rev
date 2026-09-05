@@ -11,6 +11,7 @@ import {
   playMusicInfo,
   playedList,
   tempPlayList,
+  playListSnapshot,
 } from './state'
 import { getListMusicsFromCache } from '@renderer/store/list/action'
 import { downloadList } from '@renderer/store/download/state'
@@ -74,6 +75,17 @@ export const getList = (listId: string | null): Array<LX.Music.MusicInfo | LX.Do
   return listId == LIST_IDS.DOWNLOAD ? downloadList : getListMusicsFromCache(listId)
 }
 
+/** 设置播放队列快照（null 清除）；元素做 toRaw 拷贝，避免 reactive 引用残留 */
+export const setPlayListSnapshot = (list: Array<LX.Music.MusicInfo | LX.Download.ListItem> | null) => {
+  playListSnapshot.value = list ? list.map(m => toRaw(m)) : null
+}
+
+/** 获取当前播放队列：快照优先（仅当与当前播放列表同 id），否则按 listId 实时取整表 */
+export const getPlayList = (listId: string | null): Array<LX.Music.MusicInfo | LX.Download.ListItem> => {
+  if (listId != null && listId == playInfo.playerListId && playListSnapshot.value) return playListSnapshot.value
+  return getList(listId)
+}
+
 /**
  * 更新播放位置
  * @returns 播放位置
@@ -91,7 +103,7 @@ export const getPlayIndex = (listId: string | null, musicInfo: LX.Download.ListI
   playIndex: number
   playerPlayIndex: number
 } => {
-  const playerList = getList(playInfo.playerListId)
+  const playerList = getPlayList(playInfo.playerListId)
 
   // if (listIndex < 0) throw new Error('music info not found')
   // playInfo.playIndex = listIndex
@@ -102,7 +114,7 @@ export const getPlayIndex = (listId: string | null, musicInfo: LX.Download.ListI
     playerPlayIndex = Math.min(playInfo.playerPlayIndex, playerList.length - 1)
   }
 
-  const list = getList(listId)
+  const list = getPlayList(listId)
   if (list.length && musicInfo) {
     const currentId = musicInfo.id
     playIndex = list.findIndex(m => m.id == currentId)

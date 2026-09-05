@@ -2,6 +2,8 @@ import { isEmpty, setPause, setPlay, setResource, setStop } from '@renderer/plug
 import { isPlay, playedList, playInfo, playMusicInfo, tempPlayList, musicInfo as _musicInfo } from '@renderer/store/player/state'
 import {
   getList,
+  getPlayList,
+  setPlayListSnapshot,
   clearPlayedList,
   clearTempPlayeList,
   setPlayMusicInfo,
@@ -241,7 +243,7 @@ export const playListById = (listId: string, id: string) => {
   const prevListId = playInfo.playerListId
   setPlayListId(listId)
   // pause()
-  const musicInfo = getList(listId).find(m => m.id == id)
+  const musicInfo = getPlayList(listId).find(m => m.id == id)
   if (!musicInfo) return
   setPlayMusicInfo(listId, musicInfo)
   if (appSetting['player.isAutoCleanPlayedList'] || prevListId != listId) clearPlayedList()
@@ -254,11 +256,13 @@ export const playListById = (listId: string, id: string) => {
  * @param listId 列表id
  * @param index 播放的歌曲位置
  */
-export const playList = (listId: string, index: number) => {
+export const playList = (listId: string, index: number, list?: Array<LX.Music.MusicInfo | LX.Download.ListItem>) => {
   const prevListId = playInfo.playerListId
+  // 传入 list 时固化为播放队列快照（收藏分组等子集视图的切歌隔离）；未传则回到按列表实时取整表
+  setPlayListSnapshot(list ?? null)
   setPlayListId(listId)
   // pause()
-  setPlayMusicInfo(listId, getList(listId)[index])
+  setPlayMusicInfo(listId, (list ?? getList(listId))[index])
   if (appSetting['player.isAutoCleanPlayedList'] || prevListId != listId) clearPlayedList()
   clearTempPlayeList()
   handlePlay()
@@ -295,7 +299,7 @@ export const getNextPlayMusicInfo = async(): Promise<LX.Player.PlayMusicInfo | n
   // console.log(playInfo.playerListId)
   const currentListId = playInfo.playerListId
   if (!currentListId) return null
-  const currentList = getList(currentListId)
+  const currentList = getPlayList(currentListId)
 
   if (playedList.length) { // 移除已播放列表内不存在原列表的歌曲
     let currentId: string
@@ -393,7 +397,7 @@ export const playNext = async(isAutoToggle = false): Promise<void> => {
     handleToggleStop()
     return
   }
-  const currentList = getList(currentListId)
+  const currentList = getPlayList(currentListId)
 
   if (playedList.length) { // 移除已播放列表内不存在原列表的歌曲
     let currentId: string
@@ -491,7 +495,7 @@ export const playPrev = async(isAutoToggle = false): Promise<void> => {
     handleToggleStop()
     return
   }
-  const currentList = getList(currentListId)
+  const currentList = getPlayList(currentListId)
 
   if (playedList.length) {
     let currentId: string
