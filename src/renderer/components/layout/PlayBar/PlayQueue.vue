@@ -10,11 +10,6 @@
                 <use xlink:href="#icon-delete" />
               </svg>
             </button>
-            <button :class="$style.headerBtn" :aria-label="$t('playlist_clear_played')" @click="handleClearPlayed">
-              <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="16" viewBox="0 0 512 512" space="preserve">
-                <use xlink:href="#icon-eraser" />
-              </svg>
-            </button>
             <button :class="$style.headerBtn" :aria-label="$t('close')" @click="handleClose">
               <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="16" viewBox="0 0 24 24" space="preserve">
                 <use xlink:href="#icon-close" />
@@ -58,7 +53,7 @@
 <script>
 import { computed, ref, watch, nextTick } from '@common/utils/vueTools'
 import { playInfo, playMusicInfo } from '@renderer/store/player/state'
-import { getPlayList, clearPlayedList, setPlayListSnapshot } from '@renderer/store/player/action'
+import { getPlayList, setPlayListSnapshot } from '@renderer/store/player/action'
 import { playList, playNext } from '@renderer/core/player'
 import { dialog } from '@renderer/plugins/Dialog'
 
@@ -111,10 +106,6 @@ export default {
       const newList = list.value.filter((_, i) => i != index)
       setPlayListSnapshot(newList)
       if (isCurrent) void playNext(true)
-    }
-
-    const handleClearPlayed = () => {
-      clearPlayedList()
     }
 
     // 清空当前会话队列（区别于仅清空已播记录）：纯队列操作，不影响收藏/试听等任何持久列表；
