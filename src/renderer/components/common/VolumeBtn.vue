@@ -65,7 +65,7 @@ onMounted(() => {
 
 const handleOutputDeviceChange = (deviceId: string) => {
   if (!deviceId) return
-  void saveMediaDeviceId(deviceId)
+  saveMediaDeviceId(deviceId)
   void setMediaDeviceId(deviceId)
 }
 
