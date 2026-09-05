@@ -1,8 +1,11 @@
-import { net } from 'electron'
+import { net, session } from 'electron'
 
 /**
  * WebDAV/HTTP 传输层
- * 使用 Electron net.request：自动跟随应用设置的代理，且无渲染层 CORS 限制。
+ * 使用 Electron net.request，且无渲染层 CORS 限制。
+ * 代理：显式复用主窗口所在 partition（persist:win-main）的 session——winMain 创建主窗口时
+ * 已对该 partition 调 session.setProxy 应用代理设置（见 winMain/main.ts），配置变更也会
+ * 通过 updated_config 更新到该 session，故此处请求自动跟随应用代理。
  */
 
 const REQUEST_TIMEOUT = 30000
@@ -24,7 +27,12 @@ export const requestWebdav = async(options: RequestOptions): Promise<RequestResu
   return new Promise((resolve, reject) => {
     let clientRequest: Electron.ClientRequest
     try {
-      clientRequest = net.request({ method: options.method, url: options.url })
+      clientRequest = net.request({
+        method: options.method,
+        url: options.url,
+        // 复用应用代理 session（partition 与 winMain 主窗口一致）
+        session: session.fromPartition('persist:win-main'),
+      })
     } catch (err) {
       reject(err)
       return

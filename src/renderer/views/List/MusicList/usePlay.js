@@ -6,6 +6,12 @@ export default ({ props, selectedList, list, removeAllSelect }) => {
   let clickIndex = -1
 
   const handlePlayMusic = (index) => {
+    // 收藏分组等 music-list 模式：以传入列表为播放队列（快照固化，切歌/上下曲只在分组内进行，
+    // 不串到「全部收藏」或其他分组——按 LOVE 整表定位会错位播放）
+    if (props.musicList?.length) {
+      playList(props.listId, index, props.musicList)
+      return
+    }
     playList(props.listId, index)
   }
 

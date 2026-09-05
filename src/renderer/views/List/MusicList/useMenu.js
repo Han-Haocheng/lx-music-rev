@@ -4,7 +4,6 @@ import { useI18n } from '@renderer/plugins/i18n'
 import { hasDislike } from '@renderer/core/dislikeList'
 
 export default ({
-  assertApiSupport,
   emit,
   showGroupAction = false,
 
@@ -26,7 +25,6 @@ export default ({
     copyName: true,
     addTo: true,
     toggleSource: true,
-    download: true,
     search: true,
     dislike: true,
     remove: true,
@@ -44,24 +42,9 @@ export default ({
     return [
       ...groupItem,
       {
-        name: t('list__play'),
-        action: 'play',
-        disabled: !itemMenuControl.play,
-      },
-      {
-        name: t('list__download'),
-        action: 'download',
-        disabled: !itemMenuControl.download,
-      },
-      {
         name: t('list__play_later'),
         action: 'playLater',
         disabled: !itemMenuControl.playLater,
-      },
-      {
-        name: t('list__add_to'),
-        action: 'addTo',
-        disabled: !itemMenuControl.addTo,
       },
       {
         name: t('list__toggle_source'),
@@ -100,8 +83,6 @@ export default ({
     itemMenuControl.sourceDetail = !!musicSdk[musicInfo.source]?.getMusicDetailPageUrl
     // itemMenuControl.play =
     //   itemMenuControl.playLater =
-    itemMenuControl.download = assertApiSupport(musicInfo.source) && musicInfo.source != 'local'
-
     itemMenuControl.dislike = !hasDislike(musicInfo)
 
     menuLocation.x = event.pageX
@@ -124,23 +105,14 @@ export default ({
     hideMenu()
     if (!action) return
     switch (action.action) {
-      case 'play':
-        handlePlayMusic(index)
-        break
       case 'playLater':
         handlePlayMusicLater(index)
         break
       case 'copyName':
         handleCopyName(index)
         break
-      case 'addTo':
-        handleShowMusicAddModal(index)
-        break
       case 'toggleSource':
         handleShowMusicToggleModal(index)
-        break
-      case 'download':
-        handleShowDownloadModal(index)
         break
       case 'search':
         handleSearch(index)

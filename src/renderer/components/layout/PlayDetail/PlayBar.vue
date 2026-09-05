@@ -1,7 +1,6 @@
 <template>
   <div :class="$style.footer">
     <div :class="$style.footerLeft">
-      <control-btns />
       <div :class="$style.progressContainer">
         <div :class="$style.progressContent">
           <common-progress-bar
@@ -42,7 +41,6 @@ import { playNext, playPrev, togglePlay } from '@renderer/core/player'
 import { status, isPlay } from '@renderer/store/player/state'
 import usePlayProgress from '@renderer/utils/compositions/usePlayProgress'
 
-import ControlBtns from './components/ControlBtns.vue'
 
 const {
   nowPlayTimeStr,

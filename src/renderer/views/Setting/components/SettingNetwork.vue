@@ -46,7 +46,8 @@ export default {
   name: 'SettingNetwork',
   setup() {
     const setHost = debounce(host => {
-      updateSetting({ 'network.proxy.host': host.trim() })
+      // 写入前剥离误填的 http(s):// 前缀（主进程组装 proxyRules 时会再拼 http://，避免 http://http://…）
+      updateSetting({ 'network.proxy.host': host.trim().replace(/^https?:\/\//i, '') })
     }, 500)
     const setPort = debounce(port => {
       updateSetting({ 'network.proxy.port': port.trim() })
@@ -56,7 +57,12 @@ export default {
     }, 500)
 
     onBeforeUnmount(() => {
-      if (appSetting['network.proxy.enable'] && !appSetting['network.proxy.host']) proxy.enable = false
+      // 离开页面时若开启代理但未填 host（请求实际不会走固定代理），回写设置并同步 store，
+      // 避免 appSetting(UI 显开) 与 proxy store 不一致，导致之后填好 host 也要重启才能生效
+      if (appSetting['network.proxy.enable'] && !appSetting['network.proxy.host']) {
+        proxy.enable = false
+        updateSetting({ 'network.proxy.enable': false })
+      }
     })
 
     return {

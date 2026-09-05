@@ -127,9 +127,7 @@ import useListScroll from './useListScroll'
 import useMusicToggle from './useMusicToggle'
 import { nextTick, ref, watch, computed } from '@common/utils/vueTools'
 import { appSetting } from '@renderer/store/setting'
-import { addListMusics } from '@renderer/store/list/action'
 import { LOCAL_LIST_ID } from '@renderer/store/localList'
-import { loveList } from '@renderer/store/list/state'
 import { getSortScheme } from '@renderer/store/list/sortScheme'
 export default {
   name: 'MusicList',
@@ -302,12 +300,9 @@ export default {
       emit,
       showGroupAction: props.groupActionsVisible,
 
-      handleShowDownloadModal,
-      handlePlayMusic,
       handlePlayMusicLater,
       handleShowMusicToggleModal,
       handleSearch,
-      handleShowMusicAddModal,
       handleOpenMusicDetail,
       handleCopyName,
       handleDislikeMusic,
@@ -358,11 +353,6 @@ export default {
         clipboardWriteText(str)
       })
     }
-    const handleQuickCollect = (index) => {
-      const item = list.value[index]
-      if (!item) return
-      void addListMusics(loveList.id, [item])
-    }
     const handleListBtnClick = ({ action, index }) => {
       switch (action) {
         case 'download':
@@ -375,7 +365,8 @@ export default {
           handleSearch(index)
           break
         case 'listAdd':
-          handleQuickCollect(index)
+          // 「添加到」直接打开目标列表弹窗（我的收藏 / 收藏分组），避免静默收藏无反馈
+          handleShowMusicAddModal(index, true)
           break
         case 'listAddSelect':
           handleShowMusicFavoriteGroupModal(index)

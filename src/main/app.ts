@@ -1,5 +1,6 @@
 import path from 'node:path'
-import { existsSync, mkdirSync, renameSync } from 'fs'
+import net from 'node:net'
+import { existsSync, mkdirSync, renameSync, unlinkSync } from 'fs'
 import { app, shell, screen, nativeTheme, dialog } from 'electron'
 import type { RenderProcessGoneDetails, WebContents } from 'electron'
 import { URL_SCHEME_RXP } from '@common/constants'
@@ -83,39 +84,85 @@ export const initGlobalData = () => {
       : path.join(__dirname, 'static')
 }
 
+// ===== 单实例锁残留自救（Linux） =====
+// Electron 在 Linux 用 userData/SingletonLock（socket 文件）实现单实例；
+// 若上次进程卡死/崩溃后僵死未退出（或异常终止未清理），锁不会释放，新进程会直接退出——表现为「打不开新进程」。
+// 通过探测锁 socket 活性判断残留（无进程监听即残留），清理后重试获取锁。
+const getSingletonLockFile = (): string | null => {
+  if (process.platform !== 'linux') return null // Windows/macOS 用系统命名对象，进程退出自动释放
+  return path.join(app.getPath('userData'), 'SingletonLock')
+}
+
+const isSingletonLockAlive = async(lockFile: string): Promise<boolean> => new Promise(resolve => {
+  const socket = net.connect({ path: lockFile })
+  const done = (alive: boolean) => {
+    socket.destroy()
+    resolve(alive)
+  }
+  socket.setTimeout(1200)
+  socket.once('connect', () => { done(true) })
+  socket.once('error', () => { done(false) })
+  socket.once('timeout', () => { done(false) })
+})
+
+const recoverStaleSingletonLock = async(): Promise<boolean> => {
+  const lockFile = getSingletonLockFile()
+  if (!lockFile || !existsSync(lockFile)) return true
+  if (await isSingletonLockAlive(lockFile)) return false // 确有实例在跑，保持退出
+  // 残留锁：清理锁文件与配套 socket/cookie 后由调用方重试获取
+  for (const name of ['SingletonLock', 'SingletonSocket', 'SingletonCookie']) {
+    try { unlinkSync(path.join(path.dirname(lockFile), name)) } catch {}
+  }
+  return true
+}
+
 export const initSingleInstanceHandle = (startApp: () => void) => {
   // 单例应用程序
-  if (!app.requestSingleInstanceLock()) {
-    app.quit()
-    process.exit(0)
+  const acquireLock = () => app.requestSingleInstanceLock()
+  const registerSecondInstance = () => {
+    app.on('second-instance', (event, argv, cwd) => {
+      const envParams = parseEnvParams(argv)
+      if (isExistMainWindow()) {
+        if (envParams.deeplink) {
+          global.envParams.deeplink = envParams.deeplink
+          global.lx.event_app.deeplink(global.envParams.deeplink)
+          return
+        }
+        if (envParams.openFiles.length) {
+          global.envParams.openFiles = envParams.openFiles
+          global.lx.event_app.open_files(envParams.openFiles)
+          if (envParams.cmdParams.hidden !== true) showMainWindow()
+          return
+        }
+        if (envParams.cmdParams.hidden !== true) {
+          showMainWindow()
+        }
+        return
+      }
+      // 主窗口不存在：应用可能仍在初始化中（启动过程中再次运行）或窗口已被关闭（macOS）。
+      // 此时不应退出进程，否则启动中的应用会被二次启动直接终止；
+      // 改为确保应用完成初始化并创建窗口，正在退出时则忽略本次请求。
+      if (global.lx.isSkipTrayQuit) return
+      if (envParams.deeplink) global.envParams.deeplink = envParams.deeplink
+      if (envParams.openFiles.length) global.envParams.openFiles = envParams.openFiles
+      startApp()
+    })
   }
 
-  app.on('second-instance', (event, argv, cwd) => {
-    const envParams = parseEnvParams(argv)
-    if (isExistMainWindow()) {
-      if (envParams.deeplink) {
-        global.envParams.deeplink = envParams.deeplink
-        global.lx.event_app.deeplink(global.envParams.deeplink)
-        return
-      }
-      if (envParams.openFiles.length) {
-        global.envParams.openFiles = envParams.openFiles
-        global.lx.event_app.open_files(envParams.openFiles)
-        if (envParams.cmdParams.hidden !== true) showMainWindow()
-        return
-      }
-      if (envParams.cmdParams.hidden !== true) {
-        showMainWindow()
-      }
+  if (acquireLock()) {
+    registerSecondInstance()
+    return
+  }
+  // 首次获取失败：Linux 下可能残留上次卡死/崩溃进程的锁——探测 socket 活性并清理后重试一次；
+  // 仍失败说明确有实例在运行（正常多开保护），退出
+  void recoverStaleSingletonLock().then(recovered => {
+    if (recovered && acquireLock()) {
+      registerSecondInstance()
       return
     }
-    // 主窗口不存在：应用可能仍在初始化中（启动过程中再次运行）或窗口已被关闭（macOS）。
-    // 此时不应退出进程，否则启动中的应用会被二次启动直接终止；
-    // 改为确保应用完成初始化并创建窗口，正在退出时则忽略本次请求。
-    if (global.lx.isSkipTrayQuit) return
-    if (envParams.deeplink) global.envParams.deeplink = envParams.deeplink
-    if (envParams.openFiles.length) global.envParams.openFiles = envParams.openFiles
-    startApp()
+    log.warn('[single-instance] 已有实例在运行，本实例退出')
+    app.quit()
+    process.exit(0)
   })
 }
 

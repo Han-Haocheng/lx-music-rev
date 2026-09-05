@@ -2,6 +2,8 @@ import { isEmpty, setPause, setPlay, setResource, setStop } from '@renderer/plug
 import { isPlay, playedList, playInfo, playMusicInfo, tempPlayList, musicInfo as _musicInfo } from '@renderer/store/player/state'
 import {
   getList,
+  getPlayList,
+  setPlayListSnapshot,
   clearPlayedList,
   clearTempPlayeList,
   setPlayMusicInfo,
@@ -241,7 +243,7 @@ export const playListById = (listId: string, id: string) => {
   const prevListId = playInfo.playerListId
   setPlayListId(listId)
   // pause()
-  const musicInfo = getList(listId).find(m => m.id == id)
+  const musicInfo = getPlayList(listId).find(m => m.id == id)
   if (!musicInfo) return
   setPlayMusicInfo(listId, musicInfo)
   if (appSetting['player.isAutoCleanPlayedList'] || prevListId != listId) clearPlayedList()
@@ -254,21 +256,25 @@ export const playListById = (listId: string, id: string) => {
  * @param listId 列表id
  * @param index 播放的歌曲位置
  */
-export const playList = (listId: string, index: number) => {
+export const playList = (listId: string, index: number, list?: Array<LX.Music.MusicInfo | LX.Download.ListItem>) => {
   const prevListId = playInfo.playerListId
+  // 会话队列：播放时始终把播放范围固化为独立队列（显式传 list 用之；否则取该列表当前内容），
+  // 播放列表（控制栏面板/上下曲）只基于此队列，与收藏/试听等持久列表解耦；重启后队列不恢复
+  const queue = list ?? getList(listId)
+  setPlayListSnapshot(queue)
   setPlayListId(listId)
   // pause()
-  setPlayMusicInfo(listId, getList(listId)[index])
+  setPlayMusicInfo(listId, queue[index] ?? null)
   if (appSetting['player.isAutoCleanPlayedList'] || prevListId != listId) clearPlayedList()
   clearTempPlayeList()
   handlePlay()
 }
 
 const handleToggleStop = () => {
+  // 先清空播放信息再广播 stop：主进程“stoped”广播仅在播放信息为空时发出（usePlayStatus.handleStop 判断），
+  // 原顺序先 stop 后清空会导致该广播被跳过，托盘/任务栏残留“播放中”状态
+  setPlayMusicInfo(null, null)
   stop()
-  setTimeout(() => {
-    setPlayMusicInfo(null, null)
-  })
 }
 
 const randomNextMusicInfo = {
@@ -295,7 +301,7 @@ export const getNextPlayMusicInfo = async(): Promise<LX.Player.PlayMusicInfo | n
   // console.log(playInfo.playerListId)
   const currentListId = playInfo.playerListId
   if (!currentListId) return null
-  const currentList = getList(currentListId)
+  const currentList = getPlayList(currentListId)
 
   if (playedList.length) { // 移除已播放列表内不存在原列表的歌曲
     let currentId: string
@@ -393,9 +399,14 @@ export const playNext = async(isAutoToggle = false): Promise<void> => {
     handleToggleStop()
     return
   }
-  const currentList = getList(currentListId)
+  const currentList = getPlayList(currentListId)
 
-  if (playedList.length) { // 移除已播放列表内不存在原列表的歌曲
+  // 随机模式下手动切歌：丢弃预取缓存与历史延续，重新随机
+  // （此前手动「下一首」会先沿 playedList 旧顺序、再吃预取缓存，表现为可预测的「伪随机固定流程」）
+  const isRandomManual = !isAutoToggle && appSetting['player.togglePlayMethod'] == 'random' && !playMusicInfo.isTempPlay
+  if (isRandomManual) resetRandomNextMusicInfo()
+
+  if (playedList.length && !isRandomManual) { // 移除已播放列表内不存在原列表的歌曲
     let currentId: string
     if (playMusicInfo.isTempPlay) {
       const musicInfo = currentList[playInfo.playerPlayIndex]
@@ -420,7 +431,7 @@ export const playNext = async(isAutoToggle = false): Promise<void> => {
       return
     }
   }
-  if (randomNextMusicInfo.info) {
+  if (randomNextMusicInfo.info && !isRandomManual) {
     handlePlayNext(randomNextMusicInfo.info)
     return
   }
@@ -464,9 +475,11 @@ export const playNext = async(isAutoToggle = false): Promise<void> => {
       break
     default:
       nextIndex = -1
-      return
   }
   if (nextIndex < 0) {
+    // 队列末尾自动切歌无下一曲（顺序播放末曲/单曲播放/none 等）：音频已播完，
+    // 这里必须走 handleToggleStop 停止播放态并清空，否则 isPlay/进度/托盘仍呈“播放中”
+    handleToggleStop()
     return
   }
 
@@ -491,7 +504,7 @@ export const playPrev = async(isAutoToggle = false): Promise<void> => {
     handleToggleStop()
     return
   }
-  const currentList = getList(currentListId)
+  const currentList = getPlayList(currentListId)
 
   if (playedList.length) {
     let currentId: string

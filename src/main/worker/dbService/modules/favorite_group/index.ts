@@ -8,6 +8,10 @@ import {
   updateMusicGroups,
   deleteMusicGroupRowsByMusicInfoIds,
   clearAllMusicGroupRows,
+  queryGroupSource,
+  upsertGroupSource,
+  migrateLoveOrphans,
+  syncGroupMusics,
 } from './dbHelper'
 
 /** 获取全部收藏分组 */
@@ -28,9 +32,14 @@ export const favoriteGroupUpdate = (id: string, name: string) => {
   updateFavoriteGroup({ ...group, name })
 }
 
-/** 删除收藏分组（连带清空组内歌曲映射） */
+/** 删除收藏分组（清空组内映射与来源标记；组内歌曲不再属于任何分组时从 LOVE 一并移出） */
 export const favoriteGroupRemove = (id: string) => {
   deleteFavoriteGroup(id)
+}
+
+/** LOVE 孤儿歌曲迁移：归入默认兜底收藏夹；返回归组歌曲数（0 = 无孤儿） */
+export const favoriteGroupOrphanMigrate = (name: string): number => {
+  return migrateLoveOrphans(name)
 }
 
 /** 获取某首歌归属的分组 id 列表 */
@@ -56,4 +65,19 @@ export const favoriteGroupMusicRowsRemove = (musicInfoIds: string[]) => {
 /** 清空全部收藏分组映射（LOVE 列表被整表清空时由列表模块调用） */
 export const favoriteGroupMusicRowsClearAll = () => {
   clearAllMusicGroupRows()
+}
+
+/** 获取分组的来源标记（无来源返回 null） */
+export const favoriteGroupSourceGet = (groupId: string): LX.DBService.FavoriteGroupSource | null => {
+  return queryGroupSource(groupId) ?? null
+}
+
+/** 设置分组的来源标记（远端歌单收藏/手动绑定） */
+export const favoriteGroupSourceSet = (groupId: string, source: string, sourceListId: string) => {
+  upsertGroupSource({ groupId, source, sourceListId, locationUpdateTime: null })
+}
+
+/** 与远程源同步分组歌曲（覆盖语义） */
+export const favoriteGroupSyncMusics = (groupId: string, musicInfos: LX.Music.MusicInfo[]) => {
+  syncGroupMusics(groupId, musicInfos)
 }

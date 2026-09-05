@@ -10,10 +10,11 @@
       </div>
       <div :class="$style.status">{{ statusText }}</div>
     </div>
+
     <div :class="$style.timeContent">
       <span>{{ nowPlayTimeStr }}</span>
       <div :class="$style.progress">
-        <common-progress-bar v-if="!isShowPlayerDetail" :class-name="$style.progressBar" :progress="progress" :handle-transition-end="handleTransitionEnd" :is-active-transition="isActiveTransition" />
+        <common-progress-bar :class-name="$style.progressBar" :progress="progress" :handle-transition-end="handleTransitionEnd" :is-active-transition="isActiveTransition" />
       </div>
       <!-- <span style="margin: 0 1px;">/</span> -->
       <span>{{ maxPlayTimeStr }}</span>
@@ -40,6 +41,7 @@
         </svg>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -65,7 +67,6 @@ import {
 } from '@renderer/store/player/action'
 import { togglePlay, playNext, playPrev } from '@renderer/core/player'
 import { LIST_IDS } from '@common/constants'
-import { LOCAL_LIST_ID } from '@renderer/store/localList'
 import { formatMusicName } from '@renderer/utils'
 
 export default {
@@ -87,7 +88,8 @@ export default {
 
     const showPlayerDetail = () => {
       if (!playMusicInfo.musicInfo) return
-      setShowPlayerDetail(true)
+      // 再次点击封面可隐藏详情页（切换）
+      setShowPlayerDetail(!isShowPlayerDetail.value)
     }
     const handleCopy = (text) => {
       clipboardWriteText(text)
@@ -104,15 +106,6 @@ export default {
       if (playInfo.playIndex == -1) return
       if (listId == LIST_IDS.LOVE) {
         void router.push({ path: '/favorite' })
-        return
-      }
-      if (listId == LOCAL_LIST_ID) {
-        void router.push({
-          path: '/local',
-          query: {
-            scrollIndex: playInfo.playIndex,
-          },
-        })
       }
       // 试听/临时等其余列表：通过控制栏播放列表面板查看，不再跳转
     }

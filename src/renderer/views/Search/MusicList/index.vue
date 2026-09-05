@@ -10,7 +10,6 @@
       :source-tag="sourceId == 'all'"
       check-api-source
       @toggle-page="handleTogglePage"
-      @play-list="handlePlayList"
     />
   </div>
 </template>
@@ -34,7 +33,6 @@ const {
   listRef,
   listInfo,
   search,
-  handlePlayList,
 } = useList()
 
 watch(() => [props.sourceId, props.page], ([sourceId, page]) => {

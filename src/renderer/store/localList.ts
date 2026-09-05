@@ -47,7 +47,9 @@ const scanAudioFiles = async(dirPath: string): Promise<string[]> => {
 
 /**
  * 导入本地音频文件到本地音乐列表（分批解析元数据，避免文件过多时阻塞）；
- * 供扫描导入与系统文件关联「双击音乐文件打开播放」链路复用
+ * 供扫描导入与系统文件关联「双击音乐文件打开播放」链路复用；
+ * 固定追加到列表底部（不走 list.addMusicLocationType 默认的 'top'），
+ * 避免分批扫描把后扫内容压到顶部、打乱已有拖拽排序
  */
 export const addLocalMusics = async(filePaths: string[]) => {
   // 分批解析元数据并写入列表，避免文件过多时阻塞
@@ -55,7 +57,7 @@ export const addLocalMusics = async(filePaths: string[]) => {
     const paths = filePaths.slice(i, i + 200)
     const musicInfos = await window.lx.worker.main.createLocalMusicInfos(paths)
     if (!musicInfos.length) continue
-    await addListMusics(LOCAL_LIST_ID, musicInfos)
+    await addListMusics(LOCAL_LIST_ID, musicInfos, 'bottom')
   }
 }
 

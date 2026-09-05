@@ -1,17 +1,20 @@
 import { ref, shallowReactive } from '@common/utils/vueTools'
 
+// 本地初值与 src/common/defaultSetting.ts 保持一致；
+// 运行时以主进程同步的配置为准（见 renderer-lyric/main.ts getSetting，挂载前即被覆盖）
 export const setting = shallowReactive<LX.DesktopLyric.Config>({
   'desktopLyric.enable': false,
   'desktopLyric.isLock': false,
   'desktopLyric.isAlwaysOnTop': false,
   'desktopLyric.isAlwaysOnTopLoop': false,
-  'desktopLyric.isShowTaskbar': true,
-  'desktopLyric.pauseHide': false,
+  'desktopLyric.isShowTaskbar': false,
+  'desktopLyric.pauseHide': true, // 与 src/common/defaultSetting.ts 保持一致（false 为历史遗留）
   'desktopLyric.audioVisualization': false,
   'desktopLyric.width': 450,
   'desktopLyric.height': 300,
   'desktopLyric.x': null,
   'desktopLyric.y': null,
+  // defaultSetting 为 isWin 条件值，renderer-lyric 无 process，此处仅占位，实际值由主进程同步覆盖
   'desktopLyric.isLockScreen': true,
   'desktopLyric.isDelayScroll': true,
   'desktopLyric.scrollAlign': 'center',
@@ -20,17 +23,17 @@ export const setting = shallowReactive<LX.DesktopLyric.Config>({
   'desktopLyric.style.align': 'center',
   'desktopLyric.style.lyricUnplayColor': 'rgba(255, 255, 255, 1)',
   'desktopLyric.style.lyricPlayedColor': 'rgba(7, 197, 86, 1)',
-  'desktopLyric.style.lyricShadowColor': 'rgba(0, 0, 0, 0.14)',
+  'desktopLyric.style.lyricShadowColor': 'rgba(0, 0, 0, 0.18)',
   'desktopLyric.style.font': '',
   'desktopLyric.style.fontSize': 20,
   'desktopLyric.style.lineGap': 15,
   // 'desktopLyric.style.fontWeight': true,
   'desktopLyric.style.opacity': 95,
   'desktopLyric.style.ellipsis': false,
-  'desktopLyric.style.isFontWeightFont': false,
-  'desktopLyric.style.isFontWeightLine': false,
-  'desktopLyric.style.isFontWeightExtended': false,
-  'desktopLyric.style.isZoomActiveLrc': true,
+  'desktopLyric.style.isFontWeightFont': true,
+  'desktopLyric.style.isFontWeightLine': true,
+  'desktopLyric.style.isFontWeightExtended': true,
+  'desktopLyric.style.isZoomActiveLrc': false,
   'common.langId': 'zh-cn',
   'player.isShowLyricTranslation': false,
   'player.isShowLyricRoma': false,

@@ -471,22 +471,17 @@ declare global {
       'desktopLyric.style.isFontWeightExtended': boolean
 
       /**
-       * 是否启用双击列表里的歌曲时自动切换到当前列表播放（仅对歌单、排行榜有效）
-       */
-      'list.isClickPlayList': boolean
-
-      /**
-       * 是否显示歌曲来源（仅对我的列表有效）
+       * 是否在歌曲行显示来源平台标签
        */
       'list.isShowSource': boolean
 
       /**
-       * 是否自动恢复列表滚动位置（仅对我的列表有效）
+       * 是否记住列表滚动位置（收藏夹与本地音乐视图）
        */
       'list.isSaveScrollLocation': boolean
 
       /**
-       * 添加歌曲到我的列表时的方式
+       * 新收藏/添加到列表时歌曲的入列位置（顶部/底部；「与源同步」不受此影响）
        */
       'list.addMusicLocationType': LX.AddMusicLocationType
 
@@ -528,7 +523,7 @@ declare global {
       /**
        * 文件命名方式
        */
-      'download.fileName': '歌名 - 歌手' | '歌手 - 歌名' | '歌名'
+      'download.fileName': string
 
       /**
        * 最大并发下载数

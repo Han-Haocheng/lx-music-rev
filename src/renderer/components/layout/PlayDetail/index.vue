@@ -4,8 +4,10 @@ transition(enter-active-class="animated slideInRight" leave-active-class="animat
     div(:class="$style.bg")
     //- div(:class="$style.bg" :style="bgStyle")
     //- div(:class="$style.bg2")
-    ControlBtnsLeftHeader(v-if="appSetting['common.controlBtnPosition'] == 'left'")
-    ControlBtnsRightHeader(v-else)
+    div(:class="$style.headerLeft")
+      button(:class="$style.headerBtn" :aria-label="$t('player__hide_detail_tip')" :title="$t('player__hide_detail_tip')" @click="hide")
+        svg(:class="$style.headerBtnIcon" version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" width="60%" viewBox="0 0 30.727 30.727" space="preserve")
+          use(xlink:href="#icon-window-hide")
     div(:class="[$style.main, {[$style.showComment]: isShowPlayComment}]")
       div.left(:class="$style.left")
         //- div(:class="$style.info")
@@ -19,7 +21,6 @@ transition(enter-active-class="animated slideInRight" leave-active-class="animat
       //- 内容组件首次打开后常驻：反复开合只切换显隐/动画，不再整树卸载重建
       LyricPlayer(v-if="contentMounted" v-show="visibled" :visible="visibled" :class="{ 'animated fadeIn': visibled }")
       music-comment(v-if="contentMounted" :class="$style.comment" :show="isShowPlayComment" :music-info="playMusicInfo.musicInfo" @close="hideComment")
-    play-bar(v-if="contentMounted" v-show="visibled" :class="{ 'animated fadeIn': visibled }")
     transition(enter-active-class="animated-slow fadeIn" leave-active-class="animated-slow fadeOut")
       common-audio-visualizer(v-if="appSetting['player.audioVisualization'] && visibled")
 </template>
@@ -40,22 +41,16 @@ import {
   setShowPlayLrcSelectContentLrc,
 } from '@renderer/store/player/action'
 import LyricPlayer from './LyricPlayer.vue'
-import PlayBar from './PlayBar.vue'
 import MusicSourceQuality from './components/MusicSourceQuality.vue'
 import MusicComment from './components/MusicComment/index.vue'
-import ControlBtnsLeftHeader from './ControlBtnsLeftHeader.vue'
-import ControlBtnsRightHeader from './ControlBtnsRightHeader.vue'
 import { registerAutoHideMounse, unregisterAutoHideMounse } from './autoHideMounse'
 import { appSetting } from '@renderer/store/setting'
-import { closeWindow, maxWindow, minWindow, setFullScreen } from '@renderer/utils/ipc'
+import { closeWindow, maxWindow, minWindow } from '@renderer/utils/ipc'
 
 export default {
   name: 'CorePlayDetail',
   components: {
-    ControlBtnsLeftHeader,
-    ControlBtnsRightHeader,
     LyricPlayer,
-    PlayBar,
     MusicComment,
     MusicSourceQuality,
   },
@@ -116,11 +111,6 @@ export default {
       visibled,
       contentMounted,
       isFullscreen,
-      fullscreenExit() {
-        void setFullScreen(false).then((fullscreen) => {
-          isFullscreen.value = fullscreen
-        })
-      },
       min() {
         minWindow()
       },
@@ -141,6 +131,46 @@ export default {
 
 @control-btn-width: @height-toolbar * .26;
 
+.headerLeft {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+}
+
+.headerRight {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+}
+
+.headerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--color-button-font);
+  cursor: pointer;
+  opacity: 0.75;
+  &:hover {
+    opacity: 1;
+    color: var(--color-primary);
+  }
+}
+
+.headerBtnIcon {
+  display: block;
+}
+
 .container {
   position: absolute;
   display: flex;
@@ -150,6 +180,16 @@ export default {
   top: 0;
   left: 0;
   background-color: var(--color-content-background);
+  // 系统全屏时覆盖整个窗口（常态下仅覆盖主内容区，侧栏/顶栏/底栏保持可见）
+  &.fullscreen {
+    position: fixed;
+    z-index: 100;
+  }
+  // 系统全屏时覆盖整个窗口（常态下仅覆盖主内容区，侧栏/顶栏/底栏保持可见）
+  &.fullscreen {
+    position: fixed;
+    z-index: 100;
+  }
   z-index: 10;
   // -webkit-app-region: drag;
   overflow: hidden;

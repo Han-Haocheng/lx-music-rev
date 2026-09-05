@@ -1,36 +1,25 @@
 // import { useCommit } from '@common/utils/vueTools'
-import { defaultList } from '@renderer/store/list/state'
-import { getListMusics, addListMusics } from '@renderer/store/list/action'
 import { addTempPlayList } from '@renderer/store/player/action'
-import { appSetting } from '@renderer/store/setting'
 import { type Ref } from '@common/utils/vueTools'
 import { playList } from '@renderer/core/player'
 import { LIST_IDS } from '@common/constants'
 
-export default ({ selectedList, props, removeAllSelect, emit }: {
+export default ({ selectedList, props, removeAllSelect }: {
   selectedList: Ref<LX.Music.MusicInfoOnline[]>
   props: {
     list: LX.Music.MusicInfoOnline[]
   }
   removeAllSelect: () => void
-  emit: (event: 'show-menu' | 'play-list' | 'togglePage', ...args: any[]) => void
 }) => {
   let clickTime = 0
   let clickIndex = -1
 
+  // 播放列表是独立会话队列：点歌即把当前在线列表固化为队列并播放（不再写入试听列表）；
+  // 上下曲/队列操作只作用于该会话队列，与试听/收藏等持久列表解耦
   const handlePlayMusic = async(index: number, single: boolean) => {
-    let targetSong = props.list[index]
-    const defaultListMusics = await getListMusics(defaultList.id)
-    if (selectedList.value.length && !single) {
-      await addListMusics(defaultList.id, [...selectedList.value])
-      removeAllSelect()
-    } else {
-      await addListMusics(defaultList.id, [targetSong])
-    }
-    let targetIndex = defaultListMusics.findIndex(s => s.id === targetSong.id)
-    if (targetIndex > -1) {
-      playList(defaultList.id, targetIndex)
-    }
+    if (!props.list.length) return
+    if (selectedList.value.length && !single) removeAllSelect()
+    playList(LIST_IDS.PLAY_SESSION, index, props.list)
   }
 
   const handlePlayMusicLater = (index: number, single: boolean) => {
@@ -51,11 +40,7 @@ export default ({ selectedList, props, removeAllSelect, emit }: {
       clickIndex = index
       return
     }
-    if (appSetting['list.isClickPlayList']) {
-      emit('play-list', index)
-    } else {
-      void handlePlayMusic(index, true)
-    }
+    void handlePlayMusic(index, true)
     clickTime = 0
     clickIndex = -1
   }

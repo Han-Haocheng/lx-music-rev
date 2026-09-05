@@ -1,8 +1,8 @@
 <!--
   添加到收藏夹弹窗：
   供歌曲行"添加到"长按（listAddSelect）与控制栏"添加到"使用。
-  包含：全部收藏（LOVE）入口、收藏夹分组入口、内联新建分组，
-  以及"添加到用户列表"次级入口（通过 add-to-user-list 事件交由父组件打开用户列表弹窗）。
+  收藏以收藏夹为唯一容器：勾选/新建收藏夹即收藏（底层自动进入 LOVE 收藏池），
+  另含"添加到用户列表"次级入口（通过 add-to-user-list 事件交由父组件打开用户列表弹窗）。
 -->
 <template>
   <material-modal :show="show" :bg-close="bgClose" :teleport="teleport" max-width="70%" min-width="240px" @close="handleClose">
@@ -10,19 +10,6 @@
       <h2 :class="$style.title">{{ $t('favorite_group_select_title') }}</h2>
       <div v-if="currentMusicInfo && currentMusicInfo.name" :class="$style.subTitle">{{ currentMusicInfo.name }}</div>
       <div class="scroll" :class="$style.groupContent">
-        <button
-          type="button"
-          :class="[$style.groupItem, { [$style.checked]: loveChecked }]"
-          :aria-label="$t('list_add__btn_title', { name: $t('favorite_group_all') })"
-          @click="handleAddToLove"
-        >
-          <span :class="$style.checkIcon">
-            <svg v-if="loveChecked" version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" viewBox="0 32 448 448" space="preserve">
-              <use xlink:href="#icon-check-true" />
-            </svg>
-          </span>
-          <span :class="$style.groupName">{{ $t('favorite_group_all') }}</span>
-        </button>
         <button
           v-for="group in favoriteGroups"
           :key="group.id"
@@ -89,7 +76,6 @@ export default {
   emits: ['update:show', 'add-to-user-list'],
   setup(props, { emit }) {
     const currentMusicInfo = ref(null)
-    const loveChecked = ref(false)
     const groupCheckedIds = ref([])
     const isEditing = ref(false)
     const newGroupName = ref('')
@@ -102,16 +88,11 @@ export default {
     const loadInfo = async() => {
       const raw = props.musicInfo
       currentMusicInfo.value = raw && 'progress' in raw ? raw.metadata.musicInfo : raw
-      loveChecked.value = false
       groupCheckedIds.value = []
       const musicInfo = currentMusicInfo.value
       if (!musicInfo?.id) return
-      const [listIds, groupIds] = await Promise.all([
-        getMusicExistListIds(musicInfo.id),
-        getMusicGroupIds(musicInfo.id),
-      ])
+      const groupIds = await getMusicGroupIds(musicInfo.id)
       if (currentMusicInfo.value?.id != musicInfo.id) return
-      loveChecked.value = listIds.includes(loveList.id)
       groupCheckedIds.value = groupIds
     }
 
@@ -122,27 +103,21 @@ export default {
       void loadInfo()
     })
 
-    const addToLoveIfNeeded = async(musicInfo) => {
-      if (loveChecked.value) return
+    // 收藏夹建立在 LOVE 收藏池之上：入组前确保歌曲已在收藏池（无「全部收藏」入口后仅此兜底路径）
+    const ensureInLove = async(musicInfo) => {
+      const listIds = await getMusicExistListIds(musicInfo.id)
+      if (listIds.includes(loveList.id)) return
       await addListMusics(loveList.id, [musicInfo])
-      loveChecked.value = true
     }
 
     const addMusicToGroup = async(musicInfo, groupId) => {
-      await addToLoveIfNeeded(musicInfo)
+      await ensureInLove(musicInfo)
       const ids = await getMusicGroupIds(musicInfo.id)
       if (!ids.includes(groupId)) ids.push(groupId)
       await setMusicGroupIds(musicInfo.id, ids)
       clearGroupMusicsCache(groupId)
       groupCheckedIds.value.push(groupId)
       window.app_event.myListUpdate([loveList.id])
-    }
-
-    const handleAddToLove = async() => {
-      const musicInfo = currentMusicInfo.value
-      if (!musicInfo?.id) return
-      if (!loveChecked.value) await addToLoveIfNeeded(musicInfo)
-      handleClose()
     }
 
     const handleAddToGroup = async(group) => {
@@ -180,12 +155,10 @@ export default {
     return {
       favoriteGroups,
       currentMusicInfo,
-      loveChecked,
       groupCheckedIds,
       isEditing,
       newGroupName,
       newGroupInput,
-      handleAddToLove,
       handleAddToGroup,
       handleStartNewGroup,
       handleSaveNewGroup,

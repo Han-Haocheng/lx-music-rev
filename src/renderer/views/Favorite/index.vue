@@ -2,55 +2,52 @@
   <div id="favorite" :class="$style.container">
     <header :class="$style.header">
       <h2 :class="$style.title">{{ $t('favorite') }}</h2>
-      <button :class="$style.headerBtn" :aria-label="$t('local_music')" @click="handleOpenLocalMusic">
-        <svg-icon name="audio-wave" />
-      </button>
-      <template v-if="!isShowNewGroup">
-        <button :class="$style.headerBtn" :aria-label="$t('favorite_group_new')" @click="handleNewGroup">
-          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 24 24" space="preserve">
-            <use xlink:href="#icon-list-add" />
-          </svg>
-        </button>
-      </template>
-      <base-input v-else ref="newGroupInput" v-model="newGroupName" :class="$style.newGroupInput" :placeholder="$t('favorite_group_new_input')" @keyup.enter="handleSaveNewGroup" @blur="handleSaveNewGroup" />
     </header>
     <div :class="$style.main">
       <div :class="$style.groupsWrap">
         <ul :class="['scroll', $style.groups]">
           <li
-            :class="[$style.groupItem, { [$style.active]: currentGroupId == null }]"
-            :aria-label="$t('favorite_group_all')"
-            @click="currentGroupId = null"
+            :class="[$style.groupItem, { [$style.active]: showLocalMusic }]"
+            :aria-label="$t('local_music')"
+            @click="showLocalMusic = true"
           >
-            <span :class="$style.groupLabel">{{ $t('favorite_group_all') }}</span>
-            <span :class="$style.count">{{ loveListMusics.length }}</span>
+            <span :class="$style.groupLabel">
+              <svg-icon name="audio-wave" :class="$style.localMusicIcon" />
+              {{ $t('local_music') }}
+            </span>
           </li>
+          <!-- 全部收藏（LOVE 聚合视图）已移除：收藏以收藏夹为唯一容器，见 CHANGELOG -->
           <li
             v-for="group in favoriteGroups" :key="group.id"
-            :class="[$style.groupItem, { [$style.active]: currentGroupId == group.id, [$style.editing]: editingGroupId == group.id }]"
+            :class="[$style.groupItem, { [$style.active]: !showLocalMusic && currentGroupId == group.id, [$style.editing]: editingGroupId == group.id }]"
             :aria-label="group.name"
-            @click="currentGroupId = group.id" @contextmenu.prevent="handleGroupRightClick(group, $event)"
+            @click="handleGroupClick(group)" @contextmenu.prevent="handleGroupRightClick(group, $event)"
           >
+            <span v-if="group.source" :class="$style.groupSourceBadge" :title="$t('favorite_group_from_source', { name: getSourceName(group.source) })">{{ $t('favorite_group_from_source_badge') }}</span>
             <span :class="$style.groupLabel">{{ group.name }}</span>
             <span :class="$style.count">{{ groupCounts[group.id] ?? '' }}</span>
             <base-input :ref="el => setEditInputRef(group, el)" v-model="editingGroupName" :class="$style.groupEditInput" @keyup.enter="handleRenameGroup(group)" @blur="handleRenameGroup(group)" />
           </li>
         </ul>
         <p v-if="!favoriteGroups.length" :class="$style.emptyTip">{{ $t('favorite_group_empty') }}</p>
-        <button :class="$style.newGroupBtn" :aria-label="$t('favorite_group_new')" @click="handleNewGroup">
-          <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 24 24" space="preserve">
-            <use xlink:href="#icon-list-add" />
-          </svg>
-          <span>{{ $t('favorite_group_new') }}</span>
-        </button>
+        <template v-if="!isShowNewGroup">
+          <button :class="$style.newGroupBtn" :aria-label="$t('favorite_group_new')" @click="handleNewGroup">
+            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 24 24" space="preserve">
+              <use xlink:href="#icon-list-add" />
+            </svg>
+            <span>{{ $t('favorite_group_new') }}</span>
+          </button>
+        </template>
+        <base-input v-else ref="newGroupInput" v-model="newGroupName" :class="$style.newGroupInput" :placeholder="$t('favorite_group_new_input')" @keyup.enter="handleSaveNewGroup" @blur="handleSaveNewGroup" />
       </div>
       <div :class="$style.listWrap">
+        <!-- 无收藏夹时的空态列表：独立字面量滚动键，不复用历史 'favorite' 残留键（由 initData 清理） -->
         <MusicList
-          :list-id="LOVE_ID"
-          :music-list="currentGroupId == null ? null : groupMusicList"
-          :scroll-key="currentGroupId ?? LOVE_ID"
-          :allow-custom-sort="currentGroupId == null"
-          :group-actions-visible="true"
+          :list-id="showLocalMusic ? LOCAL_LIST_ID : LOVE_ID"
+          :music-list="showLocalMusic ? null : (currentGroupId == null ? emptyMusicList : groupMusicList)"
+          :scroll-key="showLocalMusic ? LOCAL_LIST_ID : (currentGroupId ?? 'favgroup_empty')"
+          :allow-custom-sort="showLocalMusic"
+          :group-actions-visible="!showLocalMusic"
           @group-modal="handleGroupModal"
         />
       </div>
@@ -63,9 +60,14 @@
 <script>
 import { nextTick } from '@common/utils/vueTools'
 import { LIST_IDS } from '@common/constants'
+import { LOCAL_LIST_ID } from '@renderer/store/localList'
+import { getListPositionInfo } from '@renderer/utils/ipc'
+import { removeListPosition } from '@renderer/utils/data'
 import MusicList from '../List/MusicList/index.vue'
 import MusicGroupModal from './components/MusicGroupModal.vue'
-import { favoriteGroups, initFavoriteGroups, getGroupMusics, removeFavoriteGroup, updateFavoriteGroup, addFavoriteGroup, clearGroupMusicsCache } from '@renderer/store/list/favoriteGroup'
+import { favoriteGroups, initFavoriteGroups, getGroupMusics, removeFavoriteGroup, updateFavoriteGroup, addFavoriteGroup, clearGroupMusicsCache, syncFavoriteGroup, getMusicGroupIds, migrateOrphanMusics, FAVORITE_GROUP_DEFAULT_ID } from '@renderer/store/list/favoriteGroup'
+import { playMusicInfo } from '@renderer/store/player/state'
+import { appSetting } from '@renderer/store/setting'
 import { getListMusics, getListMusicsFromCache } from '@renderer/store/list/action'
 import { dialog } from '@renderer/plugins/Dialog'
 
@@ -78,9 +80,12 @@ export default {
   data() {
     return {
       LOVE_ID: LIST_IDS.LOVE,
+      LOCAL_LIST_ID,
       favoriteGroups,
       currentGroupId: null,
+      showLocalMusic: false,
       loveListMusics: [],
+      emptyMusicList: [],
       groupMusics: [],
       groupCounts: {},
       isShowNewGroup: false,
@@ -95,15 +100,20 @@ export default {
     }
   },
   computed: {
+    isLocalMusic() {
+      return this.showLocalMusic
+    },
     groupMusicList() {
       const set = new Set(this.groupMusics)
       return this.loveListMusics.filter(m => set.has(m.id))
     },
     groupMenus() {
-      return [
+      const menus = [
         { name: this.$t('favorite_group_rename'), action: 'rename' },
-        { name: this.$t('favorite_group_remove'), action: 'remove' },
       ]
+      if (this.targetGroup?.source) menus.push({ name: this.$t('favorite_group_sync'), action: 'sync' })
+      menus.push({ name: this.$t('favorite_group_remove'), action: 'remove' })
+      return menus
     },
   },
   watch: {
@@ -119,14 +129,76 @@ export default {
     window.app_event.off('myListUpdate', this.handleMyListUpdate)
   },
   methods: {
+    getSourceName(source) {
+      const prefix = appSetting['common.sourceNameType'] == 'real' ? 'source_' : 'source_alias_'
+      return window.i18n.t(prefix + source)
+    },
     handleOpenLocalMusic() {
-      this.$router.push({ path: '/local' })
+      // 本地音乐与收藏同页切换（不再打开新页面）
+      this.showLocalMusic = true
+      this.currentGroupId = null
+    },
+    handleGroupClick(group) {
+      this.showLocalMusic = false
+      this.currentGroupId = group.id
+    },
+    async handleSyncGroup(group) {
+      const isConfirm = await dialog.confirm({
+        message: this.$t('favorite_group_sync_confirm'),
+        cancelButtonText: this.$t('cancel_button_text'),
+        confirmButtonText: this.$t('confirm_button_text'),
+      })
+      if (!isConfirm) return
+      try {
+        const count = await syncFavoriteGroup(group.id)
+        clearGroupMusicsCache(group.id)
+        await this.initData()
+        void dialog({ message: this.$t('favorite_group_sync_success', { num: count }) })
+      } catch (err) {
+        console.warn(err)
+        void dialog({ message: this.$t('favorite_group_sync_failed') + (err?.message ? '\n' + err.message : '') })
+      }
     },
     async initData() {
       clearGroupMusicsCache()
+      await this.cleanListScrollResidues()
       await initFavoriteGroups()
+      // 无容器孤儿歌曲（历史存量/整库恢复残留）自动归入默认兜底收藏夹「我的收藏」
+      try {
+        const migrated = await migrateOrphanMusics(this.$t('favorite_group_default'))
+        if (migrated) await initFavoriteGroups()
+      } catch (err) {
+        console.warn('[favorite] 孤儿迁移失败，跳过:', err)
+      }
       await this.refreshLoveList()
       await this.refreshGroupMusics()
+      await this.selectInitialGroup()
+    },
+    // 清理列表滚动位置历史残留：'love'（旧「全部收藏」视图）、'favorite'（旧空态兜底键）、
+    // 'userlist_*'（退役自建列表）与空态兜底键（仅空列表写入、值恒为 0，无恢复价值）
+    async cleanListScrollResidues() {
+      const map = await getListPositionInfo() ?? {}
+      const legacyKeys = Object.keys(map).filter(key => key == LIST_IDS.LOVE || key == 'favorite' || key == 'favgroup_empty' || key.startsWith('userlist_'))
+      if (!legacyKeys.length) return
+      for (const key of legacyKeys) await removeListPosition(key)
+    },
+    // 首次进入/无选中时：播放中的收藏歌曲所属收藏夹优先，其次默认兜底收藏夹，最后第一个收藏夹
+    async selectInitialGroup() {
+      if (this.showLocalMusic || this.currentGroupId != null) return
+      const playing = playMusicInfo
+      if (playing.listId == LIST_IDS.LOVE && playing.musicInfo) {
+        try {
+          const groupIds = await getMusicGroupIds(playing.musicInfo.id)
+          if (groupIds.length) {
+            this.currentGroupId = groupIds[0]
+            return
+          }
+        } catch (err) {
+          console.warn('[favorite] 播放歌曲归属查询失败，跳过:', err)
+        }
+      }
+      const defaultGroup = favoriteGroups.find(g => g.id == FAVORITE_GROUP_DEFAULT_ID)
+      this.currentGroupId = (defaultGroup ?? favoriteGroups[0])?.id ?? null
     },
     async refreshLoveList() {
       await getListMusics(LIST_IDS.LOVE)
@@ -185,6 +257,11 @@ export default {
       if (!action || !this.targetGroup) return
       const group = this.targetGroup
       this.targetGroup = null
+      if (action.action == 'sync') {
+        // 与远程源同步：拉取源歌单并覆盖组内歌曲（同步前确认覆盖语义）
+        void this.handleSyncGroup(group)
+        return
+      }
       if (action.action == 'rename') {
         // 进入编辑前预填当前组名（输入框为 v-model 绑定，不会自动带出）
         this.editingGroupName = group.name
@@ -196,9 +273,15 @@ export default {
           confirmButtonText: this.$t('confirm_button_text'),
         }).then(async isConfirm => {
           if (!isConfirm) return
+          const groupIndex = this.favoriteGroups.findIndex(g => g.id == group.id)
           await removeFavoriteGroup(group.id)
-          if (this.currentGroupId == group.id) this.currentGroupId = null
+          clearGroupMusicsCache()
+          // 删除收藏夹会把不再属于任何收藏夹的歌曲一并移出收藏，LOVE 快照同步刷新
+          await this.refreshLoveList()
           await this.refreshGroupMusics()
+          if (!this.favoriteGroups.some(g => g.id == this.currentGroupId)) {
+            this.currentGroupId = this.favoriteGroups[Math.min(groupIndex, this.favoriteGroups.length - 1)]?.id ?? null
+          }
         })
       }
     },
@@ -225,6 +308,8 @@ export default {
     },
     handleGroupModalChanged() {
       clearGroupMusicsCache()
+      // 归组若全不勾选会把歌曲移出收藏（LOVE 同步删除），刷新 LOVE 快照与分组内容
+      void this.refreshLoveList()
       void this.refreshGroupMusics()
     },
   },
@@ -326,6 +411,23 @@ export default {
   min-width: 0;
   font-size: 13px;
   .mixin-ellipsis-1();
+}
+.localMusicIcon {
+  flex: none;
+  height: 12px;
+  margin-right: 6px;
+  color: var(--color-font-label);
+}
+.groupSourceBadge {
+  flex: none;
+  font-size: 10px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  margin-right: 4px;
+  color: var(--color-primary);
+  background: var(--color-primary-alpha-100);
+  white-space: nowrap;
 }
 .count {
   flex: none;

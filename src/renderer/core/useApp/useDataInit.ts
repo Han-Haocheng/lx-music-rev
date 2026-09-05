@@ -2,6 +2,7 @@ import { getPlayInfo } from '@renderer/utils/ipc'
 import music from '@renderer/utils/musicSdk'
 import { log } from '@common/utils'
 import { getListMusics, getUserLists, registerAction } from '@renderer/store/list/action'
+import { LIST_IDS } from '@common/constants'
 
 
 import useInitUserApi from './useInitUserApi'
@@ -15,6 +16,8 @@ const initPrevPlayInfo = async() => {
   const info = await getPlayInfo()
   window.lx.restorePlayInfo = null
   if (!info?.listId || info.index < 0) return
+  // 独立会话队列在上次会话结束后不持久：无法/无需恢复（重新点歌即生成新队列）
+  if (info.listId == LIST_IDS.PLAY_SESSION) return
   const list = await getListMusics(info.listId)
   if (!list[info.index]) return
   window.lx.restorePlayInfo = info

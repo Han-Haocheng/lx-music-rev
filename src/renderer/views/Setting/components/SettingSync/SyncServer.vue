@@ -12,6 +12,11 @@ dd
         base-input.gap-left(:class="$style.portInput" :model-value="appSetting['sync.server.port']" :disabled="sync.enable" type="number" :placeholder="$t('setting__sync_server_port_tip')" @update:model-value="setSyncServerPort")
 
     .p.gap-top
+      .p.small {{ $t('setting__sync_server_max_snapshot_num') }}
+      div
+        base-input.gap-left(:class="$style.portInput" :model-value="appSetting['sync.server.maxSsnapshotNum']" :disabled="sync.enable" type="number" @update:model-value="setSyncServerMaxSnapshotNum")
+
+    .p.gap-top
       base-btn.btn(min :disabled="!sync.server.status.status" @click="refreshSyncCode") {{ $t('setting__sync_server_refresh_code') }}
       base-btn.btn(min @click="isShowDeviceListModal = true") {{ $t('setting__sync_server_show_device_list') }}
   ServerDeviceListModal(v-model="isShowDeviceListModal")
@@ -60,11 +65,19 @@ export default {
       updateSetting({ 'sync.server.port': port.trim() })
     }, 500)
 
+    // 同步服务端快照保留数量：钳制在 1..20（默认 5），输入非法/清空时不写入
+    const setSyncServerMaxSnapshotNum = debounce(num => {
+      const value = parseInt(num, 10)
+      if (Number.isNaN(value)) return
+      updateSetting({ 'sync.server.maxSsnapshotNum': Math.min(20, Math.max(1, value)) })
+    }, 500)
+
     return {
       appSetting,
       sync,
       syncEnableServerTitle,
       setSyncServerPort,
+      setSyncServerMaxSnapshotNum,
       syncDevices,
       refreshSyncCode,
       isShowDeviceListModal,

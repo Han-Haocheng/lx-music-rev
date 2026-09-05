@@ -1,13 +1,6 @@
 <template>
   <teleport to="#root">
-    <div ref="dom_menu" :class="$style.container" :style="menuStyles" :aria-hidden="!modelValue">
-      <!-- <div :class="$style.group">
-      <div :class="$style.title">{{ $t('lyric_menu__align') }}</div>
-      <div :class="$style.subGroup">
-        <div :class="[$style.btn, { [$style.active]: appSetting['playDetail.style.align'] == 'left' }]" role="button" @click="setFontAlign('left')" ignore-tip :aria-label="$t('lyric_menu__align_left')">{{ $t('lyric_menu__align_left') }}</div>
-        <div :class="[$style.btn, { [$style.active]: appSetting['playDetail.style.align'] == 'center' }]" role="button" @click="setFontAlign('center')" ignore-tip :aria-label="$t('lyric_menu__align_center')">{{ $t('lyric_menu__align_center') }}</div>
-      </div>
-    </div> -->
+    <div ref="dom_menu" :class="$style.container" :style="menuStyles" :aria-hidden="!modelValue" :inert="!modelValue">
       <div :class="$style.group">
         <div :class="$style.subGroup">
           <div :class="$style.title">{{ $t('lyric_menu__lrc_size', { size: appSetting['playDetail.style.fontSize'] }) }}</div>
@@ -49,7 +42,7 @@ import { computed, ref, watch } from '@common/utils/vueTools'
 import useMenuLocation from '@renderer/utils/compositions/useMenuLocation'
 import { debounce } from '@common/utils/common'
 import { saveLyricEdited, removeLyricEdited } from '@renderer/utils/ipc'
-import { appSetting, setPlayDetailLyricFont, setPlayDetailLyricAlign } from '@renderer/store/setting'
+import { appSetting, setPlayDetailLyricFont } from '@renderer/store/setting'
 
 const offsetTagRxp = /(?:^|\n)\s*\[offset:\s*(\S+(?:\d+)*)\s*\]/
 const offsetTagAllRxp = /(^|\n)\s*\[offset:\s*(\S+(?:\d+)*)\s*\]/g
@@ -99,11 +92,6 @@ export default {
 
     const onHide = () => {
       emit('update:modelValue', false)
-    }
-
-    const setFontAlign = val => {
-      if (appSetting['playDetail.style.align'] == val) return
-      setPlayDetailLyricAlign(val)
     }
 
     const fontSizeUp = step => {
@@ -199,7 +187,6 @@ export default {
       fontSizeReset,
       setOffset,
       offsetReset,
-      setFontAlign,
       offsetDisabled,
     }
   },

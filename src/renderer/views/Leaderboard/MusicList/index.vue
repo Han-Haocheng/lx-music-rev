@@ -8,7 +8,6 @@
       :list="listDetailInfo.list"
       :no-item="listDetailInfo.noItemLabel"
       @show-menu="hideListsMenu"
-      @play-list="handlePlayList"
       @toggle-page="togglePage"
     />
   </div>
@@ -30,7 +29,6 @@ const {
   listRef,
   listDetailInfo,
   getList,
-  handlePlayList,
 } = useList()
 
 watch(() => props.boardId, (boardId) => {

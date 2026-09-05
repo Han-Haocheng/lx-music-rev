@@ -47,6 +47,13 @@ declare namespace LX {
       position: number
     }
 
+    interface FavoriteGroupSource {
+      groupId: string
+      source: string
+      sourceListId: string
+      locationUpdateTime: number | null
+    }
+
     type Lyricnfo = {
       id: string
       type: 'lyric'

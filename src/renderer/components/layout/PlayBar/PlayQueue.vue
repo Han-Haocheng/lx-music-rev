@@ -5,9 +5,9 @@
         <div :class="$style.panel">
           <div :class="$style.header">
             <span :class="$style.title">{{ $t('playlist') }}</span>
-            <button :class="$style.headerBtn" :aria-label="$t('playlist_clear_played')" @click="handleClearPlayed">
-              <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="16" viewBox="0 0 512 512" space="preserve">
-                <use xlink:href="#icon-eraser" />
+            <button :class="$style.headerBtn" :aria-label="$t('playlist_clear')" @click="handleClearPlaylist">
+              <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" height="14" viewBox="0 0 1024 1024" space="preserve">
+                <use xlink:href="#icon-delete" />
               </svg>
             </button>
             <button :class="$style.headerBtn" :aria-label="$t('close')" @click="handleClose">
@@ -52,12 +52,9 @@
 
 <script>
 import { computed, ref, watch, nextTick } from '@common/utils/vueTools'
-import { useI18n } from '@renderer/plugins/i18n'
 import { playInfo, playMusicInfo } from '@renderer/store/player/state'
-import { getList, clearPlayedList } from '@renderer/store/player/action'
+import { getPlayList, setPlayListSnapshot } from '@renderer/store/player/action'
 import { playList, playNext } from '@renderer/core/player'
-import { removeListMusics } from '@renderer/store/list/action'
-import { LIST_IDS } from '@common/constants'
 import { dialog } from '@renderer/plugins/Dialog'
 
 export default {
@@ -70,9 +67,9 @@ export default {
   },
   emits: ['close'],
   setup(props, { emit }) {
-    const t = useI18n()
     const listRef = ref(null)
-    const list = computed(() => (playInfo.playerListId ? getList(playInfo.playerListId) : []))
+    // 播放队列：快照优先（收藏分组等子集视图播放时显示分组内歌曲），否则按列表实时取整表
+    const list = computed(() => (playInfo.playerListId ? getPlayList(playInfo.playerListId) : []))
 
     // 虚拟列表的数据源：将原始列表扁平化为 [{ id, name, singer, raw }]，id 供 key 使用，raw 供操作回查
     const displayList = computed(() => list.value.map(item => {
@@ -88,7 +85,6 @@ export default {
     const isActiveIndex = (index) => !playMusicInfo.isTempPlay && playInfo.playIndex === index
 
     const getRealMusicInfo = (item) => ('progress' in item ? item.metadata.musicInfo : item)
-    const displayName = (item) => getRealMusicInfo(item).name
 
     const handleClose = () => {
       emit('close')
@@ -97,30 +93,32 @@ export default {
     const handlePlay = (index) => {
       const listId = playInfo.playerListId
       if (!listId) return
-      playList(listId, index)
+      // 在队列内点播：以当前队列恢复播放（避免重新固化导致队列内容丢失）
+      playList(listId, index, list.value)
       handleClose()
     }
 
-    const handleRemove = async(index) => {
+    // 播放列表是独立会话队列：移除（或清空）只影响队列本身，不读写收藏/试听等任何持久列表
+    const handleRemove = (index) => {
       const listId = playInfo.playerListId
-      const item = list.value[index]
-      if (!listId || !item) return
-      // 对持久列表（我的收藏/用户列表/试听）删除前二次确认，避免误删源列表歌曲
-      const isPersistent = listId != LIST_IDS.TEMP && listId != LIST_IDS.DOWNLOAD
-      if (isPersistent) {
-        const isConfirm = await dialog.confirm({
-          message: t('playlist_remove_confirm', { name: displayName(item) }),
-          cancelButtonText: t('cancel_button_text'),
-          confirmButtonText: t('confirm_button_text'),
-        })
-        if (!isConfirm) return
-      }
-      void removeListMusics({ listId, ids: [getRealMusicInfo(item).id] })
-      if (!playMusicInfo.isTempPlay && index === playInfo.playIndex) void playNext(true)
+      if (!listId || !list.value.length) return
+      const isCurrent = !playMusicInfo.isTempPlay && index === playInfo.playIndex
+      const newList = list.value.filter((_, i) => i != index)
+      setPlayListSnapshot(newList)
+      if (isCurrent) void playNext(true)
     }
 
-    const handleClearPlayed = () => {
-      clearPlayedList()
+    // 清空当前会话队列（区别于仅清空已播记录）：纯队列操作，不影响收藏/试听等任何持久列表；
+    // 清空不可逆且曾误触全量删除，故二次确认；清空后保持面板打开，直接显示空态以便确认结果
+    const handleClearPlaylist = async() => {
+      if (!playInfo.playerListId) return
+      const isConfirm = await dialog.confirm({
+        message: window.i18n.t('playlist_clear_confirm'),
+        cancelButtonText: window.i18n.t('cancel_button_text'),
+        confirmButtonText: window.i18n.t('confirm_button_text'),
+      })
+      if (!isConfirm) return
+      setPlayListSnapshot([])
     }
 
     const handleLocate = () => {
@@ -143,11 +141,10 @@ export default {
       displayList,
       isActiveIndex,
       getRealMusicInfo,
-      displayName,
       handleClose,
       handlePlay,
       handleRemove,
-      handleClearPlayed,
+      handleClearPlaylist,
     }
   },
 }

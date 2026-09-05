@@ -40,6 +40,12 @@ export const isShowPlayComment = ref(false)
 
 export const isShowLrcSelectContent = ref(false)
 
+/**
+ * 播放队列快照：收藏分组等「列表子集」视图播放时固化队列（null = 按 listId 实时取整表）；
+ * 用于切歌隔离——分组视图内播放/上下曲只在本分组内进行，不串到「全部收藏」或其他分组
+ */
+export const playListSnapshot = ref<Array<LX.Music.MusicInfo | LX.Download.ListItem> | null>(null)
+
 export const playMusicInfo = shallowReactive<{
   /**
    * 当前播放歌曲的列表 id

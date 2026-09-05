@@ -5,6 +5,8 @@ const isMac = process.platform == 'darwin'
 const isWin = process.platform == 'win32'
 
 const defaultSetting: LX.AppSetting = {
+  // version：设置数据结构版本标记，仅随保存回写留档（main/utils/index.ts），无读取消费；
+  // 结构迁移以 migrateSetting 的 version 判断为准
   version: '2.1.0',
 
   'common.windowSizeId': 3,
@@ -103,7 +105,6 @@ const defaultSetting: LX.AppSetting = {
   'desktopLyric.style.isFontWeightLine': true,
   'desktopLyric.style.isFontWeightExtended': true,
 
-  'list.isClickPlayList': false,
   'list.isShowSource': true,
   'list.isSaveScrollLocation': true,
   'list.addMusicLocationType': 'top',

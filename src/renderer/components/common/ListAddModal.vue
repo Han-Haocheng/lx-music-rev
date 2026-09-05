@@ -6,7 +6,7 @@
         <base-checkbox id="list_add_move_mode" :model-value="moveMode" :label="$t('list_add__move_mode')" @update:model-value="setMoveMode" />
       </div>
       <div class="scroll" :class="$style.btnContent">
-        <base-btn v-for="(item, index) in lists" :key="item.id" :class="$style.btn" :aria-label="$t('list_add__btn_title', { name: item.name })" :disabled="item.isExist" @click="handleClick(index)">{{ item.name }}</base-btn>
+        <base-btn v-for="(item, index) in lists" :key="item.id" :class="$style.btn" :aria-label="$t('list_add__btn_title', { name: item.name })" @click="handleClick(index)">{{ item.name }}</base-btn>
         <base-btn :class="[$style.btn, $style.newList, isEditing ? $style.editing : null]" :aria-label="$t('favorite_group_new')" @click="handleEditing($event)">
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" viewBox="0 0 42 42" space="preserve">
             <use xlink:href="#icon-addTo" />
@@ -22,7 +22,7 @@
 <script>
 // import { mapMutations } from 'vuex'
 import { watch, ref, onBeforeUnmount } from '@common/utils/vueTools'
-import { defaultList, loveList } from '@renderer/store/list/state'
+import { loveList } from '@renderer/store/list/state'
 import { addListMusics, moveListMusics, getMusicExistListIds } from '@renderer/store/list/action'
 import useKeyDown from '@renderer/utils/compositions/useKeyDown'
 import { useI18n } from '@root/lang'
@@ -89,9 +89,8 @@ export default {
     let stopWatchFavoriteGroups = null
 
     const getList = () => {
-      // 收藏分组是「我的收藏」的归类视图：目标列表为 love，分组项按 love 参与排除过滤
+      // 目标仅「我的收藏」与收藏分组（试听列表已由独立会话播放列表取代，不再作为添加目标）
       lists.value = [
-        { ...defaultList, name: t(defaultList.name) },
         { ...loveList, name: t(loveList.name) },
         ...favoriteGroups.map(g => ({ id: g.id, name: g.name, isGroup: true })),
       ].filter(l => !props.excludeListId.includes(l.isGroup ? loveList.id : l.id)).map(l => ({ ...l, isExist: false }))
@@ -166,6 +165,11 @@ export default {
     async handleClick(index) {
       const target = this.lists[index]
       const musicInfo = this.currentMusicInfo
+      if (target.isExist) {
+        // 已在该目标中：明确提示，避免点击无反应的「添加不了」错觉
+        void dialog({ message: window.i18n.t('list_add__already', { name: target.name }) })
+        return
+      }
       // 收藏分组目标：歌曲进入「我的收藏」并按分组归属
       const targetListId = target.isGroup ? loveList.id : target.id
       try {
@@ -173,7 +177,11 @@ export default {
         else await addListMusics(targetListId, [musicInfo])
         if (target.isGroup) await setMusicGroupIds(musicInfo.id, [target.id])
         this.lists[index].isExist = true
-      } catch { /* 忽略写入失败（数据层问题由主进程日志暴露） */ }
+      } catch (err) {
+        console.warn(err)
+        void dialog({ message: window.i18n.t('list_add__failed') })
+        return
+      }
 
       if (this.keyModDown && !this.moveMode) return
       this.$nextTick(() => {

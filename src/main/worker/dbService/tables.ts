@@ -13,6 +13,7 @@ type Tables = 'db_info'
 | 'favorite_groups'
 | 'favorite_group_musics'
 | 'index_favorite_group_musics'
+| 'favorite_group_sources'
 
 const tables = new Map<Tables, string>()
 
@@ -125,6 +126,16 @@ tables.set('dislike_list', `
     "meta" TEXT
   );
 `)
+tables.set('favorite_group_sources', `
+  CREATE TABLE "favorite_group_sources" (
+    "groupId" TEXT NOT NULL,
+    "source" TEXT NOT NULL,
+    "sourceListId" TEXT NOT NULL,
+    "locationUpdateTime" INTEGER,
+    PRIMARY KEY("groupId")
+  );
+`)
+
 tables.set('favorite_groups', `
   CREATE TABLE "favorite_groups" (
     "id" TEXT NOT NULL,

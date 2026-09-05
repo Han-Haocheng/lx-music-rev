@@ -12,6 +12,8 @@ const ensureFavoriteGroupTables = (db: DB) => {
     return db.prepare<[string]>('SELECT name FROM "main".sqlite_master WHERE type=\'index\' AND name=?;').get(name) != null
   }
   if (!queryIndexByName('index_favorite_group_musics')) db.exec(tables.get('index_favorite_group_musics')!)
+  // 分组来源表（1.3.1+）：远端歌单收藏分组标记来源（用于「与源同步」）；老库确保存在
+  if (!queryByName('favorite_group_sources')) db.exec(tables.get('favorite_group_sources')!)
 }
 
 const migrateV1 = (db: DB) => {
