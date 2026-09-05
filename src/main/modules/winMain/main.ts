@@ -150,7 +150,24 @@ export const createWindow = () => {
   })
 
   const winURL = process.env.NODE_ENV !== 'production' ? 'http://localhost:9080' : `file://${path.join(encodePath(__dirname), 'index.html')}`
-  void browserWindow.loadURL(winURL + `?os=${getPlatform()}&dt=${global.envParams.cmdParams.dt}&dark=${shouldUseDarkColors}&theme=${encodeURIComponent(JSON.stringify(theme))}`)
+  const fullURL = winURL + `?os=${getPlatform()}&dt=${global.envParams.cmdParams.dt}&dark=${shouldUseDarkColors}&theme=${encodeURIComponent(JSON.stringify(theme))}`
+  void browserWindow.loadURL(fullURL)
+
+  // 开发模式：dev server 就绪晚于 Electron 启动时加载会报 ERR_CONNECTION_REFUSED 白屏，
+  // 自动重试直至加载成功（最多 30 秒，dev server 一般 1~2 轮内就绪）
+  if (process.env.NODE_ENV !== 'production') {
+    let devLoadFailCount = 0
+    const win = browserWindow
+    win.webContents.on('did-fail-load', (_event, errorCode, errorDescription) => {
+      if (devLoadFailCount >= 20) return
+      if (errorCode == -102 || errorDescription.includes('ERR_CONNECTION_REFUSED')) {
+        devLoadFailCount += 1
+        setTimeout(() => {
+          if (!win.isDestroyed()) void win.loadURL(fullURL)
+        }, 1500)
+      }
+    })
+  }
 
   winEvent()
 
