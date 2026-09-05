@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, renameSync } from 'fs'
 import { app, shell, screen, nativeTheme, dialog } from 'electron'
 import type { RenderProcessGoneDetails, WebContents } from 'electron'
 import { URL_SCHEME_RXP } from '@common/constants'
-import { getProxy, getTheme, initHotKey, initSetting, parseEnvParams } from './utils'
+import { getProxy, getTheme, initHotKey, initSetting, parseEnvParams, isOpenFile } from './utils'
 import { navigationUrlWhiteList } from '@common/config'
 import defaultSetting from '@common/defaultSetting'
 import { isExistWindow as isExistMainWindow, showWindow as showMainWindow } from './modules/winMain'
@@ -22,6 +22,7 @@ export const initGlobalData = () => {
   global.envParams = {
     cmdParams: envParams.cmdParams,
     deeplink: envParams.deeplink,
+    openFiles: envParams.openFiles ?? [],
   }
   global.lx = {
     inited: false,
@@ -97,6 +98,12 @@ export const initSingleInstanceHandle = (startApp: () => void) => {
         global.lx.event_app.deeplink(global.envParams.deeplink)
         return
       }
+      if (envParams.openFiles.length) {
+        global.envParams.openFiles = envParams.openFiles
+        global.lx.event_app.open_files(envParams.openFiles)
+        if (envParams.cmdParams.hidden !== true) showMainWindow()
+        return
+      }
       if (envParams.cmdParams.hidden !== true) {
         showMainWindow()
       }
@@ -107,6 +114,7 @@ export const initSingleInstanceHandle = (startApp: () => void) => {
     // 改为确保应用完成初始化并创建窗口，正在退出时则忽略本次请求。
     if (global.lx.isSkipTrayQuit) return
     if (envParams.deeplink) global.envParams.deeplink = envParams.deeplink
+    if (envParams.openFiles.length) global.envParams.openFiles = envParams.openFiles
     startApp()
   })
 }
@@ -174,6 +182,21 @@ export const registerDeeplink = (startApp: () => void) => {
     } else {
       startApp()
     }
+  })
+
+  // macOS：作为系统默认音频打开程序时，Finder 双击文件触发（可能早于 ready，须在 will-finish-launching 注册）
+  app.on('will-finish-launching', () => {
+    app.on('open-file', (event, filePath) => {
+      event.preventDefault()
+      if (!isOpenFile(filePath)) return
+      global.envParams.openFiles = [...new Set([...(global.envParams.openFiles ?? []), filePath])]
+      if (isExistMainWindow()) {
+        global.lx.event_app.open_files([filePath])
+        showMainWindow()
+      } else {
+        startApp()
+      }
+    })
   })
 }
 

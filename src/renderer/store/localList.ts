@@ -2,9 +2,7 @@ import { readdir } from 'node:fs/promises'
 import { joinPath } from '@common/utils/nodejs'
 import { addListMusics } from '@renderer/store/list/action'
 import { fetchingListStatus } from '@renderer/store/list/state'
-import { openPath } from '@renderer/utils/ipc'
 import { appSetting, updateSetting } from '@renderer/store/setting'
-import { dialog } from '@renderer/plugins/Dialog'
 
 /**
  * 本地音乐列表
@@ -47,7 +45,11 @@ const scanAudioFiles = async(dirPath: string): Promise<string[]> => {
   return results
 }
 
-const addLocalMusics = async(filePaths: string[]) => {
+/**
+ * 导入本地音频文件到本地音乐列表（分批解析元数据，避免文件过多时阻塞）；
+ * 供扫描导入与系统文件关联「双击音乐文件打开播放」链路复用
+ */
+export const addLocalMusics = async(filePaths: string[]) => {
   // 分批解析元数据并写入列表，避免文件过多时阻塞
   for (let i = 0; i < filePaths.length; i += 200) {
     const paths = filePaths.slice(i, i + 200)
@@ -120,19 +122,3 @@ export const scanAllFolders = async(): Promise<{ folderCount: number, fileCount:
   }
 }
 
-/**
- * 用系统默认方式打开本地音乐文件；
- * 成功后所在文件夹自动加入允许扫描清单（按唯一性/嵌套规则处理并反馈）
- */
-export const openLocalMusicFile = async(musicInfo: LX.Music.MusicInfo): Promise<void> => {
-  const filePath = (musicInfo?.meta as { filePath?: string } | undefined)?.filePath
-  if (!filePath) return
-  const { ok, dir } = await openPath(filePath)
-  if (!ok || !dir) return
-  const result = addScanFolderToSettings(dir)
-  if (result.reason == 'added') {
-    void dialog({ message: window.i18n.t('local_music__folder_added_to_scan', { name: dir }) })
-  } else if (result.reason == 'conflict') {
-    void dialog({ message: window.i18n.t('local_music__folder_scan_conflict') })
-  }
-}

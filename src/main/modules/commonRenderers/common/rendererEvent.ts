@@ -19,6 +19,10 @@ export default () => {
     global.envParams.deeplink = null
   })
 
+  mainOn(CMMON_EVENT_NAME.clear_env_params_open_files, () => {
+    global.envParams.openFiles = []
+  })
+
   mainHandle<string[]>(CMMON_EVENT_NAME.get_system_fonts, async() => {
     return getFonts()
   })

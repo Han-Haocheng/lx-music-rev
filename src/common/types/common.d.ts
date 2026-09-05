@@ -58,6 +58,7 @@ declare namespace LX {
 
   interface EnvParams {
     deeplink?: string | null
+    openFiles?: string[]
     cmdParams: CmdParams
     workAreaSize?: Electron.Size
   }

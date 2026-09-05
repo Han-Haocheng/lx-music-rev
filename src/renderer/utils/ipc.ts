@@ -73,6 +73,17 @@ export const onDeeplink = (listener: LX.IpcRendererEventListenerParams<string>):
   }
 }
 
+export const clearEnvParamsOpenFiles = () => {
+  rendererSend(CMMON_EVENT_NAME.clear_env_params_open_files)
+}
+
+export const onOpenFiles = (listener: LX.IpcRendererEventListenerParams<string[]>): RemoveListener => {
+  rendererOn(CMMON_EVENT_NAME.open_files, listener)
+  return () => {
+    rendererOff(CMMON_EVENT_NAME.open_files, listener)
+  }
+}
+
 export const checkUpdate = () => {
   rendererSend(WIN_MAIN_RENDERER_EVENT_NAME.update_check)
 }
@@ -526,12 +537,6 @@ export const openDirInExplorer = async(path: string) => {
   return rendererSend<string>(WIN_MAIN_RENDERER_EVENT_NAME.open_dir_in_explorer, path)
 }
 
-/**
- * 用系统默认方式打开文件，返回 { ok, dir（文件所在目录）, error? }
- */
-export const openPath = async(filePath: string): Promise<{ ok: boolean, dir: string, error?: string }> => {
-  return rendererInvoke<string, { ok: boolean, dir: string, error?: string }>(WIN_MAIN_RENDERER_EVENT_NAME.open_path, filePath)
-}
 
 /**
  * 获取缓存大小

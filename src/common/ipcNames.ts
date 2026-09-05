@@ -3,6 +3,8 @@ const modules = {
     get_env_params: 'get_env_params',
     deeplink: 'deeplink',
     clear_env_params_deeplink: 'clear_env_params_deeplink',
+    open_files: 'open_files',
+    clear_env_params_open_files: 'clear_env_params_open_files',
     system_theme_change: 'system_theme_change',
     theme_change: 'theme_change',
     get_system_fonts: 'get_system_fonts',
@@ -64,7 +66,6 @@ const modules = {
     show_select_dialog: 'show_select_dialog',
     show_dialog: 'show_dialog',
     open_dir_in_explorer: 'open_dir_in_explorer',
-    open_path: 'open_path',
     open_dev_tools: 'open_dev_tools',
     set_power_save_blocker: 'set_power_save_blocker',
 

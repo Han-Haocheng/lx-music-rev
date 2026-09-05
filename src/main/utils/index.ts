@@ -9,27 +9,44 @@ import { nativeTheme, powerSaveBlocker } from 'electron'
 import { joinPath } from '@common/utils/nodejs'
 import themes from '@common/theme/index.json'
 
-export const parseEnvParams = (argv = process.argv): { cmdParams: LX.CmdParams, deeplink: string | null } => {
+/** 系统文件关联支持的音频扩展名（与文件管理器双击打开场景一致） */
+const OPEN_FILE_EXTS = ['mp3', 'flac', 'ogg', 'oga', 'wav', 'm4a']
+
+export const isOpenFile = (param: string): boolean => {
+  const index = param.lastIndexOf('.')
+  if (index < 1) return false
+  return OPEN_FILE_EXTS.includes(param.substring(index + 1).toLowerCase())
+}
+
+export const parseEnvParams = (argv = process.argv): { cmdParams: LX.CmdParams, deeplink: string | null, openFiles: string[] } => {
   const cmdParams: LX.CmdParams = {}
   let deeplink = null
+  const openFiles: string[] = []
   const rx = /^-\w+/
   for (let param of argv) {
     if (URL_SCHEME_RXP.test(param)) {
       deeplink = param
+      continue
     }
 
-    if (!rx.test(param)) continue
-    param = param.substring(1)
-    let index = param.indexOf('=')
-    if (index < 0) {
-      cmdParams[param] = true
-    } else {
-      cmdParams[param.substring(0, index)] = param.substring(index + 1)
+    if (rx.test(param)) {
+      param = param.substring(1)
+      let index = param.indexOf('=')
+      if (index < 0) {
+        cmdParams[param] = true
+      } else {
+        cmdParams[param.substring(0, index)] = param.substring(index + 1)
+      }
+      continue
     }
+
+    // 非参数、非协议链接的原始参数：文件管理器双击打开场景的文件路径
+    if (isOpenFile(param)) openFiles.push(param)
   }
   return {
     cmdParams,
     deeplink,
+    openFiles,
   }
 }
 

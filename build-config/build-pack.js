@@ -21,6 +21,15 @@ const options = {
       'lxmusic',
     ],
   },
+  // 系统文件关联：文件管理器双击音频文件由 lx-music-rev 打开并播放（主进程按启动参数/单实例事件导入本地音乐）
+  fileAssociations: [
+    {
+      ext: ['mp3', 'flac', 'ogg', 'oga', 'wav', 'm4a'],
+      name: 'Audio File',
+      description: 'Audio File',
+      role: 'Viewer',
+    },
+  ],
   directories: {
     buildResources: './resources',
     output: './build',

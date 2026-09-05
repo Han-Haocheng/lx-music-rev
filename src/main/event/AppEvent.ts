@@ -53,6 +53,10 @@ export class Event extends EventEmitter {
     this.emit('deeplink', link)
   }
 
+  open_files(paths: string[]) {
+    this.emit('open_files', paths)
+  }
+
   player_status(status: Partial<LX.Player.Status>) {
     for (const [key, value] of Object.entries(status)) {
       // @ts-expect-error
