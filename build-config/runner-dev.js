@@ -27,10 +27,10 @@ let electronProcess = null
 let hotMiddlewareRenderer
 let hotMiddlewareRendererLyric
 
-// 开发服务器端口：默认 9080（渲染窗口）/ 9081（桌面歌词），
-// 端口被占用时自动向上递增寻找可用端口，上限 9180
-const DEV_PORT_START = 9080
-const DEV_PORT_END = 9180
+// 开发服务器端口：默认 19080（渲染窗口）/ 19081（桌面歌词）——高位段与日常服务/正常版常见端口（80xx/90xx）区分开，
+// 端口被占用时自动向上递增寻找可用端口（上限起始 +100）；可用环境变量 LX_DEV_PORT 覆盖默认起始端口
+const DEV_PORT_START = Number(process.env.LX_DEV_PORT ?? 19080)
+const DEV_PORT_END = DEV_PORT_START + 100
 // 探测后实际使用的端口（init 阶段确定，dev server 与 Electron 加载地址统一使用该值）
 let rendererDevPort = DEV_PORT_START
 let lyricDevPort = DEV_PORT_START + 1
