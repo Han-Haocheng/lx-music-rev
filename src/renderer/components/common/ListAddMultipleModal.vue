@@ -6,7 +6,7 @@
         <base-checkbox id="list_add_multiple_move_mode" :model-value="moveMode" :label="$t('list_add__move_mode')" @update:model-value="setMoveMode" />
       </div>
       <div class="scroll" :class="$style.btnContent">
-        <base-btn v-for="(item, index) in lists" :key="item.id" :class="$style.btn" :aria-label="$t('list_add__multiple_btn_title', { name: item.name })" :disabled="existListIds.has(item.id)" @click="handleClick(index)">{{ item.name }}</base-btn>
+        <base-btn v-for="(item, index) in lists" :key="item.id" :class="$style.btn" :aria-label="$t('list_add__multiple_btn_title', { name: item.name })" @click="handleClick(index)">{{ item.name }}</base-btn>
         <base-btn :class="[$style.btn, $style.newList, isEditing ? $style.editing : null]" :aria-label="$t('favorite_group_new')" @click="handleEditing($event)">
           <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xlink="http://www.w3.org/1999/xlink" viewBox="0 0 42 42" space="preserve">
             <use xlink:href="#icon-addTo" />
@@ -139,6 +139,10 @@ export default {
     async handleClick(index) {
       const target = this.lists[index]
       const list = 'progress' in this.musicList[0] ? this.musicList.map(t => t.metadata.musicInfo) : this.musicList
+      if (target.isExist) {
+        void dialog({ message: window.i18n.t('list_add__already', { name: target.name }) })
+        return
+      }
       // 收藏分组目标：歌曲进入「我的收藏」并按分组归属
       const targetListId = target.isGroup ? loveList.id : target.id
       try {
@@ -147,7 +151,11 @@ export default {
         if (target.isGroup) {
           for (const musicInfo of list) await setMusicGroupIds(musicInfo.id, [target.id])
         }
-      } catch { /* 忽略写入失败（数据层问题由主进程日志暴露） */ }
+      } catch (err) {
+        console.warn(err)
+        void dialog({ message: window.i18n.t('list_add__failed') })
+        return
+      }
 
       if (this.keyModDown && !this.moveMode) return
       this.$nextTick(() => {

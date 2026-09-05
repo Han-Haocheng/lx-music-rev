@@ -141,6 +141,8 @@
   "list_add__title_first_move": "Move",
   "list_add__title_last": "to ...",
   "list_add__move_mode": "Move (remove from current list)",
+  "list_add__already": "Song already in \"{name}\"",
+  "list_add__failed": "Failed to add to list",
   "music_sort_custom_confirm": "This list has been manually ordered. Sorting by column will change the list's sort scheme. Continue?",
   "list_duplicate_tip": "A list with the same name already exists. Do you want to continue creating it?",
   "list_import_tip__alldata": "Failed to import. This is an \"All Data\" backup file. You need to go here to import: \n\nSettings → Backup & Restore → All Data → Import",

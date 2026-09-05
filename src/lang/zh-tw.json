@@ -141,6 +141,8 @@
   "list_add__title_first_move": "移動",
   "list_add__title_last": "到...",
   "list_add__move_mode": "移動（從目前清單移除）",
+  "list_add__already": "該歌曲已在「{name}」中",
+  "list_add__failed": "新增至清單失敗",
   "music_sort_custom_confirm": "此清單已手動排列，依表頭排序將變更清單的排序方案，是否繼續？",
   "list_duplicate_tip": "已存在同名清單，是否仍要繼續建立？",
   "list_import_tip__alldata": "匯入失敗，這是一個「所有資料」備份檔案，你需要在這裡匯入：\n\n設定 → 備份與復原 → 所有資料 → 匯入",
