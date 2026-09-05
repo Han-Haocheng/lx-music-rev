@@ -202,12 +202,10 @@ function startMain() {
         const asset = assets['main.js']
         if (!asset) return
         let source = asset.source().toString()
-        if (lyricDevPort !== DEV_PORT_START + 1) {
-          source = source.replace(/http:\/\/localhost:9081\/lyric\.html/g, `http://localhost:${lyricDevPort}/lyric.html`)
-        }
-        if (rendererDevPort !== DEV_PORT_START) {
-          source = source.replace(/http:\/\/localhost:9080/g, `http://localhost:${rendererDevPort}`)
-        }
+        // 无条件写入实际探测端口：主进程源码 URL 硬编码 9080/9081，任何端口场景都必须替换
+        // （按起始端口比较做条件时，端口与默认一致会跳过替换，窗口仍加载 9080 → ERR_CONNECTION_REFUSED 白屏）
+        source = source.replace(/http:\/\/localhost:9081\/lyric\.html/g, `http://localhost:${lyricDevPort}/lyric.html`)
+        source = source.replace(/http:\/\/localhost:9080/g, `http://localhost:${rendererDevPort}`)
         if (source !== asset.source().toString()) {
           assets['main.js'] = new webpack.sources.RawSource(source)
         }
