@@ -26,7 +26,8 @@ export const addSongListDetail = async(id: string, name: string, source: LX.Onli
 
   const list = await getListDetailAll(id)
   if (!list.length) return
-  const groupId = await addFavoriteGroup(name)
+  // 分组记录来源（board 榜）+ 歌曲入收藏并归组：后续可右键「与源同步」覆盖更新
+  const groupId = await addFavoriteGroup(name, source, getListId(id))
   await addListMusics(LIST_IDS.LOVE, list)
   for (const musicInfo of list) await setMusicGroupIds(musicInfo.id, [groupId])
 }
