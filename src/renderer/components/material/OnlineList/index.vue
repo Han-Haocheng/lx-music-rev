@@ -145,7 +145,7 @@ export default {
       default: false,
     },
   },
-  emits: ['show-menu', 'play-list', 'togglePage'],
+  emits: ['show-menu', 'togglePage'],
   setup(props, { emit }) {
     const actionButtonsVisible = appSetting['list.actionButtonsVisible']
     const rightClickSelectedIndex = ref(-1)
@@ -200,7 +200,7 @@ export default {
       handlePlayMusic,
       handlePlayMusicLater,
       doubleClickPlay,
-    } = usePlay({ selectedList, props, removeAllSelect, emit })
+    } = usePlay({ selectedList, props, removeAllSelect })
 
     const {
       isShowListAdd,

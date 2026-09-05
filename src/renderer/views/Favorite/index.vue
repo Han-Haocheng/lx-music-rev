@@ -41,10 +41,11 @@
         <base-input v-else ref="newGroupInput" v-model="newGroupName" :class="$style.newGroupInput" :placeholder="$t('favorite_group_new_input')" @keyup.enter="handleSaveNewGroup" @blur="handleSaveNewGroup" />
       </div>
       <div :class="$style.listWrap">
+        <!-- 无收藏夹时的空态列表：独立字面量滚动键，不复用历史 'favorite' 残留键（由 initData 清理） -->
         <MusicList
           :list-id="showLocalMusic ? LOCAL_LIST_ID : LOVE_ID"
           :music-list="showLocalMusic ? null : (currentGroupId == null ? emptyMusicList : groupMusicList)"
-          :scroll-key="showLocalMusic ? LOCAL_LIST_ID : (currentGroupId ?? 'favorite')"
+          :scroll-key="showLocalMusic ? LOCAL_LIST_ID : (currentGroupId ?? 'favgroup_empty')"
           :allow-custom-sort="showLocalMusic"
           :group-actions-visible="!showLocalMusic"
           @group-modal="handleGroupModal"
@@ -60,6 +61,8 @@
 import { nextTick } from '@common/utils/vueTools'
 import { LIST_IDS } from '@common/constants'
 import { LOCAL_LIST_ID } from '@renderer/store/localList'
+import { getListPositionInfo } from '@renderer/utils/ipc'
+import { removeListPosition } from '@renderer/utils/data'
 import MusicList from '../List/MusicList/index.vue'
 import MusicGroupModal from './components/MusicGroupModal.vue'
 import { favoriteGroups, initFavoriteGroups, getGroupMusics, removeFavoriteGroup, updateFavoriteGroup, addFavoriteGroup, clearGroupMusicsCache, syncFavoriteGroup, getMusicGroupIds, migrateOrphanMusics, FAVORITE_GROUP_DEFAULT_ID } from '@renderer/store/list/favoriteGroup'
@@ -158,6 +161,7 @@ export default {
     },
     async initData() {
       clearGroupMusicsCache()
+      await this.cleanListScrollResidues()
       await initFavoriteGroups()
       // 无容器孤儿歌曲（历史存量/整库恢复残留）自动归入默认兜底收藏夹「我的收藏」
       try {
@@ -169,6 +173,14 @@ export default {
       await this.refreshLoveList()
       await this.refreshGroupMusics()
       await this.selectInitialGroup()
+    },
+    // 清理列表滚动位置历史残留：'love'（旧「全部收藏」视图）、'favorite'（旧空态兜底键）、
+    // 'userlist_*'（退役自建列表）与空态兜底键（仅空列表写入、值恒为 0，无恢复价值）
+    async cleanListScrollResidues() {
+      const map = await getListPositionInfo() ?? {}
+      const legacyKeys = Object.keys(map).filter(key => key == LIST_IDS.LOVE || key == 'favorite' || key == 'favgroup_empty' || key.startsWith('userlist_'))
+      if (!legacyKeys.length) return
+      for (const key of legacyKeys) await removeListPosition(key)
     },
     // 首次进入/无选中时：播放中的收藏歌曲所属收藏夹优先，其次默认兜底收藏夹，最后第一个收藏夹
     async selectInitialGroup() {

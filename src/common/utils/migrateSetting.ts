@@ -93,8 +93,6 @@ export default (setting: any): Partial<LX.AppSetting> => {
     setting['desktopLyric.style.opacity'] = setting.desktopLyric?.style?.opacity
     setting['desktopLyric.style.isZoomActiveLrc'] = setting.desktopLyric?.style?.isZoomActiveLrc
 
-    setting['list.isClickPlayList'] = setting.list?.isClickPlayList
-    setting['list.isShowAlbumName'] = setting.list?.isShowAlbumName
     setting['list.isShowSource'] = setting.list?.isShowSource
     setting['list.isSaveScrollLocation'] = setting.list?.isSaveScrollLocation
     setting['list.addMusicLocationType'] = setting.list?.addMusicLocationType

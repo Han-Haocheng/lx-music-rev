@@ -34,11 +34,6 @@ import SearchInput from './SearchInput.vue'
     }
   }
 
-  &.controlBtnLeft {
-    .control {
-      display: none;
-    }
-  }
   &.controlBtnRight {
     justify-content: space-between;
   }

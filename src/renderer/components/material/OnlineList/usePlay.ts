@@ -1,17 +1,15 @@
 // import { useCommit } from '@common/utils/vueTools'
 import { addTempPlayList } from '@renderer/store/player/action'
-import { appSetting } from '@renderer/store/setting'
 import { type Ref } from '@common/utils/vueTools'
 import { playList } from '@renderer/core/player'
 import { LIST_IDS } from '@common/constants'
 
-export default ({ selectedList, props, removeAllSelect, emit }: {
+export default ({ selectedList, props, removeAllSelect }: {
   selectedList: Ref<LX.Music.MusicInfoOnline[]>
   props: {
     list: LX.Music.MusicInfoOnline[]
   }
   removeAllSelect: () => void
-  emit: (event: 'show-menu' | 'play-list' | 'togglePage', ...args: any[]) => void
 }) => {
   let clickTime = 0
   let clickIndex = -1
@@ -42,11 +40,7 @@ export default ({ selectedList, props, removeAllSelect, emit }: {
       clickIndex = index
       return
     }
-    if (appSetting['list.isClickPlayList']) {
-      emit('play-list', index)
-    } else {
-      void handlePlayMusic(index, true)
-    }
+    void handlePlayMusic(index, true)
     clickTime = 0
     clickIndex = -1
   }

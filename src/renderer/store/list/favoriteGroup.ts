@@ -4,6 +4,7 @@ import { PLAYER_EVENT_NAME } from '@common/ipcNames'
 import { FAVORITE_GROUP_DEFAULT_ID } from '@common/constants'
 import { getListDetailAll as getSongListDetail } from '@renderer/store/songList/action'
 import { getListDetailAll as getBoardListDetail } from '@renderer/store/leaderboard/action'
+import { removeListPosition } from '@renderer/utils/data'
 
 export interface FavoriteGroupInfo {
   id: string
@@ -67,6 +68,8 @@ export const removeFavoriteGroup = async(id: string) => {
   if (index > -1) favoriteGroups.splice(index, 1)
   groupMusicsCache.delete(id)
   groupSourcesCache.delete(id)
+  // 该组已删除，顺带清理其在收藏页按分组 id 保存的列表滚动位置
+  await removeListPosition(id)
 }
 
 /** 设置分组的来源标记（如歌单收藏：source / sourceListId） */

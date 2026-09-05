@@ -34,7 +34,6 @@
         :total="listDetailInfo.total"
         :list="listDetailInfo.list"
         :no-item="listDetailInfo.noItemLabel"
-        @play-list="handlePlayList"
         @toggle-page="togglePage"
       />
     </div>
@@ -113,7 +112,6 @@ export default {
       listRef,
       listDetailInfo,
       getListData,
-      handlePlayList,
     } = useList()
 
 
@@ -151,7 +149,6 @@ export default {
       togglePage,
       addSongListDetail,
       playSongListDetail,
-      handlePlayList,
       handleBack,
     }
   },

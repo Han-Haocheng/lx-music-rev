@@ -146,6 +146,7 @@ export const updateSetting = (setting?: Partial<LX.AppSetting>, isInit: boolean 
 
   const result = mergeSetting(originSetting, setting)
 
+  // setting.version 仅作配置结构版本留档回写（无读取消费；结构迁移以 migrateSetting 的 version 判断为准）
   result.setting.version = defaultSetting.version
 
   electronStore_config.override({ version: result.setting.version, setting: result.setting })

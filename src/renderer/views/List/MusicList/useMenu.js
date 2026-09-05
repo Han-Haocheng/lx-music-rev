@@ -4,7 +4,6 @@ import { useI18n } from '@renderer/plugins/i18n'
 import { hasDislike } from '@renderer/core/dislikeList'
 
 export default ({
-  assertApiSupport,
   emit,
   showGroupAction = false,
 
@@ -26,7 +25,6 @@ export default ({
     copyName: true,
     addTo: true,
     toggleSource: true,
-    download: true,
     search: true,
     dislike: true,
     remove: true,
@@ -85,8 +83,6 @@ export default ({
     itemMenuControl.sourceDetail = !!musicSdk[musicInfo.source]?.getMusicDetailPageUrl
     // itemMenuControl.play =
     //   itemMenuControl.playLater =
-    itemMenuControl.download = assertApiSupport(musicInfo.source) && musicInfo.source != 'local'
-
     itemMenuControl.dislike = !hasDislike(musicInfo)
 
     menuLocation.x = event.pageX
