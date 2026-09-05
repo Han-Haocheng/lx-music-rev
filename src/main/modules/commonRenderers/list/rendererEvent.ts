@@ -72,4 +72,13 @@ export default () => {
   mainHandle<string, string[]>(PLAYER_EVENT_NAME.favorite_group_music_list_get, async({ params: groupId }) => {
     return global.lx.worker.dbService.favoriteGroupMusicListGet(groupId)
   })
+  mainHandle<string, LX.DBService.FavoriteGroupSource | null>(PLAYER_EVENT_NAME.favorite_group_source_get, async({ params: groupId }) => {
+    return global.lx.worker.dbService.favoriteGroupSourceGet(groupId)
+  })
+  mainHandle<{ groupId: string, source: string, sourceListId: string }>(PLAYER_EVENT_NAME.favorite_group_source_set, async({ params: { groupId, source, sourceListId } }) => {
+    await global.lx.worker.dbService.favoriteGroupSourceSet(groupId, source, sourceListId)
+  })
+  mainHandle<{ groupId: string, musicInfos: LX.Music.MusicInfo[] }>(PLAYER_EVENT_NAME.favorite_group_sync_musics, async({ params: { groupId, musicInfos } }) => {
+    await global.lx.worker.dbService.favoriteGroupSyncMusics(groupId, musicInfos)
+  })
 }
