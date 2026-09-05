@@ -202,10 +202,10 @@ function startMain() {
         const asset = assets['main.js']
         if (!asset) return
         let source = asset.source().toString()
-        if (lyricDevPort !== 9081) {
+        if (lyricDevPort !== DEV_PORT_START + 1) {
           source = source.replace(/http:\/\/localhost:9081\/lyric\.html/g, `http://localhost:${lyricDevPort}/lyric.html`)
         }
-        if (rendererDevPort !== 9080) {
+        if (rendererDevPort !== DEV_PORT_START) {
           source = source.replace(/http:\/\/localhost:9080/g, `http://localhost:${rendererDevPort}`)
         }
         if (source !== asset.source().toString()) {
