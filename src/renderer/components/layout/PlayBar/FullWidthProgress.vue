@@ -1,7 +1,7 @@
 <template>
   <div :class="$style.player">
     <div :class="$style.progress">
-      <common-progress-bar v-if="!isShowPlayerDetail" :class-name="$style.progressBar" :progress="progress" :handle-transition-end="handleTransitionEnd" :is-active-transition="isActiveTransition" />
+      <common-progress-bar :class-name="$style.progressBar" :progress="progress" :handle-transition-end="handleTransitionEnd" :is-active-transition="isActiveTransition" />
     </div>
     <div :class="$style.picContent" :aria-label="$t('player__pic_tip')" @contextmenu="handleToMusicLocation" @click="showPlayerDetail">
       <img v-if="musicInfo.pic" :src="musicInfo.pic" decoding="async" @error="imgError">
@@ -89,7 +89,8 @@ export default {
 
     const showPlayerDetail = () => {
       if (!playMusicInfo.musicInfo) return
-      setShowPlayerDetail(true)
+      // 再次点击封面可隐藏详情页（切换）
+      setShowPlayerDetail(!isShowPlayerDetail.value)
     }
     const handleCopy = (text) => {
       clipboardWriteText(text)

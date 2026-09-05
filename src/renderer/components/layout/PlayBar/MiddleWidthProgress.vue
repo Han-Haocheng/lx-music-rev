@@ -14,7 +14,7 @@
     <div :class="$style.timeContent">
       <span>{{ nowPlayTimeStr }}</span>
       <div :class="$style.progress">
-        <common-progress-bar v-if="!isShowPlayerDetail" :class-name="$style.progressBar" :progress="progress" :handle-transition-end="handleTransitionEnd" :is-active-transition="isActiveTransition" />
+        <common-progress-bar :class-name="$style.progressBar" :progress="progress" :handle-transition-end="handleTransitionEnd" :is-active-transition="isActiveTransition" />
       </div>
       <!-- <span style="margin: 0 1px;">/</span> -->
       <span>{{ maxPlayTimeStr }}</span>
@@ -89,7 +89,8 @@ export default {
 
     const showPlayerDetail = () => {
       if (!playMusicInfo.musicInfo) return
-      setShowPlayerDetail(true)
+      // 再次点击封面可隐藏详情页（切换）
+      setShowPlayerDetail(!isShowPlayerDetail.value)
     }
     const handleCopy = (text) => {
       clipboardWriteText(text)
