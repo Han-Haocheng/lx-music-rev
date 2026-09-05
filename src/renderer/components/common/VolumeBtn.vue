@@ -49,7 +49,7 @@ const handleUpdateVolume = (val) => {
 }
 
 // ===== 高级音量设置：音频输出设备切换 =====
-const outputDevices = ref<Array<{ deviceId: string, label: string }>>([])
+const outputDevices = ref([])
 const refreshOutputDevices = async() => {
   try {
     const devices = await navigator.mediaDevices.enumerateDevices()
@@ -63,7 +63,7 @@ onMounted(() => {
   navigator.mediaDevices?.addEventListener?.('devicechange', () => { void refreshOutputDevices() })
 })
 
-const handleOutputDeviceChange = (deviceId: string) => {
+const handleOutputDeviceChange = (deviceId) => {
   if (!deviceId) return
   saveMediaDeviceId(deviceId)
   void setMediaDeviceId(deviceId)
