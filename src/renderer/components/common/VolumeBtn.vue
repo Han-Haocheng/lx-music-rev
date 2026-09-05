@@ -24,7 +24,7 @@
             :list="outputDevices"
             item-key="deviceId"
             item-name="label"
-            :value="appSetting['player.mediaDeviceId']"
+            :model-value="appSetting['player.mediaDeviceId']"
             @change="handleOutputDeviceChange"
           />
         </div>
