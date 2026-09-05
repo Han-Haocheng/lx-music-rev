@@ -1,5 +1,5 @@
 import { ref, watch, computed, onBeforeUnmount } from '@common/utils/vueTools'
-import { playMusicInfo, playInfo } from '@renderer/store/player/state'
+import { playMusicInfo } from '@renderer/store/player/state'
 import { getListMusics } from '@renderer/store/list/action'
 import { appSetting } from '@renderer/store/setting'
 
@@ -37,10 +37,20 @@ export default ({ props, onLoadedList }) => {
     handleListIdChange(id)
   })
 
-  const playerInfo = computed(() => ({
-    isPlayList: playMusicInfo.listId == props.listId,
-    playIndex: playInfo.playIndex,
-  }))
+  // 当前播放行定位：按歌曲 id 在当前视图列表内查找，而非直接用全局播放索引——
+  // 收藏分组视图的列表是「全部收藏」子集，直接按索引比对会把播放标识错位显示到其它分组/视图的同位置歌曲上
+  const playerInfo = computed(() => {
+    const isPlayList = playMusicInfo.listId == props.listId
+    let playIndex = -1
+    if (isPlayList && playMusicInfo.musicInfo) {
+      const currentId = playMusicInfo.musicInfo.id
+      playIndex = list.value.findIndex(m => m.id == currentId)
+    }
+    return {
+      isPlayList,
+      playIndex,
+    }
+  })
 
   const setSelectedIndex = index => {
     selectedIndex.value = index
