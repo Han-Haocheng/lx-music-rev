@@ -2,7 +2,7 @@ import { tempListMeta } from '@renderer/store/list/state'
 import { dialog } from '@renderer/plugins/Dialog'
 import { getListDetail, getListDetailAll } from '@renderer/store/leaderboard/action'
 import { addListMusics, setTempList } from '@renderer/store/list/action'
-import { favoriteGroups, addFavoriteGroup, setMusicGroupIds } from '@renderer/store/list/favoriteGroup'
+import { favoriteGroups, addFavoriteGroup, setFavoriteGroupSource, setMusicGroupIds } from '@renderer/store/list/favoriteGroup'
 import { playList } from '@renderer/core/player/action'
 import { LIST_IDS } from '@common/constants'
 
