@@ -144,7 +144,6 @@ export default {
       handleClose,
       handlePlay,
       handleRemove,
-      handleClearPlayed,
       handleClearPlaylist,
     }
   },
